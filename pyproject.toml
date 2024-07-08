@@ -9,6 +9,9 @@ packages = [{include = "nhp_dwiproc", from = "src"}]
 
 [tool.poetry.dependencies]
 python = "~3.11"
+bids2table = "^0.1.0"
+niwrap = {git = "https://github.com/childmindresearch/niwrap", subdirectory = "python"}
+bidsapp-helper = {git = "https://github.com/kaitj/bidsapp-helper"}
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.2.2"
