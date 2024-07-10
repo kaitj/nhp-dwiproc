@@ -33,7 +33,7 @@ develop = false
 type = "git"
 url = "https://github.com/kaitj/bidsapp-helper"
 reference = "HEAD"
-resolved_reference = "88de979e3f3bf9329cf2b5be27c984f0204e0d95"
+resolved_reference = "1844d10240be5602dc8bcabe740f8bc0dafbf2fc"
 
 [[package]]
 name = "cfgv"
