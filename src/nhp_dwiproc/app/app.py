@@ -16,6 +16,7 @@ def parser() -> BidsAppArgumentParser:
     app_parser.update_analysis_level(["index", "participant"])
     _add_optional_args(app_parser=app_parser)
     _add_index_args(app_parser=app_parser)
+    _add_participant_args(app_parser=app_parser)
     return app_parser
 
 
@@ -29,18 +30,11 @@ def _add_optional_args(app_parser: BidsAppArgumentParser) -> None:
         default=1,
         help="number of threads to use (default: %(default)d).",
     )
-    app_parser.parser.add_argument(
-        "--participant-query",
-        "--participant_query",
-        metavar="participant_query",
-        type=str,
-        help="string query with bids entities for specific participants",
-    )
 
 
 def _add_index_args(app_parser: BidsAppArgumentParser) -> None:
     """Optional args associated with index analysis-level."""
-    index_args = app_parser.parser.add_argument_group("index-level optional arguments")
+    index_args = app_parser.parser.add_argument_group("index analysis-level options")
     index_args.add_argument(
         "--index-path",
         "--index_path",
@@ -56,6 +50,21 @@ def _add_index_args(app_parser: BidsAppArgumentParser) -> None:
         dest="index_overwrite",
         action="store_true",
         help="overwrite previous index (default: %(default)s)",
+    )
+
+
+def _add_participant_args(app_parser: BidsAppArgumentParser) -> None:
+    """Optional args associated with participant analysis-level."""
+    participant_args = app_parser.parser.add_argument_group(
+        "participant analysis-level options"
+    )
+    participant_args.add_argument(
+        "--participant-query",
+        "--participant_query",
+        metavar="query",
+        dest="participant_query",
+        type=str,
+        help="string query with bids entities for specific participants",
     )
 
 
