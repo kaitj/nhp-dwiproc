@@ -29,6 +29,13 @@ def _add_optional_args(app_parser: BidsAppArgumentParser) -> None:
         default=1,
         help="number of threads to use (default: %(default)d).",
     )
+    app_parser.parser.add_argument(
+        "--participant-query",
+        "--participant_query",
+        metavar="participant_query",
+        type=str,
+        help="string query with bids entities for specific participants",
+    )
 
 
 def _add_index_args(app_parser: BidsAppArgumentParser) -> None:
@@ -41,7 +48,7 @@ def _add_index_args(app_parser: BidsAppArgumentParser) -> None:
         dest="index_path",
         type=pl.Path,
         default=None,
-        help="bids2table index path (default: {bids_dir}/index.b2t).",
+        help="bids2table index path (default: {bids_dir}/index.b2t)",
     )
     index_args.add_argument(
         "-x",
