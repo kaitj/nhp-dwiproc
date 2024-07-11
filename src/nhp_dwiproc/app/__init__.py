@@ -1,6 +1,6 @@
 """Initialize application module."""
 
-from . import analysis_level
+from . import analysis_levels
 from .app import descriptor, parser
 
-__all__ = ["analysis_level", "descriptor", "parser"]
+__all__ = ["analysis_levels", "descriptor", "parser"]

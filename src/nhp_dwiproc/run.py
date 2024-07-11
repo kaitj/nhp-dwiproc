@@ -25,9 +25,9 @@ def main() -> None:
 
     match args.analysis_level:
         case "index":
-            app.analysis_level.index(args=args, logger=logger)
+            app.analysis_levels.index.run(args=args, logger=logger)
         case "participant":
-            app.analysis_level.participant(args=args, logger=logger)
+            app.analysis_levels.participant.run(args=args, logger=logger)
 
     app.descriptor(args.output_dir / "pipeline_description.json")
 

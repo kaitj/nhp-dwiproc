@@ -1,10 +1,21 @@
 """Utility functions for applicaiton."""
 
+import pathlib as pl
+from argparse import Namespace
 from functools import partial
 from typing import Any
 
 import pandas as pd
 from bids2table import BIDSTable
+
+
+def check_index_path(args: Namespace) -> pl.Path:
+    """Helper to check for index path."""
+    if args.index_path is None:
+        index_path = args.bids_dir / "index.b2t"
+    index_path = args.index_path
+
+    return index_path
 
 
 def unique_entities(row: pd.Series) -> dict[str, Any]:
