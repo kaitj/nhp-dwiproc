@@ -1,25 +1,13 @@
 #!/usr/bin/env python
 """Main entrypoint of code."""
 
-import logging
-import sys
-
 from . import app
-
-# Setup logger
-logging.basicConfig(
-    level=logging.INFO,
-    format="[%(asctime)s %(name)s %(levelname)s] %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S",
-)
-console = logging.StreamHandler(sys.stdout)
-console.setLevel(100)
-logger = logging.getLogger(__name__)
-logger.addHandler(console)
 
 
 def main() -> None:
     """Application."""
+    logger = app.utils.setup_logger()
+
     # Parse arguments
     args = app.parser().parse_args()
 
