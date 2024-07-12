@@ -1406,6 +1406,42 @@ files = [
 ]
 
 [[package]]
+name = "styxdocker"
+version = "0.1.0"
+description = "A beautiful description."
+optional = false
+python-versions = ">=3.10"
+files = []
+develop = false
+
+[package.dependencies]
+styxdefs = "^0.1.3"
+
+[package.source]
+type = "git"
+url = "https://github.com/childmindresearch/styxdocker"
+reference = "HEAD"
+resolved_reference = "53c3ea71d5e0384243bf4339b75bf4f08938969e"
+
+[[package]]
+name = "styxsingularity"
+version = "0.1.0"
+description = "Singularity/Apptainer runner for Styx"
+optional = false
+python-versions = "~3.11"
+files = []
+develop = false
+
+[package.dependencies]
+styxdefs = "^0.1.3"
+
+[package.source]
+type = "git"
+url = "https://github.com/childmindresearch/styxsingularity"
+reference = "HEAD"
+resolved_reference = "47be0a521adf3e2119578c043bee7597d28dd24d"
+
+[[package]]
 name = "tornado"
 version = "6.4.1"
 description = "Tornado is a Python web framework and asynchronous networking library, originally developed at FriendFeed."
@@ -1516,4 +1552,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "~3.11"
-content-hash = "39e82d7eea73198545a1180c56b8c1ac5828f5110b5018e34e1d0c7448c989f7"
+content-hash = "49c23d2e2d16c6b1a379ebe41307e15c8d10ec08d47f6e849df910349f417370"

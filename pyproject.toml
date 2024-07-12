@@ -12,6 +12,8 @@ python = "~3.11"
 bids2table = "^0.1.0"
 niwrap = {git = "https://github.com/childmindresearch/niwrap", subdirectory = "python"}
 bidsapp-helper = {git = "https://github.com/kaitj/bidsapp-helper"}
+styxdocker = {git = "https://github.com/childmindresearch/styxdocker"}
+styxsingularity = {git = "https://github.com/childmindresearch/styxsingularity"}
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.2.2"

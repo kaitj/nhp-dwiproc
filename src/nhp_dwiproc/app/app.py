@@ -23,6 +23,24 @@ def parser() -> BidsAppArgumentParser:
 def _add_optional_args(app_parser: BidsAppArgumentParser) -> None:
     """General optional arguments."""
     app_parser.parser.add_argument(
+        "--runner",
+        metavar="runner",
+        type=str,
+        default=None,
+        choices=[None, "Docker", "Singularity", "Apptainer"],
+        help="workflow runner to use (one of [%(choices)s]; default: %(default)s)",
+    )
+    app_parser.parser.add_argument(
+        "--singularity-config",
+        "--singularity_config",
+        "--apptainer-config",
+        "--apptainer_config",
+        metavar="config",
+        dest="container_config",
+        default=None,
+        help="YAML config file mapping containers to 'local' paths",
+    )
+    app_parser.parser.add_argument(
         "-N",
         "--threads",
         metavar="threads",
