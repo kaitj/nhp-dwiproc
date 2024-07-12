@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 """Main entrypoint of code."""
 
+import pathlib as pl
+import tempfile
+
 from . import app
 
 
@@ -15,9 +18,12 @@ def main() -> None:
         case "index":
             app.analysis_levels.index.run(args=args, logger=logger)
         case "participant":
-            app.analysis_levels.participant.run(args=args, logger=logger)
-
-    app.descriptor(args.output_dir / "pipeline_description.json")
+            with tempfile.NamedTemporaryFile(
+                "w", dir=f"{pl.Path.home()} / .mrtrix.conf"
+            ) as mrtrix_conf:
+                mrtrix_conf.write(f"BZeroThreshold: {args.b0_thresh}")
+                app.analysis_levels.participant.run(args=args, logger=logger)
+                app.descriptor(args.output_dir / "pipeline_description.json")
 
 
 if __name__ == "__main__":

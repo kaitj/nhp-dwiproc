@@ -30,6 +30,15 @@ def _add_optional_args(app_parser: BidsAppArgumentParser) -> None:
         default=1,
         help="number of threads to use (default: %(default)d).",
     )
+    app_parser.parser.add_argument(
+        "--b0-thresh",
+        "--b0_thresh",
+        metavar="thresh",
+        dest="b0_thresh",
+        type=int,
+        default=10,
+        help="threshold for shell to be considered b=0 (default: %(default)d)",
+    )
 
 
 def _add_index_args(app_parser: BidsAppArgumentParser) -> None:
@@ -65,6 +74,31 @@ def _add_participant_args(app_parser: BidsAppArgumentParser) -> None:
         dest="participant_query",
         type=str,
         help="string query with bids entities for specific participants",
+    )
+    participant_args.add_argument(
+        "-ss",
+        "--single-shell",
+        "--single_shell",
+        dest="single_shell",
+        type=bool,
+        help="Process single-shell data",
+    )
+    participant_args.add_argument(
+        "--shells",
+        metavar="shell",
+        dest="shells",
+        nargs="*",
+        type=int,
+        help="space-separated list of b-values (b=0 must be included explicitly)",
+    )
+    participant_args.add_argument(
+        "--lmax",
+        metavar="lmax",
+        nargs="*",
+        type=int,
+        help="""maximum harmonic degree(s)
+        (space-separated for multiple b-values, b=0 must be included explicitly)
+        """,
     )
 
 

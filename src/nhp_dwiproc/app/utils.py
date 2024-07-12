@@ -64,8 +64,9 @@ def get_inputs(b2t: BIDSTable, entities: dict[str, Any]) -> dict[str, dict[str, 
                 suffix="T1w", ext={"items": [".nii", ".nii.gz"]}, **entities
             )
             .flat.iloc[0]
-            .file_path
+            .file_path,
         },
+        "entities": {**entities},
     }
 
     return wf_inputs

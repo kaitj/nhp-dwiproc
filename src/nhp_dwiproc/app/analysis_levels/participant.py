@@ -1,11 +1,13 @@
-"""Runners for different analysis-levels."""
+"""Pre-tractography participant processing (to compute FODs)."""
 
 from argparse import Namespace
+from functools import partial
 from logging import Logger
 
-from bids2table import bids2table
+from bids2table import BIDSEntities, BIDSTable, bids2table
 from tqdm import tqdm
 
+from ...workflow.diffusion import reconst
 from .. import utils
 
 
@@ -31,15 +33,22 @@ def run(args: Namespace, logger: Logger) -> None:
 
     # Filter b2t based on string query
     if args.participant_query:
+        assert isinstance(b2t, BIDSTable)
         b2t = b2t.loc[b2t.flat.query(args.participant_query).index]
 
-    # Run for each unique combination of DWI entities
+    # Loop through remaining subjects after query
+    assert isinstance(b2t, BIDSTable)
     for _, row in tqdm(
         b2t.filter_multi(
             space="T1w", suffix="dwi", ext={"items": [".nii", ".nii.gz"]}
         ).flat.iterrows()
     ):
         entities = utils.unique_entities(row)
-        wf_inputs = utils.get_inputs(b2t=b2t, entities=entities)
+        input_data = utils.get_inputs(b2t=b2t, entities=entities)
+        bids = partial(BIDSEntities.from_dict(input_data["entities"]).with_update)
 
-        # Add something here that collects subject response functions
+        logger.info(f"Processing {bids().to_path().name}")
+
+        fods = reconst.compute_subj_fods(
+            input_data=input_data, bids=bids, args=args, logger=logger
+        )
