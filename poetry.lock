@@ -1291,13 +1291,13 @@ tests = ["cython", "littleutils", "pygments", "pytest", "typeguard"]
 
 [[package]]
 name = "styxdefs"
-version = "0.1.4"
+version = "0.1.5"
 description = "Styx definitions and minimal runtime"
 optional = false
 python-versions = ">=3.10"
 files = [
-    {file = "styxdefs-0.1.4-py3-none-any.whl", hash = "sha256:c5ca34bdb1156f4cf9840033238199b9ca50b70d0d6a9edb318ecfe4aef81a63"},
-    {file = "styxdefs-0.1.4.tar.gz", hash = "sha256:427236aef67ee61d19987f48e1fc220a2a9d00b81449a4633aa181024d040ced"},
+    {file = "styxdefs-0.1.5-py3-none-any.whl", hash = "sha256:41b93e16a22d9edbf422a6c8e51cd2204a972ec92280382ef97df28bb6beb543"},
+    {file = "styxdefs-0.1.5.tar.gz", hash = "sha256:33c2e57aeae3826f93314d3aef7ea8f7220efb61291ba1bbb2e7025344907944"},
 ]
 
 [[package]]

@@ -11,7 +11,7 @@ from styxdocker import DockerRunner
 from styxsingularity import SingularityRunner
 from tqdm import tqdm
 
-from ...workflow.diffusion import reconst
+from ...workflow.diffusion import reconst, tractography
 from .. import utils
 
 
@@ -72,6 +72,11 @@ def run(args: Namespace, logger: Logger) -> None:
 
         logger.info(f"Processing {bids().to_path().name}")
 
-        fods = reconst.compute_subj_fods(
+        fods = reconst.compute_fods(
             input_data=input_data, bids=bids, args=args, logger=logger
         )
+        tractography.generate_tractography(
+            input_data=input_data, fod=fods, bids=bids, args=args, logger=logger
+        )
+
+        logger.info(f"Completed processing for {bids().to_path().name}")

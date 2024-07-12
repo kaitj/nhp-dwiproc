@@ -115,6 +115,20 @@ def _add_participant_args(app_parser: BidsAppArgumentParser) -> None:
         (space-separated for multiple b-values, b=0 must be included explicitly)
         """,
     )
+    participant_args.add_argument(
+        "--steps",
+        metavar="steps",
+        dest="tractography_steps",
+        type=float,
+        help="Step size (in mm) for tractography",
+    )
+    participant_args.add_argument(
+        "--streamlines",
+        dest="tractography_streamlines",
+        type=int,
+        default=10000,
+        help="Number of streamlines to select (default %(default)d)",
+    )
 
 
 def descriptor(out_fpath: pl.Path) -> None:

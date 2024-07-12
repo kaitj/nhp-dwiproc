@@ -8,7 +8,7 @@ from typing import Any
 from niwrap import mrtrix
 
 
-def compute_subj_fods(
+def compute_fods(
     input_data: dict[str, Any],
     bids: partial,
     args: Namespace,
