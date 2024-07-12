@@ -31,10 +31,8 @@ def _add_optional_args(app_parser: BidsAppArgumentParser) -> None:
         help="workflow runner to use (one of [%(choices)s]; default: %(default)s)",
     )
     app_parser.parser.add_argument(
-        "--singularity-config",
-        "--singularity_config",
-        "--apptainer-config",
-        "--apptainer_config",
+        "--container-config",
+        "--container_config",
         metavar="config",
         dest="container_config",
         default=None,
@@ -94,7 +92,6 @@ def _add_participant_args(app_parser: BidsAppArgumentParser) -> None:
         help="string query with bids entities for specific participants",
     )
     participant_args.add_argument(
-        "-ss",
         "--single-shell",
         "--single_shell",
         dest="single_shell",

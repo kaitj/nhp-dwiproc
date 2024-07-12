@@ -24,7 +24,6 @@ ruff = "^0.5.1"
 ipykernel = "^6.29.5"
 
 [tool.poetry.group.docs.dependencies]
-pdoc = "^14.5.1"
 
 [tool.poetry.scripts]
 nhp_dwiproc = "nhp_dwiproc.run:main"

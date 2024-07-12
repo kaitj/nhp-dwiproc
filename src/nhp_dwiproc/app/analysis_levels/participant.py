@@ -15,23 +15,27 @@ from ...workflow.diffusion import reconst
 from .. import utils
 
 
-def run(args: Namespace, logger: Logger) -> None:
-    """Runner for participant-level analysis."""
+def _set_runner(args: Namespace, logger: Logger) -> None:
+    """Set runner (defaults to local)."""
     if args.runner == "Docker":
         logger.info("Using Docker runner for processing")
         set_global_runner(DockerRunner())
     elif args.runner in ["Singularity", "Apptainer"]:
-        if not args.singularity_config:
+        if not args.container_config:
             raise ValueError(
-                "Config not provided - please provide using '--singularity-config'\n"
-                "See https://github.com/kaitj/nhp-dwiproc/blob/main/src/nhp_dwiproc/app/resources/images.yaml"
-                "for an example."
+                """Config not provided - please provide using '--container-config' \n
+            See https://github.com/kaitj/nhp-dwiproc/blob/main/src/nhp_dwiproc/app/resources/images.yaml
+            for an example."""
             )
         logger.info("Using Singularity / Apptainer runner for processing.")
         with open(args.container_config, "r") as container_config:
             images = yaml.safe_load(container_config)
         set_global_runner(SingularityRunner(images=images))
 
+
+def run(args: Namespace, logger: Logger) -> None:
+    """Runner for participant-level analysis."""
+    _set_runner(args=args, logger=logger)
     index_path = utils.check_index_path(args=args)
 
     if index_path.exists():

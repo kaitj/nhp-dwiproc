@@ -31,21 +31,27 @@ def compute_subj_fods(
         shells=args.shells if args.shells else None,
         lmax=args.lmax if args.lmax else None,
         nthreads=args.nthreads,
+        config=[mrtrix.Dwi2responseConfig("BZeroThreshold", args.b0_thresh)],
     )
 
-    # WAITING FOR FLO TO FIX PAIRING OUTPUTS
     logger.info("Computing fiber orientation distribution")
     response_odf = [
-        dwi2response.algorithm.out_sfwm,
-        bids(desc="wm", suffix="fod", ext=".mif").to_path().name,
-        dwi2response.algorithm.out_gm,
-        bids(desc="gm", suffix="fod", ext=".mif").to_path().name,
-        dwi2response.algorithm.out_csf,
-        bids(desc="csf", suffix="fod", ext=".mif").to_path().name,
+        mrtrix.Dwi2fodResponseOdf(
+            dwi2response.algorithm.out_sfwm,
+            bids(desc="wm", suffix="fod", ext=".mif").to_path().name,
+        ),
+        mrtrix.Dwi2fodResponseOdf(
+            dwi2response.algorithm.out_gm,
+            bids(desc="gm", suffix="fod", ext=".mif").to_path().name,
+        ),
+        mrtrix.Dwi2fodResponseOdf(
+            dwi2response.algorithm.out_csf,
+            bids(desc="csf", suffix="fod", ext=".mif").to_path().name,
+        ),
     ]
     if args.single_shell:
         logger.info("Leaving out GM for single-shell computation")
-        response_odf = response_odf[:2] + response_odf[4:]
+        response_odf = [response_odf[0], response_odf[2]]
     dwi2fod = mrtrix.dwi2fod(
         algorithm="msmt_csd",
         dwi=input_data["dwi"]["nii"],
@@ -57,13 +63,16 @@ def compute_subj_fods(
         mask=input_data["dwi"]["mask"],
         shells=args.shells if args.shells else None,
         nthreads=args.nthreads,
+        config=[mrtrix.Dwi2fodConfig("BZeroThreshold", args.b0_thresh)],
     )
 
     logger.info("Normalizing fiber orientation distributions")
-    normalize_odf = []
-    for idx in range(1, len(response_odf) + 1, 2):
-        normalize_odf.append(dwi2fod.root.join(response_odf[idx]))
-        normalize_odf.append(response_odf[idx].replace("fod", "fodNorm"))
+    normalize_odf = [
+        mrtrix.MtnormaliseInputOutput(
+            tissue_odf.odf, tissue_odf.odf.name.replace("fod", "fodNorm")
+        )
+        for tissue_odf in dwi2fod.response_odf
+    ]
     mtnormalise = mrtrix.mtnormalise(
         input_output=normalize_odf,
         mask=input_data["dwi"]["mask"],

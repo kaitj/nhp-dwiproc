@@ -28,11 +28,7 @@ def setup_logger() -> logging.Logger:
 
 def check_index_path(args: Namespace) -> pl.Path:
     """Helper to check for index path."""
-    if args.index_path is None:
-        index_path = args.bids_dir / "index.b2t"
-    index_path = args.index_path
-
-    return index_path
+    return args.index_path if args.index_path else args.bids_dir / "index.b2t"
 
 
 def unique_entities(row: pd.Series) -> dict[str, Any]:
