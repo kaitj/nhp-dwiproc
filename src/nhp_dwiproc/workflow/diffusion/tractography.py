@@ -7,6 +7,8 @@ from typing import Any
 
 from niwrap import mrtrix
 
+from ...app import utils
+
 
 def generate_tractography(
     input_data: dict[str, Any],
@@ -27,6 +29,7 @@ def generate_tractography(
         select_=args.streamline_count,
         nthreads=args.nthreads,
     )
+    utils.save(files=tckgen.tracks, out_dir=args.out_dir)
 
     logger.info("Computing per-streamline multipliers")
     tcksift = mrtrix.tcksift2(
@@ -36,5 +39,6 @@ def generate_tractography(
         out_mu=bids(desc="iFOD2", suffix="muCoefficient", ext=".txt"),
         nthreads=args.nthreads,
     )
+    utils.save(files=[tcksift.out_weights, tcksift.out_mu], out_dir=args.out_dir)
 
     return tcksift

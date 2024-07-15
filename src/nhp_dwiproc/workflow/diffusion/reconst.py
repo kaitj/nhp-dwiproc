@@ -7,6 +7,8 @@ from typing import Any
 
 from niwrap import mrtrix
 
+from ...app import utils
+
 
 def compute_fods(
     input_data: dict[str, Any],
@@ -78,5 +80,6 @@ def compute_fods(
         mask=input_data["dwi"]["mask"],
         nthreads=args.nthreads,
     )
+    utils.save(files=mtnormalise.input_output, out_dir=args.out_dir)
 
     return mtnormalise

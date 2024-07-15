@@ -2,6 +2,7 @@
 
 import logging
 import pathlib as pl
+import shutil
 import sys
 from argparse import Namespace
 from functools import partial
@@ -9,6 +10,7 @@ from typing import Any
 
 import pandas as pd
 from bids2table import BIDSTable
+from styxdefs import OutputPathType
 
 
 def setup_logger() -> logging.Logger:
@@ -66,3 +68,22 @@ def get_inputs(b2t: BIDSTable, entities: dict[str, Any]) -> dict[str, dict[str, 
     }
 
     return wf_inputs
+
+
+def save(files: OutputPathType | list[OutputPathType], out_dir: pl.Path) -> None:
+    """Helper function to save file to disk."""
+    # Recursively call save for each file in list
+    if isinstance(files, list):
+        for file in files:
+            save(file, out_dir=out_dir)
+
+    # Find relevant BIDs components of file path
+    assert isinstance(files, OutputPathType)
+    for idx, fpath_part in enumerate(parts := files.parts):
+        if "sub-" in fpath_part:
+            out_fpath = pl.Path(*parts[idx:])
+            break
+    else:
+        raise ValueError("Unable to find relevant file path components to save file.")
+
+    shutil.copy2(files, out_dir.joinpath(out_fpath))
