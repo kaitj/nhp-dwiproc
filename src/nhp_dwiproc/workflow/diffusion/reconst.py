@@ -80,6 +80,12 @@ def compute_fods(
         mask=input_data["dwi"]["mask"],
         nthreads=args.nthreads,
     )
-    utils.save(files=mtnormalise.input_output, out_dir=args.out_dir)
+
+    # Save relevant outputs
+    logger.info("Saving relevant output files from reconstruction")
+    mtnormalise_output = [
+        mtnormalise_output.output for mtnormalise_output in mtnormalise.input_output
+    ]
+    utils.save(files=mtnormalise_output, out_dir=args.out_dir)
 
     return mtnormalise

@@ -20,7 +20,7 @@ def generate_tractography(
     """Generate subject tractography."""
     logger.info("Generating tractography")
     tckgen = mrtrix.tckgen(
-        source=fod.input_output[0],
+        source=fod.input_output[0].output,
         tracks=bids(desc="iFOD2", suffix="tractography", ext=".tck"),
         mask=input_data["dwi"]["mask"],
         seed_image=input_data["dwi"]["mask"],
@@ -29,16 +29,17 @@ def generate_tractography(
         select_=args.streamline_count,
         nthreads=args.nthreads,
     )
-    utils.save(files=tckgen.tracks, out_dir=args.out_dir)
 
     logger.info("Computing per-streamline multipliers")
     tcksift = mrtrix.tcksift2(
         in_tracks=tckgen.tracks,
-        in_fod=fod.input_output[0],
+        in_fod=fod.input_output[0].output,
         out_weights=bids(desc="iFOD2", suffix="tckWeights", ext=".txt"),
         out_mu=bids(desc="iFOD2", suffix="muCoefficient", ext=".txt"),
         nthreads=args.nthreads,
     )
-    utils.save(files=[tcksift.out_weights, tcksift.out_mu], out_dir=args.out_dir)
 
-    return tcksift
+    # Save relevant outputs
+    logger.info("Saving relevant output files from tractography generation")
+    utils.save(files=tckgen.tracks, out_dir=args.out_dir)
+    utils.save(files=[tcksift.out_weights, tcksift.out_mu], out_dir=args.out_dir)
