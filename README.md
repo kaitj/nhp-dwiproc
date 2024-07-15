@@ -39,4 +39,4 @@ If using Singularity, please:
 2. Map their local paths to the necessary image config yaml file.
 
 _See example yaml config
-[here](https://github.com/kaitj/nhp-dwiproc/blob/main/src/nhp_dwiproc/app/resources/images.yaml)._
+[here](https://github.com/kaitj/nhp-dwiproc/blob/main/src/nhp_dwiproc/app/resources/containers.yaml)._
