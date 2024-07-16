@@ -16,7 +16,7 @@ def generate_tractography(
     bids: partial,
     args: Namespace,
     logger: Logger,
-) -> mrtrix.Tcksift2Outputs:
+) -> None:
     """Generate subject tractography."""
     logger.info("Generating tractography")
     tckgen = mrtrix.tckgen(
