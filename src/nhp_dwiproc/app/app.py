@@ -1,5 +1,6 @@
 """Module related to directly updating application."""
 
+import importlib.metadata as ilm
 import pathlib as pl
 
 from bidsapp_helper.descriptor import BidsAppDescriptor
@@ -95,8 +96,8 @@ def _add_participant_args(app_parser: BidsAppArgumentParser) -> None:
         "--single-shell",
         "--single_shell",
         dest="single_shell",
-        type=bool,
-        help="Process single-shell data",
+        action="store_true",
+        help="Process single-shell data (default: %(default)s)",
     )
     participant_args.add_argument(
         "--shells",
@@ -124,6 +125,7 @@ def _add_participant_args(app_parser: BidsAppArgumentParser) -> None:
     )
     participant_args.add_argument(
         "--streamlines",
+        metavar="streamlines",
         dest="tractography_streamlines",
         type=int,
         default=10000,
@@ -136,7 +138,7 @@ def descriptor(out_fpath: pl.Path) -> None:
     descriptor = BidsAppDescriptor(
         app_name=APP_NAME,
         bids_version="1.9.0",
-        app_version="0.1.0",
+        app_version=ilm.version("nhp_dwiproc"),
         repo_url="https://github.com/kaitj/nhp-dwiproc",
         author="Jason Kai",
         author_email="jason.kai@childmind.org",
