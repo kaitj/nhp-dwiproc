@@ -1,5 +1,6 @@
 """Pre-tractography participant processing (to compute FODs)."""
 
+import importlib.metadata as ilm
 from argparse import Namespace
 from functools import partial
 from logging import Logger
@@ -35,6 +36,7 @@ def _set_runner(args: Namespace, logger: Logger) -> None:
 
 def run(args: Namespace, logger: Logger) -> None:
     """Runner for participant-level analysis."""
+    logger.info(f"Running NHP DWIProc v{ilm.version('nhp_dwiproc')}.")
     _set_runner(args=args, logger=logger)
     index_path = utils.check_index_path(args=args)
 
