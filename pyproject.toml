@@ -10,6 +10,7 @@ packages = [{include = "nhp_dwiproc", from = "src"}]
 [tool.poetry.dependencies]
 python = "~3.11"
 bids2table = "^0.1.0"
+pyyaml = "^6.0.1"
 niwrap = {git = "https://github.com/childmindresearch/niwrap", subdirectory = "python"}
 bidsapp-helper = {git = "https://github.com/kaitj/bidsapp-helper"}
 styxdocker = {git = "https://github.com/childmindresearch/styxdocker"}
