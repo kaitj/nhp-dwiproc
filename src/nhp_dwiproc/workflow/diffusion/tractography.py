@@ -26,7 +26,7 @@ def generate_tractography(
         seed_image=input_data["dwi"]["mask"],
         algorithm="iFOD2",
         step=args.tractography_steps if args.tractography_steps else None,
-        select_=args.streamline_count,
+        select_=args.tractography_streamlines,
         nthreads=args.threads,
     )
 

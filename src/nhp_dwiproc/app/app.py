@@ -56,6 +56,15 @@ def _add_optional_args(app_parser: BidsAppArgumentParser) -> None:
         help="number of threads to use (default: %(default)d).",
     )
     app_parser.parser.add_argument(
+        "--index-path",
+        "--index_path",
+        metavar="path",
+        dest="index_path",
+        type=pl.Path,
+        default=None,
+        help="bids2table index path (default: {bids_dir}/index.b2t)",
+    )
+    app_parser.parser.add_argument(
         "--b0-thresh",
         "--b0_thresh",
         metavar="thresh",
@@ -68,16 +77,7 @@ def _add_optional_args(app_parser: BidsAppArgumentParser) -> None:
 
 def _add_index_args(app_parser: BidsAppArgumentParser) -> None:
     """Optional args associated with index analysis-level."""
-    index_args = app_parser.parser.add_argument_group("index analysis-level options")
-    index_args.add_argument(
-        "--index-path",
-        "--index_path",
-        metavar="path",
-        dest="index_path",
-        type=pl.Path,
-        default=None,
-        help="bids2table index path (default: {bids_dir}/index.b2t)",
-    )
+    index_args = app_parser.parser.add_argument_group("index analysis-level soptions")
     index_args.add_argument(
         "--overwrite",
         dest="index_overwrite",
