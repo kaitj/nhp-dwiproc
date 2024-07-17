@@ -33,7 +33,7 @@ def compute_fods(
         shells=args.shells if args.shells else None,
         lmax=args.lmax if args.lmax else None,
         nthreads=args.threads,
-        config=[mrtrix.Dwi2responseConfig("BZeroThreshold", args.b0_thresh)],
+        config=[mrtrix.Dwi2responseConfig("BZeroThreshold", str(args.b0_thresh))],
     )
 
     logger.info("Computing fiber orientation distribution")
@@ -65,7 +65,7 @@ def compute_fods(
         mask=input_data["dwi"]["mask"],
         shells=args.shells if args.shells else None,
         nthreads=args.threads,
-        config=[mrtrix.Dwi2fodConfig("BZeroThreshold", args.b0_thresh)],
+        config=[mrtrix.Dwi2fodConfig("BZeroThreshold", str(args.b0_thresh))],
     )
 
     logger.info("Normalizing fiber orientation distributions")
