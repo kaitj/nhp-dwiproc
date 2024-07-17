@@ -3,6 +3,7 @@
 
 import importlib.metadata as ilm
 import logging
+import os
 import shutil
 from argparse import Namespace
 
@@ -33,6 +34,7 @@ def _set_runner_logger(args: Namespace) -> logging.Logger:
         logger = logging.getLogger(SingularityRunner.logger_name)
         logger.info("Using Singularity / Apptainer runner for processing")
     else:
+        DefaultRunner(data_dir=args.working_dir)
         logger = logging.getLogger(DefaultRunner.logger_name)
 
     return logger
@@ -53,8 +55,13 @@ def main() -> None:
             app.analysis_levels.participant.run(args=args, logger=logger)
             app.pipeline_descriptor(args.output_dir / "pipeline_description.json")
 
-    # Clean up directory
-    shutil.rmtree(args.working_dir)
+    # Clean up working directory (removal of hard-coded 'styx_tmp' is workaround)
+    if args.working_dir:
+        shutil.rmtree(args.working_dir)
+    elif os.path.exists("styx_tmp"):
+        shutil.rmtree("styx_tmp")
+    else:
+        logger.warning("Did not clean up working directory")
 
 
 if __name__ == "__main__":

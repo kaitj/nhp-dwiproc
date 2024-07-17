@@ -38,7 +38,7 @@ def _add_optional_args(app_parser: BidsAppArgumentParser) -> None:
         dest="working_dir",
         default=None,
         type=pl.Path,
-        help="Working directory to temporarily store written data to (default: .)",
+        help="working directory to temporarily write to (default: %(default)s)",
     )
     app_parser.parser.add_argument(
         "--container-config",
