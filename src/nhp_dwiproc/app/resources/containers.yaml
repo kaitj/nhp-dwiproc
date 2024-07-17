@@ -1,3 +1,2 @@
-images:
 # Saved as image_name: image_path
-  mrtrix3/mrtrix3:3.0.4: path/to/mrtrix/singularity/container
+mrtrix3/mrtrix3:3.0.4: path/to/mrtrix/singularity/container
