@@ -3,6 +3,7 @@
 
 import importlib.metadata as ilm
 import logging
+import shutil
 from argparse import Namespace
 
 import yaml
@@ -42,6 +43,7 @@ def main() -> None:
     # Parse arguments
     args = app.parser().parse_args()
 
+    # Run workflow
     logger = _set_runner_logger(args=args)
     logger.info(f"Running NHP DWIProc v{ilm.version('nhp_dwiproc')}")
     match args.analysis_level:
@@ -50,6 +52,9 @@ def main() -> None:
         case "participant":
             app.analysis_levels.participant.run(args=args, logger=logger)
             app.pipeline_descriptor(args.output_dir / "pipeline_description.json")
+
+    # Clean up directory
+    shutil.rmtree(args.working_dir)
 
 
 if __name__ == "__main__":
