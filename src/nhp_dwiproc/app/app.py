@@ -140,7 +140,7 @@ def _add_participant_args(app_parser: BidsAppArgumentParser) -> None:
     )
 
 
-def descriptor(out_fpath: pl.Path) -> None:
+def pipeline_descriptor(out_fpath: pl.Path) -> None:
     """Generator and save app descriptor."""
     descriptor = BidsAppDescriptor(
         app_name=APP_NAME,

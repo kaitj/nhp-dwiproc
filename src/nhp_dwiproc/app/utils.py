@@ -1,9 +1,7 @@
 """Utility functions for applicaiton."""
 
-import logging
 import pathlib as pl
 import shutil
-import sys
 from argparse import Namespace
 from functools import partial
 from typing import Any
@@ -11,21 +9,6 @@ from typing import Any
 import pandas as pd
 from bids2table import BIDSTable
 from styxdefs import OutputPathType
-
-
-def setup_logger() -> logging.Logger:
-    """Setup application logging."""
-    logging.basicConfig(
-        level=logging.INFO,
-        format="[%(asctime)s %(name)s %(levelname)s] %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S",
-    )
-    console = logging.StreamHandler(sys.stdout)
-    console.setLevel(100)
-    logger = logging.getLogger(__name__)
-    logger.addHandler(console)
-
-    return logger
 
 
 def check_index_path(args: Namespace) -> pl.Path:
