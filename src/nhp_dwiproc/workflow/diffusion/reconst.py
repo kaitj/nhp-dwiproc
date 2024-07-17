@@ -86,6 +86,9 @@ def compute_fods(
     mtnormalise_output = [
         mtnormalise_output.output for mtnormalise_output in mtnormalise.input_output
     ]
-    utils.save(files=mtnormalise_output, out_dir=args.out_dir)
+    utils.save(
+        files=mtnormalise_output,
+        out_dir=args.out_dir.joinpath(bids(datatype="dwi").to_path().parent),
+    )
 
     return mtnormalise

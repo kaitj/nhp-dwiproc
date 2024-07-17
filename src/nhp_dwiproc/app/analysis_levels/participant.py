@@ -70,7 +70,9 @@ def run(args: Namespace, logger: Logger) -> None:
     ):
         entities = utils.unique_entities(row)
         input_data = utils.get_inputs(b2t=b2t, entities=entities)
-        bids = partial(BIDSEntities.from_dict(input_data["entities"]).with_update)
+        bids = partial(
+            BIDSEntities.from_dict(input_data["entities"]).with_update, datatype="dwi"
+        )
 
         logger.info(f"Processing {bids().to_path().name}")
 
