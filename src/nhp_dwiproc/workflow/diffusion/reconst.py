@@ -32,7 +32,7 @@ def compute_fods(
         mask=input_data["dwi"]["mask"],
         shells=args.shells if args.shells else None,
         lmax=args.lmax if args.lmax else None,
-        nthreads=args.nthreads,
+        nthreads=args.threads,
         config=[mrtrix.Dwi2responseConfig("BZeroThreshold", args.b0_thresh)],
     )
 
@@ -64,7 +64,7 @@ def compute_fods(
         ),
         mask=input_data["dwi"]["mask"],
         shells=args.shells if args.shells else None,
-        nthreads=args.nthreads,
+        nthreads=args.threads,
         config=[mrtrix.Dwi2fodConfig("BZeroThreshold", args.b0_thresh)],
     )
 
@@ -78,7 +78,7 @@ def compute_fods(
     mtnormalise = mrtrix.mtnormalise(
         input_output=normalize_odf,
         mask=input_data["dwi"]["mask"],
-        nthreads=args.nthreads,
+        nthreads=args.threads,
     )
 
     # Save relevant outputs

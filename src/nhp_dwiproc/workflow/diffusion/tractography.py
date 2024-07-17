@@ -27,7 +27,7 @@ def generate_tractography(
         algorithm="iFOD2",
         step=args.tractography_steps if args.tractography_steps else None,
         select_=args.streamline_count,
-        nthreads=args.nthreads,
+        nthreads=args.threads,
     )
 
     logger.info("Computing per-streamline multipliers")
@@ -36,7 +36,7 @@ def generate_tractography(
         in_fod=fod.input_output[0].output,
         out_weights=bids(desc="iFOD2", suffix="tckWeights", ext=".txt"),
         out_mu=bids(desc="iFOD2", suffix="muCoefficient", ext=".txt"),
-        nthreads=args.nthreads,
+        nthreads=args.threads,
     )
 
     # Save relevant outputs
