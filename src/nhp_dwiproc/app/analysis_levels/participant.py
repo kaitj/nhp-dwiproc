@@ -1,43 +1,19 @@
 """Pre-tractography participant processing (to compute FODs)."""
 
-import importlib.metadata as ilm
 from argparse import Namespace
 from functools import partial
 from logging import Logger
 
-import yaml
 from bids2table import BIDSEntities, BIDSTable, bids2table
-from styxdefs import set_global_runner
-from styxdocker import DockerRunner
-from styxsingularity import SingularityRunner
 from tqdm import tqdm
 
 from ...workflow.diffusion import reconst, tractography
 from .. import utils
 
 
-def _set_runner(args: Namespace, logger: Logger) -> None:
-    """Set runner (defaults to local)."""
-    if args.runner == "Docker":
-        logger.info("Using Docker runner for processing")
-        set_global_runner(DockerRunner(data_dir=args.working_dir))
-    elif args.runner in ["Singularity", "Apptainer"]:
-        if not args.container_config:
-            raise ValueError(
-                """Config not provided - please provide using '--container-config' \n
-            See https://github.com/kaitj/nhp-dwiproc/blob/main/src/nhp_dwiproc/app/resources/images.yaml
-            for an example."""
-            )
-        logger.info("Using Singularity / Apptainer runner for processing")
-        with open(args.container_config, "r") as container_config:
-            images = yaml.safe_load(container_config)
-        set_global_runner(SingularityRunner(images=images, data_dir=args.working_dir))
-
-
 def run(args: Namespace, logger: Logger) -> None:
     """Runner for participant-level analysis."""
-    logger.info(f"Running NHP DWIProc v{ilm.version('nhp_dwiproc')}")
-    _set_runner(args=args, logger=logger)
+    logger.info("Participant analysis-level")
     index_path = utils.check_index_path(args=args)
 
     if index_path.exists():

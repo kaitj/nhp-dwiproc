@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 """Main entrypoint of code."""
 
+import importlib.metadata as ilm
 import logging
 from argparse import Namespace
 
@@ -12,7 +13,7 @@ from styxsingularity import SingularityRunner
 from . import app
 
 
-def _set_runner(args: Namespace) -> logging.Logger:
+def _set_runner_logger(args: Namespace) -> logging.Logger:
     """Set runner (defaults to local)."""
     if args.runner == "Docker":
         set_global_runner(DockerRunner(data_dir=args.working_dir))
@@ -41,9 +42,8 @@ def main() -> None:
     # Parse arguments
     args = app.parser().parse_args()
 
-    # Setup runner + get logger
-    logger = _set_runner(args=args)
-
+    logger = _set_runner_logger(args=args)
+    logger.info(f"Running NHP DWIProc v{ilm.version('nhp_dwiproc')}")
     match args.analysis_level:
         case "index":
             app.analysis_levels.index.run(args=args, logger=logger)

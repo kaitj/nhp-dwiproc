@@ -10,6 +10,7 @@ from .. import utils
 
 def run(args: Namespace, logger: Logger) -> None:
     """Runner for index-level analysis."""
+    logger.info("Index analysis-level")
     index_path = utils.check_index_path(args=args)
     if index_path.exists() and not args.index_overwrite:
         logger.info("Index already exists - not overwriting")
