@@ -41,6 +41,6 @@ def generate_tractography(
 
     # Save relevant outputs
     logger.info("Saving relevant output files from tractography generation")
-    out_dir = args.out_dir.joinpath(bids(datatype="dwi").to_path().parent)
+    out_dir = args.output_dir.joinpath(bids(datatype="dwi").to_path().parent)
     utils.save(files=tckgen.tracks, out_dir=out_dir)
     utils.save(files=[tcksift.out_weights, tcksift.out_mu], out_dir=out_dir)

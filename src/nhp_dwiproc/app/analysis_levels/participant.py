@@ -28,7 +28,7 @@ def _set_runner(args: Namespace, logger: Logger) -> None:
             See https://github.com/kaitj/nhp-dwiproc/blob/main/src/nhp_dwiproc/app/resources/images.yaml
             for an example."""
             )
-        logger.info("Using Singularity / Apptainer runner for processing.")
+        logger.info("Using Singularity / Apptainer runner for processing")
         with open(args.container_config, "r") as container_config:
             images = yaml.safe_load(container_config)
         set_global_runner(SingularityRunner(images=images, data_dir=args.working_dir))
@@ -36,7 +36,7 @@ def _set_runner(args: Namespace, logger: Logger) -> None:
 
 def run(args: Namespace, logger: Logger) -> None:
     """Runner for participant-level analysis."""
-    logger.info(f"Running NHP DWIProc v{ilm.version('nhp_dwiproc')}.")
+    logger.info(f"Running NHP DWIProc v{ilm.version('nhp_dwiproc')}")
     _set_runner(args=args, logger=logger)
     index_path = utils.check_index_path(args=args)
 
@@ -53,7 +53,7 @@ def run(args: Namespace, logger: Logger) -> None:
             workers=args.threads,
         )
         logger.warning(
-            "Index created, but not saved - please run 'index' level analysis to save."
+            "Index created, but not saved - please run 'index' level analysis to save"
         )
 
     # Filter b2t based on string query

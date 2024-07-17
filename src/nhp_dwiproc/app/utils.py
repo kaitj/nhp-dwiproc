@@ -81,9 +81,10 @@ def save(files: OutputPathType | list[OutputPathType], out_dir: pl.Path) -> None
     assert isinstance(files, OutputPathType)
     for idx, fpath_part in enumerate(parts := files.parts):
         if "sub-" in fpath_part:
-            out_fpath = pl.Path(*parts[idx:])
+            out_fpath = out_dir.joinpath(*parts[idx:])
             break
     else:
         raise ValueError("Unable to find relevant file path components to save file.")
 
+    out_fpath.parent.mkdir(parents=True, exist_ok=True)
     shutil.copy2(files, out_dir.joinpath(out_fpath))
