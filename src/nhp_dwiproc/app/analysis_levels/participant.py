@@ -31,7 +31,7 @@ def _set_runner(args: Namespace, logger: Logger) -> None:
         logger.info("Using Singularity / Apptainer runner for processing.")
         with open(args.container_config, "r") as container_config:
             images = yaml.safe_load(container_config)
-        set_global_runner(SingularityRunner(images=images))
+        set_global_runner(SingularityRunner(images=images, data_dir=args.working_dir))
 
 
 def run(args: Namespace, logger: Logger) -> None:
