@@ -59,15 +59,16 @@ def save(files: OutputPathType | list[OutputPathType], out_dir: pl.Path) -> None
     if isinstance(files, list):
         for file in files:
             save(file, out_dir=out_dir)
-
-    # Find relevant BIDs components of file path
-    assert isinstance(files, OutputPathType)
-    for idx, fpath_part in enumerate(parts := files.parts):
-        if "sub-" in fpath_part:
-            out_fpath = out_dir.joinpath(*parts[idx:])
-            break
     else:
-        raise ValueError("Unable to find relevant file path components to save file.")
+        # Find relevant BIDs components of file path
+        for idx, fpath_part in enumerate(parts := files.parts):
+            if "sub-" in fpath_part:
+                out_fpath = out_dir.joinpath(*parts[idx:])
+                break
+        else:
+            raise ValueError(
+                "Unable to find relevant file path components to save file."
+            )
 
-    out_fpath.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copy2(files, out_dir.joinpath(out_fpath))
+        out_fpath.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(files, out_dir.joinpath(out_fpath))
