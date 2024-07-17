@@ -32,6 +32,15 @@ def _add_optional_args(app_parser: BidsAppArgumentParser) -> None:
         help="workflow runner to use (one of [%(choices)s]; default: %(default)s)",
     )
     app_parser.parser.add_argument(
+        "--working-dir",
+        "--working_dir",
+        metavar="directory",
+        dest="working_dir",
+        default=None,
+        type=pl.Path,
+        help="Working directory to temporarily store written data to (default: .)",
+    )
+    app_parser.parser.add_argument(
         "--container-config",
         "--container_config",
         metavar="config",
@@ -40,7 +49,6 @@ def _add_optional_args(app_parser: BidsAppArgumentParser) -> None:
         help="YAML config file mapping containers to 'local' paths",
     )
     app_parser.parser.add_argument(
-        "-N",
         "--threads",
         metavar="threads",
         type=int,
@@ -71,7 +79,6 @@ def _add_index_args(app_parser: BidsAppArgumentParser) -> None:
         help="bids2table index path (default: {bids_dir}/index.b2t)",
     )
     index_args.add_argument(
-        "-x",
         "--overwrite",
         dest="index_overwrite",
         action="store_true",

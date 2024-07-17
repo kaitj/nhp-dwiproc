@@ -20,7 +20,7 @@ def _set_runner(args: Namespace, logger: Logger) -> None:
     """Set runner (defaults to local)."""
     if args.runner == "Docker":
         logger.info("Using Docker runner for processing")
-        set_global_runner(DockerRunner())
+        set_global_runner(DockerRunner(data_dir=args.working_dir))
     elif args.runner in ["Singularity", "Apptainer"]:
         if not args.container_config:
             raise ValueError(
