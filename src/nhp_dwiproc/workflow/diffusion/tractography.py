@@ -22,8 +22,8 @@ def generate_tractography(
     tckgen = mrtrix.tckgen(
         source=fod.input_output[0].output,
         tracks=bids(desc="iFOD2", suffix="tractography", ext=".tck").to_path().name,
-        mask=[input_data["dwi"]["mask"]],
-        seed_image=[input_data["dwi"]["mask"]],
+        mask=[mrtrix.TckgenMask(input_data["dwi"]["mask"])],
+        seed_image=[mrtrix.TckgenSeedImage(input_data["dwi"]["mask"])],
         algorithm="iFOD2",
         step=args.tractography_steps if args.tractography_steps else None,
         select_=args.tractography_streamlines,
