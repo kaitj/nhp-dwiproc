@@ -9,6 +9,19 @@ from bidsapp_helper.parser import BidsAppArgumentParser
 APP_NAME = "nhp_dwiproc"
 
 
+def generate_descriptor(out_fpath: pl.Path) -> None:
+    """Generator and save app descriptor."""
+    descriptor = BidsAppDescriptor(
+        app_name=f"{APP_NAME.replace('_', ' ')} generated dataset",
+        bids_version="1.9.0",
+        app_version=ilm.version("nhp_dwiproc"),
+        repo_url="https://github.com/kaitj/nhp-dwiproc",
+        author="Jason Kai",
+        author_email="jason.kai@childmind.org",
+    )
+    descriptor.save(out_fpath)
+
+
 def parser() -> BidsAppArgumentParser:
     """Initialize and update parser."""
     app_parser = BidsAppArgumentParser(
@@ -138,16 +151,3 @@ def _add_participant_args(app_parser: BidsAppArgumentParser) -> None:
         default=10000,
         help="Number of streamlines to select (default %(default)d)",
     )
-
-
-def pipeline_descriptor(out_fpath: pl.Path) -> None:
-    """Generator and save app descriptor."""
-    descriptor = BidsAppDescriptor(
-        app_name=APP_NAME,
-        bids_version="1.9.0",
-        app_version=ilm.version("nhp_dwiproc"),
-        repo_url="https://github.com/kaitj/nhp-dwiproc",
-        author="Jason Kai",
-        author_email="jason.kai@childmind.org",
-    )
-    descriptor.save(out_fpath)

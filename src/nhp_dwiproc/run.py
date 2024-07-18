@@ -53,7 +53,7 @@ def main() -> None:
             app.analysis_levels.index.run(args=args, logger=logger)
         case "participant":
             app.analysis_levels.participant.run(args=args, logger=logger)
-            app.pipeline_descriptor(args.output_dir / "pipeline_description.json")
+            app.generate_descriptor(args.output_dir / "dataset_description.json")
 
     # Clean up working directory (removal of hard-coded 'styx_tmp' is workaround)
     if args.working_dir:
