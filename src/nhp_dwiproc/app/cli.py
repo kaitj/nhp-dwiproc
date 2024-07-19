@@ -4,11 +4,13 @@ import pathlib as pl
 
 from bidsapp_helper.parser import BidsAppArgumentParser
 
+from .. import __name__
+
 
 def parser() -> BidsAppArgumentParser:
     """Initialize and update parser."""
     app_parser = BidsAppArgumentParser(
-        app_name="nhp_dwiproc", description="Diffusion processing NHP data."
+        app_name=__name__, description="Diffusion processing NHP data."
     )
     app_parser.update_analysis_level(["index", "participant"])
     _add_optional_args(app_parser=app_parser)

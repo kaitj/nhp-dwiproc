@@ -14,6 +14,8 @@ from styxdefs import DefaultRunner, OutputPathType, set_global_runner
 from styxdocker import DockerRunner
 from styxsingularity import SingularityRunner
 
+from . import __name__, __version__
+
 
 def check_index_path(cfg: dict[str, Any]) -> pl.Path:
     """Helper to check for index path."""
@@ -110,6 +112,7 @@ def initialize(cfg: dict[str, Any]) -> logging.Logger:
         DefaultRunner(data_dir=cfg["opt.containers"])
         logger = logging.getLogger(DefaultRunner.logger_name)
 
+    logger.info(f"Running {__name__} v{__version__}")
     return logger
 
 

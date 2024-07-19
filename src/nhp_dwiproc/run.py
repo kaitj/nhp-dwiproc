@@ -11,7 +11,6 @@ def main() -> None:
 
     # Run workflow
     logger = app.initialize(cfg=cfg)
-    logger.info("Running NHP DWIProc v0.1.0")
     match cfg["analysis_level"]:
         case "index":
             app.analysis_levels.index.run(cfg=cfg, logger=logger)
