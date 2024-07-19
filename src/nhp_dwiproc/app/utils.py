@@ -1,13 +1,18 @@
 """Utility functions for application."""
 
+import logging
+import os
 import pathlib as pl
 import shutil
 from functools import partial
 from typing import Any
 
 import pandas as pd
+import yaml
 from bids2table import BIDSTable
-from styxdefs import OutputPathType
+from styxdefs import DefaultRunner, OutputPathType, set_global_runner
+from styxdocker import DockerRunner
+from styxsingularity import SingularityRunner
 
 
 def check_index_path(cfg: dict[str, Any]) -> pl.Path:
@@ -75,3 +80,45 @@ def save(files: OutputPathType | list[OutputPathType], out_dir: pl.Path) -> None
 
         out_fpath.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(files, out_dir.joinpath(out_fpath))
+
+
+def initialize(cfg: dict[str, Any]) -> logging.Logger:
+    """Set runner (defaults to local)."""
+    # Create working directory if it doesn't already exist
+    if cfg["opt.working_dir"]:
+        cfg["opt.working_dir"].mkdir(parents=True, exist_ok=True)
+
+    if (runner := cfg["opt.runner"]) == "Docker":
+        set_global_runner(DockerRunner(data_dir=cfg["opt.working_dir"]))
+        logger = logging.getLogger(DockerRunner.logger_name)
+        logger.info("Using Docker runner for processing")
+    elif runner in ["Singularity", "Apptainer"]:
+        if not cfg["opt.containers"]:
+            raise ValueError(
+                """Container config not provided ('--container-config')\n
+            See https://github.com/kaitj/nhp-dwiproc/blob/main/src/nhp_dwiproc/app/resources/containers.yaml
+            for an example."""
+            )
+        with open(cfg["opt.containers"], "r") as container_config:
+            images = yaml.safe_load(container_config)
+        set_global_runner(
+            SingularityRunner(images=images, data_dir=cfg["opt.working_dir"])
+        )
+        logger = logging.getLogger(SingularityRunner.logger_name)
+        logger.info("Using Singularity / Apptainer runner for processing")
+    else:
+        DefaultRunner(data_dir=cfg["opt.containers"])
+        logger = logging.getLogger(DefaultRunner.logger_name)
+
+    return logger
+
+
+def clean_up(cfg: dict[str, Any], logger: logging.Logger) -> None:
+    """Helper function to clean up working directory."""
+    # Clean up working directory (removal of hard-coded 'styx_tmp' is workaround)
+    if cfg["opt.working_dir"]:
+        shutil.rmtree(cfg["opt.working_dir"])
+    elif os.path.exists("styx_tmp"):
+        shutil.rmtree("styx_tmp")
+    else:
+        logger.warning("Did not clean up working directory")
