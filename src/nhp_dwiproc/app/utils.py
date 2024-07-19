@@ -1,8 +1,7 @@
-"""Utility functions for applicaiton."""
+"""Utility functions for application."""
 
 import pathlib as pl
 import shutil
-from argparse import Namespace
 from functools import partial
 from typing import Any
 
@@ -11,9 +10,13 @@ from bids2table import BIDSTable
 from styxdefs import OutputPathType
 
 
-def check_index_path(args: Namespace) -> pl.Path:
+def check_index_path(cfg: dict[str, Any]) -> pl.Path:
     """Helper to check for index path."""
-    return args.index_path if args.index_path else args.bids_dir / "index.b2t"
+    return (
+        index_fpath
+        if (index_fpath := cfg["opt.index_path"])
+        else cfg["bids_dir"] / "index.b2t"
+    )
 
 
 def unique_entities(row: pd.Series) -> dict[str, Any]:

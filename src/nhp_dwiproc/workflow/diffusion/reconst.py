@@ -1,6 +1,5 @@
 """Processing of diffusion data to setup tractography."""
 
-from argparse import Namespace
 from functools import partial
 from logging import Logger
 from typing import Any
@@ -13,7 +12,7 @@ from ...app import utils
 def compute_fods(
     input_data: dict[str, Any],
     bids: partial,
-    args: Namespace,
+    cfg: dict[str, Any],
     logger: Logger,
 ) -> mrtrix.MtnormaliseOutputs:
     """Process subject for tractography."""
@@ -30,10 +29,14 @@ def compute_fods(
             bvals=input_data["dwi"]["bval"],
         ),
         mask=input_data["dwi"]["mask"],
-        shells=args.shells if args.shells else None,
-        lmax=args.lmax if args.lmax else None,
-        nthreads=args.threads,
-        config=[mrtrix.Dwi2responseConfig("BZeroThreshold", str(args.b0_thresh))],
+        shells=shells if (shells := cfg["participant.shells"]) else None,
+        lmax=lmax if (lmax := cfg["participant.lmax"]) else None,
+        nthreads=cfg["opt.threads"],
+        config=[
+            mrtrix.Dwi2responseConfig(
+                "BZeroThreshold", (b0_thresh := str(cfg["participant.b0_thresh"]))
+            )
+        ],
     )
 
     logger.info("Computing fiber orientation distribution")
@@ -51,7 +54,7 @@ def compute_fods(
             bids(desc="csf", suffix="fod", ext=".mif").to_path().name,
         ),
     ]
-    if args.single_shell:
+    if cfg["participant.single_shell"]:
         logger.info("Leaving out GM for single-shell computation")
         response_odf = [response_odf[0], response_odf[2]]
     dwi2fod = mrtrix.dwi2fod(
@@ -63,9 +66,9 @@ def compute_fods(
             bvals=input_data["dwi"]["bval"],
         ),
         mask=input_data["dwi"]["mask"],
-        shells=args.shells if args.shells else None,
-        nthreads=args.threads,
-        config=[mrtrix.Dwi2fodConfig("BZeroThreshold", str(args.b0_thresh))],
+        shells=shells if shells else None,
+        nthreads=cfg["opt.threads"],
+        config=[mrtrix.Dwi2fodConfig("BZeroThreshold", b0_thresh)],
     )
 
     logger.info("Normalizing fiber orientation distributions")
@@ -78,7 +81,7 @@ def compute_fods(
     mtnormalise = mrtrix.mtnormalise(
         input_output=normalize_odf,
         mask=input_data["dwi"]["mask"],
-        nthreads=args.threads,
+        nthreads=cfg["opt.threads"],
     )
 
     # Save relevant outputs
@@ -88,7 +91,7 @@ def compute_fods(
     ]
     utils.save(
         files=mtnormalise_output,
-        out_dir=args.output_dir.joinpath(bids(datatype="dwi").to_path().parent),
+        out_dir=cfg["output_dir"].joinpath(bids(datatype="dwi").to_path().parent),
     )
 
     return mtnormalise

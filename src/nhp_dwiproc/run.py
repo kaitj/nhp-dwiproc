@@ -1,11 +1,10 @@
 #!/usr/bin/env python
 """Main entrypoint of code."""
 
-import importlib.metadata as ilm
 import logging
 import os
 import shutil
-from argparse import Namespace
+from typing import Any
 
 import yaml
 from styxdefs import DefaultRunner, set_global_runner
@@ -15,26 +14,28 @@ from styxsingularity import SingularityRunner
 from . import app
 
 
-def _set_runner_logger(args: Namespace) -> logging.Logger:
+def _set_runner_logger(cfg: dict[str, Any]) -> logging.Logger:
     """Set runner (defaults to local)."""
-    if args.runner == "Docker":
-        set_global_runner(DockerRunner(data_dir=args.working_dir))
+    if (runner := cfg["opt.runner"]) == "Docker":
+        set_global_runner(DockerRunner(data_dir=cfg["opt.working_dir"]))
         logger = logging.getLogger(DockerRunner.logger_name)
         logger.info("Using Docker runner for processing")
-    elif args.runner in ["Singularity", "Apptainer"]:
-        if not args.container_config:
+    elif runner in ["Singularity", "Apptainer"]:
+        if not cfg["opt.containers"]:
             raise ValueError(
-                """Config not provided - please provide using '--container-config' \n
-            See https://github.com/kaitj/nhp-dwiproc/blob/main/src/nhp_dwiproc/app/resources/images.yaml
+                """Container config not provided ('--container-config')\n
+            See https://github.com/kaitj/nhp-dwiproc/blob/main/src/nhp_dwiproc/app/resources/containers.yaml
             for an example."""
             )
-        with open(args.container_config, "r") as container_config:
+        with open(cfg["opt.containers"], "r") as container_config:
             images = yaml.safe_load(container_config)
-        set_global_runner(SingularityRunner(images=images, data_dir=args.working_dir))
+        set_global_runner(
+            SingularityRunner(images=images, data_dir=cfg["opt.working_dir"])
+        )
         logger = logging.getLogger(SingularityRunner.logger_name)
         logger.info("Using Singularity / Apptainer runner for processing")
     else:
-        DefaultRunner(data_dir=args.working_dir)
+        DefaultRunner(data_dir=cfg["opt.containers"])
         logger = logging.getLogger(DefaultRunner.logger_name)
 
     return logger
@@ -42,22 +43,22 @@ def _set_runner_logger(args: Namespace) -> logging.Logger:
 
 def main() -> None:
     """Application."""
-    # Parse arguments
-    args = app.parser().parse_args()
+    # Initialize app and parse arguments
+    cfg = app.parser().parse_args()
 
     # Run workflow
-    logger = _set_runner_logger(args=args)
-    logger.info(f"Running NHP DWIProc v{ilm.version('nhp_dwiproc')}")
-    match args.analysis_level:
+    logger = _set_runner_logger(cfg=cfg)
+    logger.info("Running NHP DWIProc v0.1.0")
+    match cfg["analysis_level"]:
         case "index":
-            app.analysis_levels.index.run(args=args, logger=logger)
+            app.analysis_levels.index.run(cfg=cfg, logger=logger)
         case "participant":
-            app.analysis_levels.participant.run(args=args, logger=logger)
-            app.generate_descriptor(args.output_dir / "dataset_description.json")
+            app.analysis_levels.participant.run(cfg=cfg, logger=logger)
+            app.generate_descriptor(cfg=cfg, out_fname="dataset_description.json")
 
     # Clean up working directory (removal of hard-coded 'styx_tmp' is workaround)
-    if args.working_dir:
-        shutil.rmtree(args.working_dir)
+    if cfg["opt.working_dir"]:
+        shutil.rmtree(cfg["opt.working_dir"])
     elif os.path.exists("styx_tmp"):
         shutil.rmtree("styx_tmp")
     else:

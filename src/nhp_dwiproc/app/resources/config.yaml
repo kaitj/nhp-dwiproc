@@ -1,0 +1,26 @@
+# Example config, values are overwritten by arguments provided at the command-line
+
+# Required arguments
+bids_dir: /path/to/bids_dir
+output_dir: /path/to/output_dir
+analysis_level: index/participant
+
+# Optional arguments
+opt.runner:
+opt.working_dir:
+opt.containers:
+opt.threads: 1
+opt.index_path:
+opt.b0_thresh: 10
+
+# Index analysis-level arguments
+index.overwrite: true
+
+# Participant analysis-level arguments
+participant.query:
+participant.b0_thresh: 10
+participant.single_shell: false
+participant.shells:
+participant.lmax:
+participant.tractography.steps:
+participant.tractography.streamlines: 10_000
