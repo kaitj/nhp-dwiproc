@@ -4,13 +4,13 @@ import pathlib as pl
 
 from bidsapp_helper.parser import BidsAppArgumentParser
 
-from .. import __name__
+from .utils import APP_NAME
 
 
 def parser() -> BidsAppArgumentParser:
     """Initialize and update parser."""
     app_parser = BidsAppArgumentParser(
-        app_name=__name__, description="Diffusion processing NHP data."
+        app_name=APP_NAME, description="Diffusion processing NHP data."
     )
     app_parser.update_analysis_level(["index", "participant"])
     _add_optional_args(app_parser=app_parser)
@@ -35,7 +35,7 @@ def _add_optional_args(app_parser: BidsAppArgumentParser) -> None:
         "--working_dir",
         metavar="directory",
         dest="opt.working_dir",
-        default=None,
+        default="styx_tmp",
         type=pl.Path,
         help="working directory to temporarily write to (default: %(default)s)",
     )
@@ -64,6 +64,12 @@ def _add_optional_args(app_parser: BidsAppArgumentParser) -> None:
         type=pl.Path,
         default=None,
         help="bids2table index path (default: {bids_dir}/index.b2t)",
+    )
+    app_parser.add_argument(
+        "--graph",
+        dest="opt.graph",
+        action="store_true",
+        help="Print diagram of workflow",
     )
 
 

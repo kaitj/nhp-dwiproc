@@ -15,6 +15,7 @@ niwrap = {git = "https://github.com/childmindresearch/niwrap", subdirectory = "p
 bidsapp-helper = {git = "https://github.com/kaitj/bidsapp-helper"}
 styxdocker = {git = "https://github.com/childmindresearch/styxdocker"}
 styxsingularity = {git = "https://github.com/childmindresearch/styxsingularity"}
+styxgraph = {git = "https://github.com/childmindresearch/styxgraph"}
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.2.2"

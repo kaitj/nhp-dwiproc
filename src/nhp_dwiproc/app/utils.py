@@ -1,7 +1,7 @@
 """Utility functions for application."""
 
+import importlib.metadata as ilm
 import logging
-import os
 import pathlib as pl
 import shutil
 from functools import partial
@@ -10,11 +10,17 @@ from typing import Any
 import pandas as pd
 import yaml
 from bids2table import BIDSTable
-from styxdefs import DefaultRunner, OutputPathType, set_global_runner
+from styxdefs import (
+    DefaultRunner,
+    OutputPathType,
+    Runner,
+    set_global_runner,
+)
 from styxdocker import DockerRunner
+from styxgraph import GraphRunner
 from styxsingularity import SingularityRunner
 
-from . import __name__, __version__
+APP_NAME = "nhp_dwiproc"
 
 
 def check_index_path(cfg: dict[str, Any]) -> pl.Path:
@@ -84,17 +90,17 @@ def save(files: OutputPathType | list[OutputPathType], out_dir: pl.Path) -> None
         shutil.copy2(files, out_dir.joinpath(out_fpath))
 
 
-def initialize(cfg: dict[str, Any]) -> logging.Logger:
+def initialize(cfg: dict[str, Any]) -> tuple[logging.Logger, Runner]:
     """Set runner (defaults to local)."""
     # Create working directory if it doesn't already exist
     if cfg["opt.working_dir"]:
         cfg["opt.working_dir"].mkdir(parents=True, exist_ok=True)
 
-    if (runner := cfg["opt.runner"]) == "Docker":
-        set_global_runner(DockerRunner(data_dir=cfg["opt.working_dir"]))
+    if cfg["opt.runner"] == "Docker":
+        runner = GraphRunner(DockerRunner(data_dir=cfg["opt.working_dir"]))
         logger = logging.getLogger(DockerRunner.logger_name)
         logger.info("Using Docker runner for processing")
-    elif runner in ["Singularity", "Apptainer"]:
+    elif cfg["opt.runner"] in ["Singularity", "Apptainer"]:
         if not cfg["opt.containers"]:
             raise ValueError(
                 """Container config not provided ('--container-config')\n
@@ -103,25 +109,15 @@ def initialize(cfg: dict[str, Any]) -> logging.Logger:
             )
         with open(cfg["opt.containers"], "r") as container_config:
             images = yaml.safe_load(container_config)
-        set_global_runner(
+        runner = GraphRunner(
             SingularityRunner(images=images, data_dir=cfg["opt.working_dir"])
         )
         logger = logging.getLogger(SingularityRunner.logger_name)
         logger.info("Using Singularity / Apptainer runner for processing")
     else:
-        DefaultRunner(data_dir=cfg["opt.containers"])
+        runner = GraphRunner(DefaultRunner(data_dir=cfg["opt.containers"]))
         logger = logging.getLogger(DefaultRunner.logger_name)
+    set_global_runner(runner)
 
-    logger.info(f"Running {__name__} v{__version__}")
-    return logger
-
-
-def clean_up(cfg: dict[str, Any], logger: logging.Logger) -> None:
-    """Helper function to clean up working directory."""
-    # Clean up working directory (removal of hard-coded 'styx_tmp' is workaround)
-    if cfg["opt.working_dir"]:
-        shutil.rmtree(cfg["opt.working_dir"])
-    elif os.path.exists("styx_tmp"):
-        shutil.rmtree("styx_tmp")
-    else:
-        logger.warning("Did not clean up working directory")
+    logger.info(f"Running {APP_NAME} v{ilm.version(APP_NAME)}")
+    return logger, runner
