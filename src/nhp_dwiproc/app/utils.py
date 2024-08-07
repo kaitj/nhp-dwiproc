@@ -11,7 +11,7 @@ import pandas as pd
 import yaml
 from bids2table import BIDSTable
 from styxdefs import (
-    DefaultRunner,
+    LocalRunner,
     OutputPathType,
     Runner,
     set_global_runner,
@@ -115,8 +115,8 @@ def initialize(cfg: dict[str, Any]) -> tuple[logging.Logger, Runner]:
         logger = logging.getLogger(SingularityRunner.logger_name)
         logger.info("Using Singularity / Apptainer runner for processing")
     else:
-        runner = GraphRunner(DefaultRunner(data_dir=cfg["opt.containers"]))
-        logger = logging.getLogger(DefaultRunner.logger_name)
+        runner = GraphRunner(LocalRunner(data_dir=cfg["opt.containers"]))
+        logger = logging.getLogger(LocalRunner.logger_name)
     set_global_runner(runner)
 
     logger.info(f"Running {APP_NAME} v{ilm.version(APP_NAME)}")
