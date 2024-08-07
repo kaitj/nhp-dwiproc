@@ -54,7 +54,16 @@ def _add_optional_args(app_parser: BidsAppArgumentParser) -> None:
         dest="opt.threads",
         type=int,
         default=1,
-        help="number of threads to use (default: %(default)d).",
+        help="number of threads to use (default: %(default)d)",
+    )
+    app_parser.add_argument(
+        "--seed-num",
+        "--seed_num",
+        metavar="seed_num",
+        dest="opt.seed_num",
+        type=int,
+        default=99,
+        help="fixed seed for reproducible results (default: %(default)d)",
     )
     app_parser.add_argument(
         "--index-path",
@@ -136,7 +145,15 @@ def _add_participant_args(app_parser: BidsAppArgumentParser) -> None:
         metavar="steps",
         dest="participant.tractography.steps",
         type=float,
-        help="Step size (in mm) for tractography",
+        help="step size (in mm) for tractography (default: 0.5 x voxel size)",
+    )
+    participant_args.add_argument(
+        "--cutoff",
+        metavar="cutoff",
+        dest="participant.tractography.cutoff",
+        type=float,
+        default=0.1,
+        help="cutoff FOD amplitude value for terminating tracks (default: %(default)f)",
     )
     participant_args.add_argument(
         "--streamlines",
@@ -144,5 +161,5 @@ def _add_participant_args(app_parser: BidsAppArgumentParser) -> None:
         dest="participant.tractography.streamlines",
         type=int,
         default=10_000,
-        help="Number of streamlines to select (default %(default)d)",
+        help="number of streamlines to select (default %(default)d)",
     )

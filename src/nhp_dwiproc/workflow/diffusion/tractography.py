@@ -18,13 +18,16 @@ def generate_tractography(
 ) -> None:
     """Generate subject tractography."""
     logger.info("Generating tractography")
+    wm_fod = fod.input_output[0].output
+
     tckgen = mrtrix.tckgen(
-        source=fod.input_output[0].output,
+        source=wm_fod,
         tracks=bids(desc="iFOD2", suffix="tractography", ext=".tck").to_path().name,
         mask=[mrtrix.TckgenMask(input_data["dwi"]["mask"])],
-        seed_image=[mrtrix.TckgenSeedImage(input_data["dwi"]["mask"])],
+        seed_dynamic=wm_fod,
         algorithm="iFOD2",
         step=steps if (steps := cfg["participant.tractography.steps"]) else None,
+        cutoff=cfg["participant.tractography.cutoff"],
         select_=cfg["participant.tractography.streamlines"],
         nthreads=cfg["opt.threads"],
     )
@@ -32,7 +35,7 @@ def generate_tractography(
     logger.info("Computing per-streamline multipliers")
     tcksift = mrtrix.tcksift2(
         in_tracks=tckgen.tracks,
-        in_fod=fod.input_output[0].output,
+        in_fod=wm_fod,
         out_weights=bids(desc="iFOD2", suffix="tckWeights", ext=".txt").to_path().name,
         out_mu=bids(desc="iFOD2", suffix="muCoefficient", ext=".txt").to_path().name,
         nthreads=cfg["opt.threads"],

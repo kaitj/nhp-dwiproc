@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 """Main entrypoint of code."""
 
+import os
 import shutil
 
 from . import app
@@ -17,6 +18,7 @@ def main() -> None:
         case "index":
             app.analysis_levels.index.run(cfg=cfg, logger=logger)
         case "participant":
+            os.environ["MRTRIX_RNG_SEED"] = str(cfg["opt.seed_num"])
             app.analysis_levels.participant.run(cfg=cfg, logger=logger)
             app.generate_descriptor(cfg=cfg, out_fname="dataset_description.json")
 
