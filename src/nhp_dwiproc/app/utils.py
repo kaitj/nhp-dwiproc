@@ -96,28 +96,32 @@ def initialize(cfg: dict[str, Any]) -> tuple[logging.Logger, Runner]:
     if cfg["opt.working_dir"]:
         cfg["opt.working_dir"].mkdir(parents=True, exist_ok=True)
 
-    if cfg["opt.runner"] == "Docker":
-        runner = GraphRunner(DockerRunner(data_dir=cfg["opt.working_dir"]))
-        logger = logging.getLogger(DockerRunner.logger_name)
-        logger.info("Using Docker runner for processing")
-    elif cfg["opt.runner"] in ["Singularity", "Apptainer"]:
-        if not cfg["opt.containers"]:
-            raise ValueError(
-                """Container config not provided ('--container-config')\n
-            See https://github.com/kaitj/nhp-dwiproc/blob/main/src/nhp_dwiproc/app/resources/containers.yaml
-            for an example."""
-            )
-        with open(cfg["opt.containers"], "r") as container_config:
-            images = yaml.safe_load(container_config)
-        runner = GraphRunner(
-            SingularityRunner(images=images, data_dir=cfg["opt.working_dir"])
-        )
-        logger = logging.getLogger(SingularityRunner.logger_name)
-        logger.info("Using Singularity / Apptainer runner for processing")
-    else:
-        runner = GraphRunner(LocalRunner(data_dir=cfg["opt.containers"]))
-        logger = logging.getLogger(LocalRunner.logger_name)
-    set_global_runner(runner)
+    match cfg["opt.runner"]:
+        case "Docker":
+            runner = DockerRunner()
+        case "Singularity" | "Apptainer":
+            if not cfg["opt.containers"]:
+                raise ValueError(
+                    """Container config not provided ('--container-config')\n
+                See https://github.com/kaitj/nhp-dwiproc/blob/main/src/nhp_dwiproc/app/resources/containers.yaml
+                for an example."""
+                )
+            with open(cfg["opt.containers"], "r") as container_config:
+                images = yaml.safe_load(container_config)
+            runner = SingularityRunner(images=images)
+        case _:
+            runner = LocalRunner()
+    
+    # Finish configuring runner (ignore parameters that can't be set)
+    runner.data_dir = cfg["opt.working_dir"]
+    try:
+        runner.environ = {
+            "MRTRIX_RNG_SEED": str(cfg["opt.seed_num"])
+        }
+    except AttributeError:
+        pass
+    set_global_runner(GraphRunner(runner))
 
+    logger = logging.getLogger(runner.logger_name)
     logger.info(f"Running {APP_NAME} v{ilm.version(APP_NAME)}")
     return logger, runner
