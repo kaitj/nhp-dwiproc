@@ -20,9 +20,27 @@ def compute_fods(
     dwi2response = mrtrix.dwi2response(
         algorithm=mrtrix.Dwi2responseDhollander(
             input_=input_data["dwi"]["nii"],
-            out_sfwm=bids(desc="wm", suffix="response", ext=".txt").to_path().name,
-            out_gm=bids(desc="gm", suffix="response", ext=".txt").to_path().name,
-            out_csf=bids(desc="csf", suffix="response", ext=".txt").to_path().name,
+            out_sfwm=bids(
+                extra_entities={"method": "dhollander", "param": "wm"},
+                suffix="response",
+                ext=".txt",
+            )
+            .to_path()
+            .name,
+            out_gm=bids(
+                extra_entities={"method": "dhollander", "param": "wm"},
+                suffix="response",
+                ext=".txt",
+            )
+            .to_path()
+            .name,
+            out_csf=bids(
+                extra_entities={"method": "dhollander", "param": "wm"},
+                suffix="response",
+                ext=".txt",
+            )
+            .to_path()
+            .name,
         ),
         fslgrad=mrtrix.Dwi2responseFslgrad(
             bvecs=input_data["dwi"]["bvec"],
@@ -43,15 +61,33 @@ def compute_fods(
     response_odf = [
         mrtrix.Dwi2fodResponseOdf(
             dwi2response.algorithm.out_sfwm,
-            bids(desc="wm", suffix="fod", ext=".mif").to_path().name,
+            bids(
+                extra_entities={"model": "csd", "param": "wm"},
+                suffix="dwimap",
+                ext=".mif",
+            )
+            .to_path()
+            .name,
         ),
         mrtrix.Dwi2fodResponseOdf(
             dwi2response.algorithm.out_gm,
-            bids(desc="gm", suffix="fod", ext=".mif").to_path().name,
+            bids(
+                extra_entities={"model": "csd", "param": "gm"},
+                suffix="dwimap",
+                ext=".mif",
+            )
+            .to_path()
+            .name,
         ),
         mrtrix.Dwi2fodResponseOdf(
             dwi2response.algorithm.out_csf,
-            bids(desc="csf", suffix="fod", ext=".mif").to_path().name,
+            bids(
+                extra_entities={"model": "csd", "param": "csf"},
+                suffix="dwimap",
+                ext=".mif",
+            )
+            .to_path()
+            .name,
         ),
     ]
     if cfg["participant.single_shell"]:
@@ -74,7 +110,8 @@ def compute_fods(
     logger.info("Normalizing fiber orientation distributions")
     normalize_odf = [
         mrtrix.MtnormaliseInputOutput(
-            tissue_odf.odf, tissue_odf.odf.name.replace("fod", "fodNorm")
+            tissue_odf.odf,
+            tissue_odf.odf.name.replace("dwimap", "desc-normalized_dwimap"),
         )
         for tissue_odf in dwi2fod.response_odf
     ]
@@ -95,3 +132,95 @@ def compute_fods(
     )
 
     return mtnormalise
+
+
+def compute_dti(
+    input_data: dict[str, Any],
+    bids: partial,
+    cfg: dict[str, Any],
+    logger: Logger,
+) -> None:
+    """Process diffusion tensors."""
+    logger.info("Performing tensor fitting")
+    dwi2tensor = mrtrix.dwi2tensor(
+        dwi=input_data["dwi"]["nii"],
+        dt=bids(extra_entities={"model": "tensor"}, suffix="dwimap", ext=".nii.gz")
+        .to_path()
+        .name(),
+        fslgrad=mrtrix.Dwi2tensorFslgrad(
+            bvecs=input_data["dwi"]["bvec"],
+            bvals=input_data["dwi"]["bval"],
+        ),
+        mask=input_data["dwi"]["mask"],
+        nthreads=cfg["opt.threads"],
+        config=[
+            mrtrix.Dwi2tensorConfig(
+                "BZeroThreshold", (b0_thresh := str(cfg["participant.b0_thresh"]))
+            )
+        ],
+    )
+
+    logger.info("Generating tensor maps")
+    tensor2metrics = mrtrix.tensor2metric(
+        tensor=dwi2tensor.dt,
+        mask=input_data["dwi"]["mask"],
+        adc=bids(
+            extra_entities={"model": "tensor", "param": "md"},
+            suffix="dwimap",
+            ext=".nii.gz",
+        )
+        .to_path()
+        .to_name(),
+        fa=bids(
+            extra_entities={"model": "tensor", "param": "fa"},
+            suffix="dwimap",
+            ext=".nii.gz",
+        )
+        .to_path()
+        .to_name(),
+        rd=bids(
+            extra_entities={"model": "tensor", "param": "rd"},
+            suffix="dwimap",
+            ext=".nii.gz",
+        )
+        .to_path()
+        .to_name(),
+        ad=bids(
+            extra_entities={"model": "tensor", "param": "ad"},
+            suffix="dwimap",
+            ext=".nii.gz",
+        )
+        .to_path()
+        .to_name(),
+        value=bids(
+            extra_entities={"model": "tensor", "param": "s1"},
+            suffix="dwimap",
+            ext=".nii.gz",
+        )
+        .to_path()
+        .to_name(),
+        vector=bids(
+            extra_entities={"model": "tensor", "param": "v1"},
+            suffix="dwimap",
+            ext=".nii.gz",
+        )
+        .to_path()
+        .to_name(),
+        num=[1],
+        nthreads=cfg["opt.threads"],
+        config=[mrtrix.Tensor2metricConfig("BZeroThreshold", b0_thresh)],
+    )
+
+    # Save relevant outputs
+    logger.info("Saving relevant output files from reconstruction")
+    utils.save(
+        files=[
+            tensor2metrics.adc,
+            tensor2metrics.fa,
+            tensor2metrics.ad,
+            tensor2metrics.rd,
+            tensor2metrics.value,
+            tensor2metrics.vector,
+        ],
+        out_dir=cfg["output_dir"].joinpath(bids(datatype="dwi").to_path().parent),
+    )

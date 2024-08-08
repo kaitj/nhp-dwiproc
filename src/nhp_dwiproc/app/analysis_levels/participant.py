@@ -24,9 +24,7 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
     else:
         logger.info("Indexing bids dataset...")
         b2t = bids2table(
-            root=cfg["bids_dir"],
-            persistent=False,
-            workers=cfg["opt.threads"],
+            root=cfg["bids_dir"], persistent=False, workers=cfg["opt.threads"]
         )
         logger.warning(
             "Index created, but not saved - please run 'index' level analysis to save"
@@ -45,18 +43,22 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
         ).flat.iterrows()
     ):
         entities = utils.unique_entities(row)
-        input_data = utils.get_inputs(b2t=b2t, entities=entities)
-        bids = partial(
-            BIDSEntities.from_dict(input_data["entities"]).with_update, datatype="dwi"
-        )
+        input_kwargs: dict[str, Any] = {
+            "input_data": (input_data := utils.get_inputs(b2t=b2t, entities=entities)),
+            "bids": (
+                bids := partial(
+                    BIDSEntities.from_dict(input_data["entities"]).with_update,
+                    datatype="dwi",
+                )
+            ),
+            "cfg": cfg,
+            "logger": logger,
+        }
 
         logger.info(f"Processing {bids().to_path().name}")
 
-        fods = reconst.compute_fods(
-            input_data=input_data, bids=bids, cfg=cfg, logger=logger
-        )
-        tractography.generate_tractography(
-            input_data=input_data, fod=fods, bids=bids, cfg=cfg, logger=logger
-        )
+        fods = reconst.compute_fods(**input_kwargs)
+        reconst.compute_dti(**input_kwargs)
+        tractography.generate_tractography(fod=fods, **input_kwargs)
 
         logger.info(f"Completed processing for {bids().to_path().name}")
