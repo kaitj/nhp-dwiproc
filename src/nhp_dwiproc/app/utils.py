@@ -111,15 +111,11 @@ def initialize(cfg: dict[str, Any]) -> tuple[logging.Logger, Runner]:
             runner = SingularityRunner(images=images)
         case _:
             runner = LocalRunner()
-    
+
     # Finish configuring runner (ignore parameters that can't be set)
     runner.data_dir = cfg["opt.working_dir"]
-    try:
-        runner.environ = {
-            "MRTRIX_RNG_SEED": str(cfg["opt.seed_num"])
-        }
-    except AttributeError:
-        pass
+    runner.environ = {"MRTRIX_RNG_SEED": str(cfg["opt.seed_num"])}
+
     set_global_runner(GraphRunner(runner))
 
     logger = logging.getLogger(runner.logger_name)

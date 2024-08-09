@@ -22,7 +22,11 @@ def generate_tractography(
 
     tckgen = mrtrix.tckgen(
         source=wm_fod,
-        tracks=bids(desc="iFOD2", suffix="tractography", ext=".tck").to_path().name,
+        tracks=bids(
+            extra_entities={"method": "iFOD2"}, suffix="tractography", ext=".tck"
+        )
+        .to_path()
+        .name,
         mask=[mrtrix.TckgenMask(input_data["dwi"]["mask"])],
         seed_dynamic=wm_fod,
         algorithm="iFOD2",
@@ -36,13 +40,24 @@ def generate_tractography(
     tcksift = mrtrix.tcksift2(
         in_tracks=tckgen.tracks,
         in_fod=wm_fod,
-        out_weights=bids(desc="iFOD2", suffix="tckWeights", ext=".txt").to_path().name,
-        out_mu=bids(desc="iFOD2", suffix="muCoefficient", ext=".txt").to_path().name,
+        out_weights=bids(
+            extra_entities={"method": "SIFT2"}, suffix="tckWeights", ext=".txt"
+        )
+        .to_path()
+        .name,
+        nthreads=cfg["opt.threads"],
+    )
+
+    tdi = mrtrix.tckmap(
+        tracks=tckgen.tracks,
+        tck_weights_in=tcksift.out_weights,
+        template=input_data["dwi"]["nii"],
+        output=bids(suffix="tdi", ext=".nii.gz").to_path().name,
         nthreads=cfg["opt.threads"],
     )
 
     # Save relevant outputs
-    logger.info("Saving relevant output files from tractography generation")
-    out_dir = cfg["output_dir"].joinpath(bids(datatype="dwi").to_path().parent)
-    utils.save(files=tckgen.tracks, out_dir=out_dir)
-    utils.save(files=[tcksift.out_weights, tcksift.out_mu], out_dir=out_dir)
+    utils.save(
+        files=[tckgen.tracks, tcksift.out_weights, tdi.output],
+        out_dir=cfg["output_dir"].joinpath(bids(datatype="dwi").to_path().parent),
+    )
