@@ -68,6 +68,7 @@ target-version = "py311"
 [tool.ruff.lint]
 select = ["ANN", "D", "E", "F", "I"]
 ignore = [
+  "ANN003",  # **kwargs should not be annotated.
   "ANN101",  # self should not be annotated.
   "ANN102",  # cls should not be annotated.
   "ANN401"

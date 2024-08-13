@@ -7,7 +7,7 @@ from typing import Any
 from bids2table import BIDSEntities, BIDSTable, bids2table
 from tqdm import tqdm
 
-from ...workflow.diffusion import reconst, tractography
+from ...workflow.diffusion import connectivity, reconst, tractography
 from .. import utils
 
 
@@ -59,6 +59,6 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
 
         fods = reconst.compute_fods(**input_kwargs)
         reconst.compute_dti(**input_kwargs)
-        tractography.generate_tractography(fod=fods, **input_kwargs)
+        tract_outputs = tractography.generate_tractography(fod=fods, **input_kwargs)
 
         logger.info(f"Completed processing for {bids().to_path().name}")

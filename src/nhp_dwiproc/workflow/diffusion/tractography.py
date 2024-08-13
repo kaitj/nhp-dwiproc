@@ -15,7 +15,7 @@ def generate_tractography(
     bids: partial,
     cfg: dict[str, Any],
     logger: Logger,
-) -> None:
+) -> tuple[mrtrix.TckgenOutputs, mrtrix.Tcksift2Outputs]:
     """Generate subject tractography."""
     logger.info("Generating tractography")
     wm_fod = fod.input_output[0].output
@@ -48,16 +48,20 @@ def generate_tractography(
         nthreads=cfg["opt.threads"],
     )
 
-    tdi = mrtrix.tckmap(
-        tracks=tckgen.tracks,
-        tck_weights_in=tcksift.out_weights,
-        template=input_data["dwi"]["nii"],
-        output=bids(suffix="tdi", ext=".nii.gz").to_path().name,
-        nthreads=cfg["opt.threads"],
-    )
+    tdi = {}
+    for meas, weights in zip(["raw", "weighted"], [None, tcksift.out_weights]):
+        tdi[meas] = mrtrix.tckmap(
+            tracks=tckgen.tracks,
+            tck_weights_in=weights,
+            template=wm_fod,
+            output=bids(extra_entities={"meas": meas}, suffix="tdi", ext=".nii.gz"),
+            nthreads=cfg["opt.threads"],
+        )
 
     # Save relevant outputs
     utils.save(
-        files=[tckgen.tracks, tcksift.out_weights, tdi.output],
+        files=[tckgen.tracks, tcksift.out_weights, tdi["weighted"].output],
         out_dir=cfg["output_dir"].joinpath(bids(datatype="dwi").to_path().parent),
     )
+
+    return tckgen, tcksift
