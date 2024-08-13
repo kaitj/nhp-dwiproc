@@ -44,7 +44,13 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
     ):
         entities = utils.unique_entities(row)
         input_kwargs: dict[str, Any] = {
-            "input_data": (input_data := utils.get_inputs(b2t=b2t, entities=entities)),
+            "input_data": (
+                input_data := utils.get_inputs(
+                    b2t=b2t,
+                    entities=entities,
+                    atlas=(atlas := cfg["participant.connectivity.atlas"]),
+                )
+            ),
             "bids": (
                 bids := partial(
                     BIDSEntities.from_dict(input_data["entities"]).with_update,
@@ -57,8 +63,13 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
 
         logger.info(f"Processing {bids().to_path().name}")
 
-        fods = reconst.compute_fods(**input_kwargs)
+        # Reconstruction
         reconst.compute_dti(**input_kwargs)
+        fods = reconst.compute_fods(**input_kwargs)
+        # Tractography
         tract_outputs = tractography.generate_tractography(fod=fods, **input_kwargs)
+        # Only generate connectivity if atlas provided
+        if atlas:
+            connectivity.generate_conn_matrix(tract_data=tract_outputs, **input_kwargs)
 
         logger.info(f"Completed processing for {bids().to_path().name}")

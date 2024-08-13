@@ -41,7 +41,9 @@ def unique_entities(row: pd.Series) -> dict[str, Any]:
     }
 
 
-def get_inputs(b2t: BIDSTable, entities: dict[str, Any]) -> dict[str, dict[str, Any]]:
+def get_inputs(
+    b2t: BIDSTable, entities: dict[str, Any], atlas: str | None
+) -> dict[str, dict[str, Any]]:
     """Helper to grab relevant inputs for workflow."""
     dwi_filter = partial(b2t.filter_multi, space="T1w", suffix="dwi", **entities)
 
@@ -62,6 +64,19 @@ def get_inputs(b2t: BIDSTable, entities: dict[str, Any]) -> dict[str, dict[str, 
             )
             .flat.iloc[0]
             .file_path,
+        },
+        "atlas": {
+            "nii": b2t.filter_multi(
+                datatype="dwi",
+                space="T1w",
+                seg=atlas,
+                suffix="dseg",
+                ext={"items": [".nii", ".nii.gz"]},
+            )
+            .flat.iloc[0]
+            .file_path
+            if atlas
+            else None
         },
         "entities": {**entities},
     }

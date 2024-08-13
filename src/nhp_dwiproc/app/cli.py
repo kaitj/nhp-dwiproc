@@ -163,3 +163,11 @@ def _add_participant_args(app_parser: BidsAppArgumentParser) -> None:
         default=10_000,
         help="number of streamlines to select (default %(default)d)",
     )
+    participant_args.add_argument(
+        "--atlas",
+        metavar="atlas",
+        dest="participant.connectivity.atlas",
+        type=str,
+        default=None,
+        help="volumetric atlas name (assumed to be processed) for connectivity matrix",
+    )
