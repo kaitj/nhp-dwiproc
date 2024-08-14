@@ -6,21 +6,28 @@ output_dir: /path/to/output_dir
 analysis_level: index/participant
 
 # Optional arguments
-opt.runner:
-opt.working_dir:
-opt.containers:
-opt.threads: 1
-opt.index_path:
-opt.b0_thresh: 10
+opt:
+  runner:
+  working_dir:
+  containers:
+  threads: 1
+  index_path:
+  b0_thresh: 10
 
 # Index analysis-level arguments
 index.overwrite: true
 
-# Participant analysis-level arguments
-participant.query:
-participant.b0_thresh: 10
-participant.single_shell: false
-participant.shells:
-participant.lmax:
-participant.tractography.steps:
-participant.tractography.streamlines: 10_000
+# General Participant analysis-level arguments
+participant:
+  query:
+  b0_thresh: 10
+  # Tractography analysis-level arguments
+  tractography:
+    single_shell: false
+    shells:
+    lmax:
+    steps:
+    streamlines: 10_000
+  # Connectivity analysis-level arguments
+  connectivity:
+    atlas:

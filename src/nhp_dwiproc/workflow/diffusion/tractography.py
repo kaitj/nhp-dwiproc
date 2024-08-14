@@ -15,7 +15,7 @@ def generate_tractography(
     bids: partial,
     cfg: dict[str, Any],
     logger: Logger,
-) -> tuple[mrtrix.TckgenOutputs, mrtrix.Tcksift2Outputs]:
+) -> None:
     """Generate subject tractography."""
     logger.info("Generating tractography")
     wm_fod = fod.input_output[0].output
@@ -63,5 +63,3 @@ def generate_tractography(
         files=[tckgen.tracks, tcksift.out_weights, tdi["weighted"].output],
         out_dir=cfg["output_dir"].joinpath(bids(datatype="dwi").to_path().parent),
     )
-
-    return tckgen, tcksift

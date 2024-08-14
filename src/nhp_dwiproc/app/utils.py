@@ -9,7 +9,7 @@ from typing import Any
 
 import pandas as pd
 import yaml
-from bids2table import BIDSTable
+from bids2table import BIDSTable, bids2table
 from styxdefs import (
     LocalRunner,
     OutputPathType,
@@ -30,6 +30,32 @@ def check_index_path(cfg: dict[str, Any]) -> pl.Path:
         if (index_fpath := cfg["opt.index_path"])
         else cfg["bids_dir"] / "index.b2t"
     )
+
+
+def load_b2t(cfg: dict[str, Any], logger: logging.Logger) -> BIDSTable:
+    """Handle loading of bids2table."""
+    index_path = check_index_path(cfg=cfg)
+
+    if index_path.exists():
+        logger.info("Existing bids2table found")
+        if overwrite := cfg["opt.overwrite"]:
+            logger.info("Overwriting existing table")
+        b2t = bids2table(
+            root=cfg["bids_dir"],
+            index_path=index_path,
+            workers=cfg["opt.threads"],
+            overwrite=overwrite,
+        )
+    else:
+        logger.info("Indexing bids dataset...")
+        b2t = bids2table(
+            root=cfg["bids_dir"], persistent=False, workers=cfg["opt.threads"]
+        )
+        logger.warning(
+            "Index created, but not saved - please run 'index' level analysis to save"
+        )
+
+    return b2t
 
 
 def unique_entities(row: pd.Series) -> dict[str, Any]:
@@ -77,6 +103,24 @@ def get_inputs(
             .file_path
             if atlas
             else None
+        },
+        "tractography": {
+            "tck": b2t.filter_multi(
+                extra_entities={"method": "iFOD2"},
+                suffix="tractography",
+                ext=".tck",
+                **entities,
+            )
+            .flat.iloc[0]
+            .file_path,
+            "weights": b2t.filter_multi(
+                extra_entities={"method": "SIFT2"},
+                suffix="tckWeights",
+                ext=".txt",
+                **entities,
+            )
+            .flat.iloc[0]
+            .file_path,
         },
         "entities": {**entities},
     }

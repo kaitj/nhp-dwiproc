@@ -10,24 +10,22 @@ from ...app import utils
 
 
 def generate_conn_matrix(
-    tract_data: tuple[mrtrix.TckgenOutputs, mrtrix.Tcksift2Outputs],
+    input_data: dict[str, Any],
     bids: partial,
     cfg: dict[str, Any],
     logger: Logger,
-    input_data: dict[str, Any],
 ) -> None:
     """Generate connectivity matrix."""
     logger.info("Generating connectivity matrices")
-    tckgen, tcksift = tract_data
 
     tck2connectome = {}
     for meas, tck_weights, length in zip(
         ["afd", "count", "avgLength"],
-        [tcksift.out_weights, None, None],
+        [input_data["tractography"]["weights"], None, None],
         [False, False, True],
     ):
         tck2connectome[meas] = mrtrix.tck2connectome(
-            tracks_in=tckgen.tracks,
+            tracks_in=input_data["tractography"]["tck"],
             nodes_in=input_data["atlas"],
             connectome_out=bids(
                 extra_entities={"meas": meas},
