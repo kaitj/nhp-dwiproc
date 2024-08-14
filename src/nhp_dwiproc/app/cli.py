@@ -12,10 +12,11 @@ def parser() -> BidsAppArgumentParser:
     app_parser = BidsAppArgumentParser(
         app_name=APP_NAME, description="Diffusion processing NHP data."
     )
-    app_parser.update_analysis_level(["index", "participant"])
+    app_parser.update_analysis_level(["index", "tractography", "connectivity"])
     _add_optional_args(app_parser=app_parser)
     _add_index_args(app_parser=app_parser)
-    _add_participant_args(app_parser=app_parser)
+    _add_tractography_args(app_parser=app_parser)
+    _add_connectivity_args(app_parser=app_parser)
     return app_parser
 
 
@@ -80,25 +81,7 @@ def _add_optional_args(app_parser: BidsAppArgumentParser) -> None:
         action="store_true",
         help="Print diagram of workflow",
     )
-
-
-def _add_index_args(app_parser: BidsAppArgumentParser) -> None:
-    """Optional args associated with index analysis-level."""
-    index_args = app_parser.add_argument_group("index analysis-level soptions")
-    index_args.add_argument(
-        "--overwrite",
-        dest="index.overwrite",
-        action="store_true",
-        help="overwrite previous index (default: %(default)s)",
-    )
-
-
-def _add_participant_args(app_parser: BidsAppArgumentParser) -> None:
-    """Optional args associated with participant analysis-level."""
-    participant_args = app_parser.add_argument_group(
-        "participant analysis-level options"
-    )
-    participant_args.add_argument(
+    app_parser.add_argument(
         "--participant-query",
         "--participant_query",
         metavar="query",
@@ -115,39 +98,57 @@ def _add_participant_args(app_parser: BidsAppArgumentParser) -> None:
         default=10,
         help="threshold for shell to be considered b=0 (default: %(default)d)",
     )
-    participant_args.add_argument(
+
+
+def _add_index_args(app_parser: BidsAppArgumentParser) -> None:
+    """Optional args associated with index analysis-level."""
+    index_args = app_parser.add_argument_group("index analysis-level soptions")
+    index_args.add_argument(
+        "--overwrite",
+        dest="index.overwrite",
+        action="store_true",
+        help="overwrite previous index (default: %(default)s)",
+    )
+
+
+def _add_tractography_args(app_parser: BidsAppArgumentParser) -> None:
+    """Optional args associated with tractography analysis-level."""
+    tractography_args = app_parser.add_argument_group(
+        "tractography analysis-level options",
+    )
+    tractography_args.add_argument(
         "--single-shell",
         "--single_shell",
-        dest="participant.single_shell",
+        dest="participant.tractography.single_shell",
         action="store_true",
         help="Process single-shell data (default: %(default)s)",
     )
-    participant_args.add_argument(
+    tractography_args.add_argument(
         "--shells",
         metavar="shell",
-        dest="participant.shells",
+        dest="participant.tractography.shells",
         nargs="*",
         type=int,
         help="space-separated list of b-values (b=0 must be included explicitly)",
     )
-    participant_args.add_argument(
+    tractography_args.add_argument(
         "--lmax",
         metavar="lmax",
-        dest="participant.lmax",
+        dest="participant.tractography.lmax",
         nargs="*",
         type=int,
         help="""maximum harmonic degree(s)
         (space-separated for multiple b-values, b=0 must be included explicitly)
         """,
     )
-    participant_args.add_argument(
+    tractography_args.add_argument(
         "--steps",
         metavar="steps",
         dest="participant.tractography.steps",
         type=float,
         help="step size (in mm) for tractography (default: 0.5 x voxel size)",
     )
-    participant_args.add_argument(
+    tractography_args.add_argument(
         "--cutoff",
         metavar="cutoff",
         dest="participant.tractography.cutoff",
@@ -155,7 +156,7 @@ def _add_participant_args(app_parser: BidsAppArgumentParser) -> None:
         default=0.1,
         help="cutoff FOD amplitude value for terminating tracks (default: %(default)f)",
     )
-    participant_args.add_argument(
+    tractography_args.add_argument(
         "--streamlines",
         metavar="streamlines",
         dest="participant.tractography.streamlines",
@@ -163,11 +164,26 @@ def _add_participant_args(app_parser: BidsAppArgumentParser) -> None:
         default=10_000,
         help="number of streamlines to select (default %(default)d)",
     )
-    participant_args.add_argument(
+
+
+def _add_connectivity_args(app_parser: BidsAppArgumentParser) -> None:
+    """Optional args associated with connectivity (connectivity) analysis-level."""
+    connectivity_args = app_parser.add_argument_group(
+        "connectivity analysis-level options",
+    )
+    connectivity_args.add_argument(
         "--atlas",
         metavar="atlas",
         dest="participant.connectivity.atlas",
         type=str,
         default=None,
         help="volumetric atlas name (assumed to be processed) for connectivity matrix",
+    )
+    connectivity_args.add_argument(
+        "--radius",
+        metavar="radius",
+        dest="participant.connectivity.radius",
+        type=float,
+        default=2,
+        help="distance (in mm) to map to nearest parcel (default: %(default)f)",
     )
