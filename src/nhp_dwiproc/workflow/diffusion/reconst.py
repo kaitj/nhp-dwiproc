@@ -47,8 +47,8 @@ def compute_fods(
             bvals=input_data["dwi"]["bval"],
         ),
         mask=input_data["dwi"]["mask"],
-        shells=shells if (shells := cfg["participant.shells"]) else None,
-        lmax=lmax if (lmax := cfg["participant.lmax"]) else None,
+        shells=shells if (shells := cfg["participant.tractography.shells"]) else None,
+        lmax=lmax if (lmax := cfg["participant.tractography.lmax"]) else None,
         nthreads=cfg["opt.threads"],
         config=[
             mrtrix.Dwi2responseConfig(
@@ -90,7 +90,7 @@ def compute_fods(
             .name,
         ),
     ]
-    if cfg["participant.single_shell"]:
+    if cfg["participant.tractography.single_shell"]:
         logger.info("Leaving out GM for single-shell computation")
         response_odf = [response_odf[0], response_odf[2]]
     dwi2fod = mrtrix.dwi2fod(

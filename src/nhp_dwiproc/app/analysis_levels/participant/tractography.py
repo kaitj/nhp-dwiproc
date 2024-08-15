@@ -4,31 +4,17 @@ from functools import partial
 from logging import Logger
 from typing import Any
 
-from bids2table import BIDSEntities, BIDSTable, bids2table
+from bids2table import BIDSEntities, BIDSTable
 from tqdm import tqdm
 
-from ...workflow.diffusion import reconst, tractography
-from .. import utils
+from ....workflow.diffusion import reconst, tractography
+from ... import utils
 
 
 def run(cfg: dict[str, Any], logger: Logger) -> None:
-    """Runner for participant-level analysis."""
-    logger.info("Participant analysis-level")
-    index_path = utils.check_index_path(cfg=cfg)
-
-    if index_path.exists():
-        logger.info("Using existing bids2table index")
-        b2t = bids2table(
-            root=cfg["bids_dir"], index_path=index_path, workers=cfg["opt.threads"]
-        )
-    else:
-        logger.info("Indexing bids dataset...")
-        b2t = bids2table(
-            root=cfg["bids_dir"], persistent=False, workers=cfg["opt.threads"]
-        )
-        logger.warning(
-            "Index created, but not saved - please run 'index' level analysis to save"
-        )
+    """Runner for tractography-level analysis."""
+    logger.info("Tractography analysis-level")
+    b2t = utils.load_b2t(cfg=cfg, logger=logger)
 
     # Filter b2t based on string query
     if cfg["participant.query"]:
@@ -44,7 +30,13 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
     ):
         entities = utils.unique_entities(row)
         input_kwargs: dict[str, Any] = {
-            "input_data": (input_data := utils.get_inputs(b2t=b2t, entities=entities)),
+            "input_data": (
+                input_data := utils.get_inputs(
+                    b2t=b2t,
+                    entities=entities,
+                    atlas=None,
+                )
+            ),
             "bids": (
                 bids := partial(
                     BIDSEntities.from_dict(input_data["entities"]).with_update,
@@ -55,10 +47,9 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
             "logger": logger,
         }
 
+        # Perform processing
         logger.info(f"Processing {bids().to_path().name}")
-
-        fods = reconst.compute_fods(**input_kwargs)
         reconst.compute_dti(**input_kwargs)
+        fods = reconst.compute_fods(**input_kwargs)
         tractography.generate_tractography(fod=fods, **input_kwargs)
-
         logger.info(f"Completed processing for {bids().to_path().name}")

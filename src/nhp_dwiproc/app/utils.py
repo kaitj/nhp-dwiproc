@@ -4,16 +4,18 @@ import importlib.metadata as ilm
 import logging
 import pathlib as pl
 import shutil
+from datetime import datetime
 from functools import partial
 from typing import Any
 
 import pandas as pd
 import yaml
-from bids2table import BIDSTable
+from bids2table import BIDSTable, bids2table
 from styxdefs import (
     LocalRunner,
     OutputPathType,
     Runner,
+    get_global_runner,
     set_global_runner,
 )
 from styxdocker import DockerRunner
@@ -32,6 +34,32 @@ def check_index_path(cfg: dict[str, Any]) -> pl.Path:
     )
 
 
+def load_b2t(cfg: dict[str, Any], logger: logging.Logger) -> BIDSTable:
+    """Handle loading of bids2table."""
+    index_path = check_index_path(cfg=cfg)
+
+    if index_path.exists():
+        logger.info("Existing bids2table found")
+        if overwrite := cfg["opt.overwrite"]:
+            logger.info("Overwriting existing table")
+        b2t = bids2table(
+            root=cfg["bids_dir"],
+            index_path=index_path,
+            workers=cfg["opt.threads"],
+            overwrite=overwrite,
+        )
+    else:
+        logger.info("Indexing bids dataset...")
+        b2t = bids2table(
+            root=cfg["bids_dir"], persistent=False, workers=cfg["opt.threads"]
+        )
+        logger.warning(
+            "Index created, but not saved - please run 'index' level analysis to save"
+        )
+
+    return b2t
+
+
 def unique_entities(row: pd.Series) -> dict[str, Any]:
     """Function to check for unique sub / ses / run entities."""
     return {
@@ -41,7 +69,9 @@ def unique_entities(row: pd.Series) -> dict[str, Any]:
     }
 
 
-def get_inputs(b2t: BIDSTable, entities: dict[str, Any]) -> dict[str, dict[str, Any]]:
+def get_inputs(
+    b2t: BIDSTable, entities: dict[str, Any], atlas: str | None
+) -> dict[str, dict[str, Any]]:
     """Helper to grab relevant inputs for workflow."""
     dwi_filter = partial(b2t.filter_multi, space="T1w", suffix="dwi", **entities)
 
@@ -63,13 +93,47 @@ def get_inputs(b2t: BIDSTable, entities: dict[str, Any]) -> dict[str, dict[str, 
             .flat.iloc[0]
             .file_path,
         },
+        "atlas": {
+            "nii": b2t.filter_multi(
+                datatype="dwi",
+                space="T1w",
+                suffix="dseg",
+                ext={"items": [".nii", ".nii.gz"]},
+            )
+            .filter("extra_entities", {"seg": atlas})
+            .flat.iloc[0]
+            .file_path
+            if atlas
+            else None
+        },
+        "tractography": {
+            "tck": b2t.filter_multi(
+                suffix="tractography",
+                ext=".tck",
+                **entities,
+            )
+            .filter("extra_entities", {"method": "iFOD2"})
+            .flat.iloc[0]
+            .file_path,
+            "weights": b2t.filter_multi(
+                suffix="tckWeights",
+                ext=".txt",
+                **entities,
+            )
+            .filter("extra_entities", {"method": "SIFT2"})
+            .flat.iloc[0]
+            .file_path,
+        },
         "entities": {**entities},
     }
 
     return wf_inputs
 
 
-def save(files: OutputPathType | list[OutputPathType], out_dir: pl.Path) -> None:
+def save(
+    files: OutputPathType | list[OutputPathType],
+    out_dir: pl.Path,
+) -> None:
     """Helper function to save file to disk."""
     # Recursively call save for each file in list
     if isinstance(files, list):
@@ -77,6 +141,7 @@ def save(files: OutputPathType | list[OutputPathType], out_dir: pl.Path) -> None
             save(file, out_dir=out_dir)
     else:
         # Find relevant BIDs components of file path
+        out_fpath = None
         for idx, fpath_part in enumerate(parts := files.parts):
             if "sub-" in fpath_part:
                 out_fpath = out_dir.joinpath(*parts[idx:])
@@ -112,12 +177,17 @@ def initialize(cfg: dict[str, Any]) -> tuple[logging.Logger, Runner]:
         case _:
             runner = LocalRunner()
 
-    # Finish configuring runner (ignore parameters that can't be set)
-    runner.data_dir = cfg["opt.working_dir"]
+    # Finish configuring runner - if keeping temp, redirect runner's output
+    runner.data_dir = (
+        cfg["output_dir"].joinpath(
+            f'working/{datetime.now().isoformat(timespec="seconds").replace(":", "-")}'
+        )
+        if cfg["opt.keep_tmp"]
+        else cfg["opt.working_dir"]
+    )
     runner.environ = {"MRTRIX_RNG_SEED": str(cfg["opt.seed_num"])}
-
     set_global_runner(GraphRunner(runner))
 
     logger = logging.getLogger(runner.logger_name)
     logger.info(f"Running {APP_NAME} v{ilm.version(APP_NAME)}")
-    return logger, runner
+    return logger, get_global_runner()

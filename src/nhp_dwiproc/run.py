@@ -13,12 +13,16 @@ def main() -> None:
 
     # Run workflow
     logger, runner = app.initialize(cfg=cfg)
-    match cfg["analysis_level"]:
+    match analysis_level := cfg["analysis_level"]:
         case "index":
             app.analysis_levels.index.run(cfg=cfg, logger=logger)
-        case "participant":
-            app.analysis_levels.participant.run(cfg=cfg, logger=logger)
-            app.generate_descriptor(cfg=cfg, out_fname="dataset_description.json")
+        case "tractography":
+            app.analysis_levels.tractography.run(cfg=cfg, logger=logger)
+        case "connectivity":
+            app.analysis_levels.connectivity.run(cfg=cfg, logger=logger)
+
+    if analysis_level != "index":
+        app.generate_descriptor(cfg=cfg, out_fname="dataset_description.json")
 
     # Finish cleaning up workflow
     shutil.rmtree(cfg["opt.working_dir"])
@@ -26,7 +30,7 @@ def main() -> None:
     # Print graph
     if cfg["opt.graph"]:
         logger.info("Printing mermaid workflow graph")
-        print(runner.mermaid())  # type: ignore
+        logger.info(runner.mermaid())  # type: ignore
 
 
 if __name__ == "__main__":
