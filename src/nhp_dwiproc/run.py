@@ -21,8 +21,13 @@ def main() -> None:
         case "connectivity":
             app.analysis_levels.connectivity.run(cfg=cfg, logger=logger)
 
-    if analysis_level in ["tractography", "connectivity"]:
+    if analysis_level != "index":
         app.generate_descriptor(cfg=cfg, out_fname="dataset_description.json")
+
+    if cfg["opt.keep_tmp"]:
+        app.utils.save(
+            files=cfg["opt.working_dir"], out_dir=cfg["opt.output_dir"], archive=True
+        )
 
     # Finish cleaning up workflow
     shutil.rmtree(cfg["opt.working_dir"])

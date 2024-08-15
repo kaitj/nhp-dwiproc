@@ -58,6 +58,13 @@ def _add_optional_args(app_parser: BidsAppArgumentParser) -> None:
         help="number of threads to use (default: %(default)d)",
     )
     app_parser.add_argument(
+        "--keep-tmp",
+        "--keep_tmp",
+        dest="opt.keep_tmp",
+        action="store_true",
+        help="keep all (temporary) intermediate files",
+    )
+    app_parser.add_argument(
         "--seed-num",
         "--seed_num",
         metavar="seed_num",
@@ -79,7 +86,7 @@ def _add_optional_args(app_parser: BidsAppArgumentParser) -> None:
         "--graph",
         dest="opt.graph",
         action="store_true",
-        help="Print diagram of workflow",
+        help="print diagram of workflow",
     )
     app_parser.add_argument(
         "--participant-query",
@@ -121,7 +128,7 @@ def _add_tractography_args(app_parser: BidsAppArgumentParser) -> None:
         "--single_shell",
         dest="participant.tractography.single_shell",
         action="store_true",
-        help="Process single-shell data (default: %(default)s)",
+        help="process single-shell data (default: %(default)s)",
     )
     tractography_args.add_argument(
         "--shells",

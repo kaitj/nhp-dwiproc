@@ -4,6 +4,7 @@ import importlib.metadata as ilm
 import logging
 import pathlib as pl
 import shutil
+from datetime import datetime
 from functools import partial
 from typing import Any
 
@@ -128,7 +129,11 @@ def get_inputs(
     return wf_inputs
 
 
-def save(files: OutputPathType | list[OutputPathType], out_dir: pl.Path) -> None:
+def save(
+    files: OutputPathType | list[OutputPathType],
+    out_dir: pl.Path,
+    archive: bool = False,
+) -> None:
     """Helper function to save file to disk."""
     # Recursively call save for each file in list
     if isinstance(files, list):
@@ -145,8 +150,18 @@ def save(files: OutputPathType | list[OutputPathType], out_dir: pl.Path) -> None
                 "Unable to find relevant file path components to save file."
             )
 
-        out_fpath.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(files, out_dir.joinpath(out_fpath))
+        if archive:
+            timestamp = datetime.now().isoformat(timespec="seconds").replace(":", "-")
+            basename = "tmp-files" if archive else out_fpath
+            shutil.make_archive(
+                base_name=f"{basename}_{timestamp}",
+                format="zip",
+                root_dir="archives",
+                base_dir=out_dir,
+            )
+        else:
+            out_fpath.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(files, out_dir.joinpath(out_fpath))
 
 
 def initialize(cfg: dict[str, Any]) -> tuple[logging.Logger, Runner]:
