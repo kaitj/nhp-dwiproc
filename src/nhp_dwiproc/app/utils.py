@@ -15,6 +15,7 @@ from styxdefs import (
     LocalRunner,
     OutputPathType,
     Runner,
+    get_global_runner,
     set_global_runner,
 )
 from styxdocker import DockerRunner
@@ -96,10 +97,10 @@ def get_inputs(
             "nii": b2t.filter_multi(
                 datatype="dwi",
                 space="T1w",
-                seg=atlas,
                 suffix="dseg",
                 ext={"items": [".nii", ".nii.gz"]},
             )
+            .filter("extra_entities", {"seg": atlas})
             .flat.iloc[0]
             .file_path
             if atlas
@@ -107,19 +108,19 @@ def get_inputs(
         },
         "tractography": {
             "tck": b2t.filter_multi(
-                extra_entities={"method": "iFOD2"},
                 suffix="tractography",
                 ext=".tck",
                 **entities,
             )
+            .filter("extra_entities", {"method": "iFOD2"})
             .flat.iloc[0]
             .file_path,
             "weights": b2t.filter_multi(
-                extra_entities={"method": "SIFT2"},
                 suffix="tckWeights",
                 ext=".txt",
                 **entities,
             )
+            .filter("extra_entities", {"method": "SIFT2"})
             .flat.iloc[0]
             .file_path,
         },
@@ -132,7 +133,6 @@ def get_inputs(
 def save(
     files: OutputPathType | list[OutputPathType],
     out_dir: pl.Path,
-    archive: bool = False,
 ) -> None:
     """Helper function to save file to disk."""
     # Recursively call save for each file in list
@@ -141,6 +141,7 @@ def save(
             save(file, out_dir=out_dir)
     else:
         # Find relevant BIDs components of file path
+        out_fpath = None
         for idx, fpath_part in enumerate(parts := files.parts):
             if "sub-" in fpath_part:
                 out_fpath = out_dir.joinpath(*parts[idx:])
@@ -150,18 +151,8 @@ def save(
                 "Unable to find relevant file path components to save file."
             )
 
-        if archive:
-            timestamp = datetime.now().isoformat(timespec="seconds").replace(":", "-")
-            basename = "tmp-files" if archive else out_fpath
-            shutil.make_archive(
-                base_name=f"{basename}_{timestamp}",
-                format="zip",
-                root_dir="archives",
-                base_dir=out_dir,
-            )
-        else:
-            out_fpath.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(files, out_dir.joinpath(out_fpath))
+        out_fpath.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(files, out_dir.joinpath(out_fpath))
 
 
 def initialize(cfg: dict[str, Any]) -> tuple[logging.Logger, Runner]:
@@ -186,12 +177,17 @@ def initialize(cfg: dict[str, Any]) -> tuple[logging.Logger, Runner]:
         case _:
             runner = LocalRunner()
 
-    # Finish configuring runner (ignore parameters that can't be set)
-    runner.data_dir = cfg["opt.working_dir"]
+    # Finish configuring runner - if keeping temp, redirect runner's output
+    runner.data_dir = (
+        cfg["output_dir"].joinpath(
+            f'working/{datetime.now().isoformat(timespec="seconds").replace(":", "-")}'
+        )
+        if cfg["opt.keep_tmp"]
+        else cfg["opt.working_dir"]
+    )
     runner.environ = {"MRTRIX_RNG_SEED": str(cfg["opt.seed_num"])}
-
     set_global_runner(GraphRunner(runner))
 
     logger = logging.getLogger(runner.logger_name)
     logger.info(f"Running {APP_NAME} v{ilm.version(APP_NAME)}")
-    return logger, runner
+    return logger, get_global_runner()

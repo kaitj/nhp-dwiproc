@@ -54,7 +54,9 @@ def generate_tractography(
             tracks=tckgen.tracks,
             tck_weights_in=weights,
             template=wm_fod,
-            output=bids(extra_entities={"meas": meas}, suffix="tdi", ext=".nii.gz"),
+            output=bids(extra_entities={"meas": meas}, suffix="tdi", ext=".nii.gz")
+            .to_path()
+            .name,
             nthreads=cfg["opt.threads"],
         )
 

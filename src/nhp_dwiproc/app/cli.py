@@ -62,7 +62,7 @@ def _add_optional_args(app_parser: BidsAppArgumentParser) -> None:
         "--keep_tmp",
         dest="opt.keep_tmp",
         action="store_true",
-        help="keep all (temporary) intermediate files",
+        help="keep all intermediate files (for debugging purposes)",
     )
     app_parser.add_argument(
         "--seed-num",
