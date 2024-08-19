@@ -5,7 +5,6 @@ import logging
 import pathlib as pl
 import shutil
 from datetime import datetime
-from functools import partial
 from typing import Any
 
 import pandas as pd
@@ -57,6 +56,11 @@ def load_b2t(cfg: dict[str, Any], logger: logging.Logger) -> BIDSTable:
             "Index created, but not saved - please run 'index' level analysis to save"
         )
 
+    # Flatten entities s.t. extra_ents can be filtered
+    extra_entities = pd.json_normalize(b2t["ent__extra_entities"])
+    extra_entities = extra_entities.set_index(b2t.index)
+    b2t = pd.concat([b2t, extra_entities.add_prefix("ent__")], axis=1)
+
     return b2t
 
 
@@ -73,16 +77,14 @@ def get_inputs(
     b2t: BIDSTable, entities: dict[str, Any], atlas: str | None
 ) -> dict[str, dict[str, Any]]:
     """Helper to grab relevant inputs for workflow."""
-    dwi_filter = partial(b2t.filter_multi, space="T1w", suffix="dwi", **entities)
-
     wf_inputs = {
         "dwi": {
-            "nii": dwi_filter(ext={"items": [".nii", ".nii.gz"]})
+            "nii": b2t.filter_multi(suffix="dwi", ext={"items": [".nii", ".nii.gz"]})
             .flat.iloc[0]
             .file_path,
-            "bval": dwi_filter(ext=".bval").flat.iloc[0].file_path,
-            "bvec": dwi_filter(ext=".bvec").flat.iloc[0].file_path,
-            "mask": dwi_filter(suffix="mask", ext={"items": [".nii", ".nii.gz"]})
+            "bval": b2t.filter_multi(suffix="dwi", ext=".bval").flat.iloc[0].file_path,
+            "bvec": b2t.filter_multi(suffix="dwi", ext=".bvec").flat.iloc[0].file_path,
+            "mask": b2t.filter_multi(suffix="mask", ext={"items": [".nii", ".nii.gz"]})
             .flat.iloc[0]
             .file_path,
         },
@@ -97,10 +99,10 @@ def get_inputs(
             "nii": b2t.filter_multi(
                 datatype="dwi",
                 space="T1w",
+                seg=atlas,
                 suffix="dseg",
                 ext={"items": [".nii", ".nii.gz"]},
             )
-            .filter("extra_entities", {"seg": atlas})
             .flat.iloc[0]
             .file_path
             if atlas
@@ -108,19 +110,19 @@ def get_inputs(
         },
         "tractography": {
             "tck": b2t.filter_multi(
+                method="iFOD2",
                 suffix="tractography",
                 ext=".tck",
                 **entities,
             )
-            .filter("extra_entities", {"method": "iFOD2"})
             .flat.iloc[0]
             .file_path,
             "weights": b2t.filter_multi(
+                method="SIFT2",
                 suffix="tckWeights",
                 ext=".txt",
                 **entities,
             )
-            .filter("extra_entities", {"method": "SIFT2"})
             .flat.iloc[0]
             .file_path,
         },
