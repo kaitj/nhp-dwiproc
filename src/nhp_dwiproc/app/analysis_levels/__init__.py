@@ -1,6 +1,6 @@
 """Initialize different analysis-levels."""
 
 from . import index
-from .participant import connectivity, tractography
+from .participant import connectivity, preprocess, tractography
 
-__all__ = ["index", "tractography", "connectivity"]
+__all__ = ["index", "tractography", "connectivity", "preprocess"]

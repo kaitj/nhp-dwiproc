@@ -15,6 +15,7 @@ def parser() -> BidsAppArgumentParser:
     app_parser.update_analysis_level(["index", "tractography", "connectivity"])
     _add_optional_args(app_parser=app_parser)
     _add_index_args(app_parser=app_parser)
+    _add_preprocess_args(app_parser=app_parser)
     _add_tractography_args(app_parser=app_parser)
     _add_connectivity_args(app_parser=app_parser)
     return app_parser
@@ -116,6 +117,11 @@ def _add_index_args(app_parser: BidsAppArgumentParser) -> None:
         action="store_true",
         help="overwrite previous index (default: %(default)s)",
     )
+
+
+def _add_preprocess_args(app_parser: BidsAppArgumentParser) -> None:
+    """Optional args associated with preprocessing analysis-level."""
+    preproc_args = app_parser.add_argument_group("preprocessing analysis-level options")
 
 
 def _add_tractography_args(app_parser: BidsAppArgumentParser) -> None:
