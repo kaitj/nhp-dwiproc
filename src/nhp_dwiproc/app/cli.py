@@ -10,7 +10,8 @@ from .utils import APP_NAME
 def parser() -> BidsAppArgumentParser:
     """Initialize and update parser."""
     app_parser = BidsAppArgumentParser(
-        app_name=APP_NAME, description="Diffusion processing NHP data."
+        app_name=APP_NAME,
+        description="Diffusion processing NHP data.",
     )
     app_parser.update_analysis_level(["index", "tractography", "connectivity"])
     _add_optional_args(app_parser=app_parser)
@@ -122,6 +123,42 @@ def _add_index_args(app_parser: BidsAppArgumentParser) -> None:
 def _add_preprocess_args(app_parser: BidsAppArgumentParser) -> None:
     """Optional args associated with preprocessing analysis-level."""
     preproc_args = app_parser.add_argument_group("preprocessing analysis-level options")
+    preproc_args.add_argument(
+        "--denoise-skip",
+        "--denoise_skip",
+        dest="participant.preproc.denoise.skip",
+        action="store_true",
+        help="skip denoising step",
+    )
+    preproc_args.add_argument(
+        "--denoise-extent",
+        "--denoise_extent",
+        metavar="extent",
+        nargs="*",
+        type=int,
+        default=None,
+        help="""
+        patch size of denoising filter (default: smallest isotropic patch size
+        exceeding number of dwi volumes)""",
+    )
+    # FIX TO STORE IF TRUE
+    preproc_args.add_argument(
+        "--denoise-map",
+        "--denoise_map",
+        dest="participant.preproc.denoise.map",
+        action="store_true",
+        help="output noise map (estimated level 'sigma' in the data)",
+    )
+    preproc_args.add_argument(
+        "--denoise-estimator",
+        "--denoise_estimator",
+        metavar="estimator",
+        dest="participant.preproc.denoise.estimator",
+        type=str,
+        default="Exp2",
+        choices=["Exp1", "Exp2"],
+        help="noise level estimator (one of [%(choices)s]; default: %(default)s)",
+    )
 
 
 def _add_tractography_args(app_parser: BidsAppArgumentParser) -> None:

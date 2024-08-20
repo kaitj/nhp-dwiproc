@@ -7,7 +7,8 @@ from typing import Any
 from bids2table import BIDSEntities, BIDSTable
 from tqdm import tqdm
 
-from ....app import utils
+from ....workflow.diffusion.preprocess import denoise
+from ... import utils
 
 
 def run(cfg: dict[str, Any], logger: Logger) -> None:
@@ -48,5 +49,5 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
 
         # Perform processing
         logger.info(f"Processing {bids().to_path().name}")
-        ...
+        dwi = denoise.denoise(**input_kwargs)
         logger.info(f"Completed processing for {bids().to_path().name}")

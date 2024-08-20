@@ -16,6 +16,8 @@ def main() -> None:
     match analysis_level := cfg["analysis_level"]:
         case "index":
             app.analysis_levels.index.run(cfg=cfg, logger=logger)
+        case "preprocess":
+            app.analysis_levels.preprocess.run(cfg=cfg, logger=logger)
         case "tractography":
             app.analysis_levels.tractography.run(cfg=cfg, logger=logger)
         case "connectivity":
