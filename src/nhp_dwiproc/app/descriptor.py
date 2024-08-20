@@ -5,7 +5,7 @@ from typing import Any
 
 from bidsapp_helper.descriptor import BidsAppDescriptor
 
-from .utils import APP_NAME
+from nhp_dwiproc.app.utils import APP_NAME
 
 
 def generate_descriptor(cfg: dict[str, Any], out_fname: str) -> None:

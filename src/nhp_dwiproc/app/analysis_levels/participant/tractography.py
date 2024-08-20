@@ -1,14 +1,13 @@
 """Pre-tractography participant processing (to compute FODs)."""
 
-from functools import partial
 from logging import Logger
 from typing import Any
 
-from bids2table import BIDSEntities, BIDSTable
+from bids2table import BIDSTable
 from tqdm import tqdm
 
-from ....workflow.diffusion import reconst, tractography
-from ... import utils
+from nhp_dwiproc.app import utils
+from nhp_dwiproc.workflow.diffusion import reconst, tractography
 
 
 def run(cfg: dict[str, Any], logger: Logger) -> None:
@@ -37,19 +36,13 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
                     atlas=None,
                 )
             ),
-            "bids": (
-                bids := partial(
-                    BIDSEntities.from_dict(input_data["entities"]).with_update,
-                    datatype="dwi",
-                )
-            ),
             "cfg": cfg,
             "logger": logger,
         }
 
         # Perform processing
-        logger.info(f"Processing {bids().to_path().name}")
+        logger.info(f"Processing {(uid := utils.bids_name(**input_data['entities']))}")
         reconst.compute_dti(**input_kwargs)
         fods = reconst.compute_fods(**input_kwargs)
         tractography.generate_tractography(fod=fods, **input_kwargs)
-        logger.info(f"Completed processing for {bids().to_path().name}")
+        logger.info(f"Completed processing for {uid}")

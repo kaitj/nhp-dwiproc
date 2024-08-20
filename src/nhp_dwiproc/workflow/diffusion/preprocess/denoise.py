@@ -7,14 +7,15 @@ from typing import Any
 from niwrap import mrtrix
 from styxdefs import OutputPathType
 
-from ....app import utils
+from nhp_dwiproc.app import utils
 
 
 def denoise(
-    input_data: dict[str, Any], bids: partial, cfg: dict[str, Any], logger: Logger
+    input_data: dict[str, Any], cfg: dict[str, Any], logger: Logger
 ) -> OutputPathType:
     """Perform mrtrix denoising."""
     logger.info("Performing denoising")
+    bids = partial(utils.bids_name, datatype="dwi", **input_data["entities"])
 
     if cfg["participant.preproc.denoise.skip"]:
         return input_data["dwi"]["nii"]
@@ -25,15 +26,11 @@ def denoise(
             desc="denoise",
             suffix="dwi",
             ext=".nii.gz",
-        )
-        .to_path()
-        .name,
+        ),
         estimator=cfg["participant.preproc.denoise.estimator"],
         noise=bids(
-            extra_entities={
-                "algorithm": cfg["participant.preproc.denoise.estimator"],
-                "param": "noise",
-            },
+            algorithm=cfg["participant.preproc.denoise.estimator"],
+            param="noise",
             suffix="dwimap",
             ext=".nii.gz",
         )
@@ -46,7 +43,7 @@ def denoise(
     if noise_map:
         utils.save(
             files=denoise.noise,
-            out_dir=cfg["output_dir"].joinpath(bids(datatype="dwi").to_path().parent),
+            out_dir=cfg["output_dir"].joinpath(bids(directory=True)),
         )
 
     return denoise.out

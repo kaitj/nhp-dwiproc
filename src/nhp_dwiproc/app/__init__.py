@@ -1,9 +1,9 @@
 """Initialize application module."""
 
-from . import analysis_levels, type, utils
-from .cli import parser
-from .descriptor import generate_descriptor
-from .utils import initialize
+from nhp_dwiproc.app import analysis_levels, type, utils
+from nhp_dwiproc.app.cli import parser
+from nhp_dwiproc.app.descriptor import generate_descriptor
+from nhp_dwiproc.app.utils import initialize
 
 __all__ = [
     "analysis_levels",

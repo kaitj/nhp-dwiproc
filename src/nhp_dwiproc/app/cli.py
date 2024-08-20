@@ -4,7 +4,7 @@ import pathlib as pl
 
 from bidsapp_helper.parser import BidsAppArgumentParser
 
-from .utils import APP_NAME
+from nhp_dwiproc.app.utils import APP_NAME
 
 
 def parser() -> BidsAppArgumentParser:

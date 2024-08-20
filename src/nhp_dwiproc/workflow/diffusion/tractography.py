@@ -6,27 +6,31 @@ from typing import Any
 
 from niwrap import mrtrix
 
-from ...app import utils
+from nhp_dwiproc.app import utils
 
 
 def generate_tractography(
     input_data: dict[str, Any],
     fod: mrtrix.MtnormaliseOutputs,
-    bids: partial,
     cfg: dict[str, Any],
     logger: Logger,
 ) -> None:
     """Generate subject tractography."""
     logger.info("Generating tractography")
     wm_fod = fod.input_output[0].output
+    bids = partial(
+        utils.bids_name,
+        datatype="dwi",
+        **input_data["entities"],
+    )
 
     tckgen = mrtrix.tckgen(
         source=wm_fod,
         tracks=bids(
-            extra_entities={"method": "iFOD2"}, suffix="tractography", ext=".tck"
-        )
-        .to_path()
-        .name,
+            method="iFOD2",
+            suffix="tractography",
+            ext=".tck",
+        ),
         mask=[mrtrix.TckgenMask(input_data["dwi"]["mask"])],
         seed_dynamic=wm_fod,
         algorithm="iFOD2",
@@ -41,10 +45,10 @@ def generate_tractography(
         in_tracks=tckgen.tracks,
         in_fod=wm_fod,
         out_weights=bids(
-            extra_entities={"method": "SIFT2"}, suffix="tckWeights", ext=".txt"
-        )
-        .to_path()
-        .name,
+            method="SIFT2",
+            suffix="tckWeights",
+            ext=".txt",
+        ),
         nthreads=cfg["opt.threads"],
     )
 
@@ -54,14 +58,16 @@ def generate_tractography(
             tracks=tckgen.tracks,
             tck_weights_in=weights,
             template=wm_fod,
-            output=bids(extra_entities={"meas": meas}, suffix="tdi", ext=".nii.gz")
-            .to_path()
-            .name,
+            output=bids(
+                meas=meas,
+                suffix="tdi",
+                ext=".nii.gz",
+            ),
             nthreads=cfg["opt.threads"],
         )
 
     # Save relevant outputs
     utils.save(
         files=[tckgen.tracks, tcksift.out_weights, tdi["weighted"].output],
-        out_dir=cfg["output_dir"].joinpath(bids(datatype="dwi").to_path().parent),
+        out_dir=cfg["output_dir"].joinpath(bids(directory=True)),
     )

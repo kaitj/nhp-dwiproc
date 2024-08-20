@@ -3,7 +3,7 @@
 
 import shutil
 
-from . import app
+from nhp_dwiproc import app
 
 
 def main() -> None:

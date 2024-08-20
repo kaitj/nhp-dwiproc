@@ -5,11 +5,11 @@ import logging
 import pathlib as pl
 import shutil
 from datetime import datetime
-from typing import Any
+from typing import Any, Literal, overload
 
 import pandas as pd
 import yaml
-from bids2table import BIDSTable, bids2table
+from bids2table import BIDSEntities, BIDSTable, bids2table
 from styxdefs import (
     LocalRunner,
     OutputPathType,
@@ -193,3 +193,17 @@ def initialize(cfg: dict[str, Any]) -> tuple[logging.Logger, Runner]:
     logger = logging.getLogger(runner.logger_name)
     logger.info(f"Running {APP_NAME} v{ilm.version(APP_NAME)}")
     return logger, get_global_runner()
+
+
+@overload
+def bids_name(directory: Literal[False], **entities) -> str: ...
+
+
+@overload
+def bids_name(directory: Literal[True], **entities) -> pl.Path: ...
+
+
+def bids_name(directory: bool = False, **entities) -> pl.Path | str:
+    """Helper function to generate bids-esque name."""
+    name = BIDSEntities.from_dict(entities).to_path()
+    return name.parent if directory else name.name
