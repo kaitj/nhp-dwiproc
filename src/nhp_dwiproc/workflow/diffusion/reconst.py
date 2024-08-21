@@ -13,6 +13,7 @@ def compute_fods(
     input_data: dict[str, Any],
     cfg: dict[str, Any],
     logger: Logger,
+    **kwargs,
 ) -> mrtrix.MtnormaliseOutputs:
     """Process subject for tractography."""
     logger.info("Computing response function")
@@ -107,6 +108,7 @@ def compute_dti(
     input_data: dict[str, Any],
     cfg: dict[str, Any],
     logger: Logger,
+    **kwargs,
 ) -> None:
     """Process diffusion tensors."""
     logger.info("Performing tensor fitting")

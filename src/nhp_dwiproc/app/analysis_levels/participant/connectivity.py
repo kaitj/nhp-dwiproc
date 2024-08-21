@@ -17,7 +17,6 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
 
     # Filter b2t based on string query
     if cfg["participant.query"]:
-        assert isinstance(b2t, BIDSTable)
         b2t = b2t.loc[b2t.flat.query(cfg["participant.query"]).index]
 
     # Loop through remaining subjects after query
@@ -27,20 +26,20 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
             space="T1w", suffix="dwi", ext={"items": [".nii", ".nii.gz"]}
         ).flat.iterrows()
     ):
-        entities = utils.unique_entities(row)
         input_kwargs: dict[str, Any] = {
-            "input_data": (
-                input_data := utils.get_inputs(
-                    b2t=b2t,
-                    entities=entities,
-                    atlas=cfg["participant.connectivity.atlas"],
-                )
+            "input_data": utils.get_inputs(
+                b2t=b2t,
+                row=row,
+                atlas=cfg["participant.connectivity.atlas"],
             ),
+            "input_group": row[["sub", "ses", "run"]].to_dict(),
             "cfg": cfg,
             "logger": logger,
         }
 
         # Perform processing
-        logger.info(f"Processing {(uid := utils.bids_name(**input_data['entities']))}")
+        logger.info(
+            f"Processing {(uid := utils.bids_name(**input_kwargs['input_group']))}"
+        )
         connectivity.generate_conn_matrix(**input_kwargs)
         logger.info(f"Completed processing for {uid}")

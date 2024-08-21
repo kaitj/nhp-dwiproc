@@ -5,6 +5,7 @@ import logging
 import pathlib as pl
 import shutil
 from datetime import datetime
+from functools import partial
 from typing import Any, Literal, overload
 
 import pandas as pd
@@ -57,76 +58,34 @@ def load_b2t(cfg: dict[str, Any], logger: logging.Logger) -> BIDSTable:
         )
 
     # Flatten entities s.t. extra_ents can be filtered
-    extra_entities = pd.json_normalize(b2t["ent__extra_entities"])
-    extra_entities = extra_entities.set_index(b2t.index)
+    extra_entities = pd.json_normalize(b2t["ent__extra_entities"]).set_index(b2t.index)
     b2t = pd.concat([b2t, extra_entities.add_prefix("ent__")], axis=1)
 
-    return b2t
-
-
-def unique_entities(row: pd.Series) -> dict[str, Any]:
-    """Function to check for unique sub / ses / run entities."""
-    return {
-        key: value
-        for key, value in row.items()
-        if key in ["sub", "ses", "run"] and pd.notna(value)
-    }
+    return b2t.drop(columns="ent__extra_entities")
 
 
 def get_inputs(
-    b2t: BIDSTable, entities: dict[str, Any], atlas: str | None
-) -> dict[str, dict[str, Any]]:
+    b2t: BIDSTable, row: pd.Series, atlas: str | None = None
+) -> dict[str, Any]:
     """Helper to grab relevant inputs for workflow."""
+    fpath = partial(bids_name, return_path=True, **row.dropna().to_dict())
+
     wf_inputs = {
         "dwi": {
-            "nii": b2t.filter_multi(suffix="dwi", ext={"items": [".nii", ".nii.gz"]})
-            .flat.iloc[0]
-            .file_path,
-            "bval": b2t.filter_multi(suffix="dwi", ext=".bval").flat.iloc[0].file_path,
-            "bvec": b2t.filter_multi(suffix="dwi", ext=".bvec").flat.iloc[0].file_path,
-            "mask": b2t.filter_multi(suffix="mask", ext={"items": [".nii", ".nii.gz"]})
-            .flat.iloc[0]
-            .file_path,
+            "nii": fpath(),
+            "bval": fpath(ext=".bval"),
+            "bvec": fpath(ext=".bvec"),
+            "mask": fpath(suffix="mask"),
+            "json": fpath(ext=".json"),
         },
-        "t1w": {
-            "nii": b2t.filter_multi(
-                suffix="T1w", ext={"items": [".nii", ".nii.gz"]}, **entities
-            )
-            .flat.iloc[0]
-            .file_path,
-        },
+        "t1w": {"nii": fpath(datatype="anat", suffix="T1w")},
         "atlas": {
-            "nii": b2t.filter_multi(
-                datatype="dwi",
-                space="T1w",
-                seg=atlas,
-                suffix="dseg",
-                ext={"items": [".nii", ".nii.gz"]},
-            )
-            .flat.iloc[0]
-            .file_path
-            if atlas
-            else None
+            "nii": fpath(space="T1w", seg=atlas, suffix="dseg") if atlas else None
         },
         "tractography": {
-            "tck": b2t.filter_multi(
-                method="iFOD2",
-                suffix="tractography",
-                ext=".tck",
-                **entities,
-            )
-            .flat.iloc[0]
-            .file_path,
-            "weights": b2t.filter_multi(
-                method="SIFT2",
-                suffix="tckWeights",
-                ext=".txt",
-                **entities,
-            )
-            .flat.iloc[0]
-            .file_path,
+            "tck": fpath(method="iFOD2", suffix="tractography", ext=".tck"),
+            "weights": fpath(method="SIFT2", suffix="tckWeights", ext=".txt"),
         },
-        "entities": {**entities},
     }
 
     return wf_inputs
@@ -196,14 +155,34 @@ def initialize(cfg: dict[str, Any]) -> tuple[logging.Logger, Runner]:
 
 
 @overload
-def bids_name(directory: Literal[False], **entities) -> str: ...
+def bids_name(
+    directory: Literal[False], return_path: Literal[False], **entities
+) -> str: ...
 
 
 @overload
-def bids_name(directory: Literal[True], **entities) -> pl.Path: ...
+def bids_name(
+    directory: Literal[False], return_path: Literal[True], **entities
+) -> pl.Path: ...
 
 
-def bids_name(directory: bool = False, **entities) -> pl.Path | str:
+@overload
+def bids_name(
+    directory: Literal[True], return_path: Literal[False], **entities
+) -> pl.Path: ...
+
+
+def bids_name(
+    directory: bool = False, return_path: bool = False, **entities
+) -> pl.Path | str:
     """Helper function to generate bids-esque name."""
+    if return_path and directory:
+        raise ValueError("Only one of 'directory' or 'return_path' can be True")
+
     name = BIDSEntities.from_dict(entities).to_path()
-    return name.parent if directory else name.name
+    if return_path:
+        return name
+    elif directory:
+        return name.parent
+    else:
+        return name.name

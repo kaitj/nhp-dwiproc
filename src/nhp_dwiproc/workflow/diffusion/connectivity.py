@@ -11,15 +11,17 @@ from nhp_dwiproc.app import utils
 
 def generate_conn_matrix(
     input_data: dict[str, Any],
+    input_group: dict[str, Any],
     cfg: dict[str, Any],
     logger: Logger,
+    **kwargs,
 ) -> None:
     """Generate connectivity matrix."""
     logger.info("Generating connectivity matrices")
     bids = partial(
         utils.bids_name,
         datatype="dwi",
-        **input_data["entities"],
+        **input_group,
     )
     tck2connectome = {}
     for meas, tck_weights, length in zip(

@@ -11,9 +11,11 @@ from nhp_dwiproc.app import utils
 
 def generate_tractography(
     input_data: dict[str, Any],
+    input_group: dict[str, Any],
     fod: mrtrix.MtnormaliseOutputs,
     cfg: dict[str, Any],
     logger: Logger,
+    **kwargs,
 ) -> None:
     """Generate subject tractography."""
     logger.info("Generating tractography")
@@ -21,7 +23,7 @@ def generate_tractography(
     bids = partial(
         utils.bids_name,
         datatype="dwi",
-        **input_data["entities"],
+        **input_group,
     )
 
     tckgen = mrtrix.tckgen(

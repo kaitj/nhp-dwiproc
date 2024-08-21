@@ -122,18 +122,21 @@ def _add_index_args(app_parser: BidsAppArgumentParser) -> None:
 
 def _add_preprocess_args(app_parser: BidsAppArgumentParser) -> None:
     """Optional args associated with preprocessing analysis-level."""
-    preproc_args = app_parser.add_argument_group("preprocessing analysis-level options")
-    preproc_args.add_argument(
+    preprocess_args = app_parser.add_argument_group(
+        "preprocessing analysis-level options"
+    )
+    preprocess_args.add_argument(
         "--denoise-skip",
         "--denoise_skip",
-        dest="participant.preproc.denoise.skip",
+        dest="participant.preprocess.denoise.skip",
         action="store_true",
         help="skip denoising step",
     )
-    preproc_args.add_argument(
+    preprocess_args.add_argument(
         "--denoise-extent",
         "--denoise_extent",
         metavar="extent",
+        dest="participant.preprocess.denoise.extent",
         nargs="*",
         type=int,
         default=None,
@@ -141,23 +144,66 @@ def _add_preprocess_args(app_parser: BidsAppArgumentParser) -> None:
         patch size of denoising filter (default: smallest isotropic patch size
         exceeding number of dwi volumes)""",
     )
-    # FIX TO STORE IF TRUE
-    preproc_args.add_argument(
+    preprocess_args.add_argument(
         "--denoise-map",
         "--denoise_map",
-        dest="participant.preproc.denoise.map",
+        dest="participant.preprocess.denoise.map",
         action="store_true",
         help="output noise map (estimated level 'sigma' in the data)",
     )
-    preproc_args.add_argument(
+    preprocess_args.add_argument(
         "--denoise-estimator",
         "--denoise_estimator",
         metavar="estimator",
-        dest="participant.preproc.denoise.estimator",
+        dest="participant.preprocess.denoise.estimator",
         type=str,
         default="Exp2",
         choices=["Exp1", "Exp2"],
         help="noise level estimator (one of [%(choices)s]; default: %(default)s)",
+    )
+    preprocess_args.add_argument(
+        "--unring-skip",
+        "--unring_skip",
+        dest="participant.preprocess.unring.skip",
+        action="store_true",
+        help="skip unringing step",
+    )
+    preprocess_args.add_argument(
+        "--unring-axes",
+        "--unring_axes",
+        metavar="axes",
+        dest="participant.preprocess.unring.axes",
+        nargs="*",
+        type=int,
+        default=None,
+        help="slice axes (space seperated; default: 0,1 - e.g. x-y)",
+    )
+    preprocess_args.add_argument(
+        "--unring-nshifts",
+        "--unring_nshifts",
+        metavar="nshifts",
+        dest="participant.preprocess.unring.nshifts",
+        type=int,
+        default=20,
+        help="discretization of subpixel spacing (default: %(default)d)",
+    )
+    preprocess_args.add_argument(
+        "--unring-minw",
+        "--unring_minw",
+        metavar="minw",
+        dest="participant.preprocess.unring.minW",
+        type=int,
+        default=1,
+        help="left border of window used for computation",
+    )
+    preprocess_args.add_argument(
+        "--unring-maxw",
+        "--unring_maxw",
+        metavar="maxw",
+        dest="participant.preprocess.unring.maxW",
+        type=int,
+        default=3,
+        help="right border of window used for computation",
     )
 
 

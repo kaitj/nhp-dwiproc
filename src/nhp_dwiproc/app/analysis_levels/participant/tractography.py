@@ -27,21 +27,21 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
             space="T1w", suffix="dwi", ext={"items": [".nii", ".nii.gz"]}
         ).flat.iterrows()
     ):
-        entities = utils.unique_entities(row)
         input_kwargs: dict[str, Any] = {
-            "input_data": (
-                input_data := utils.get_inputs(
-                    b2t=b2t,
-                    entities=entities,
-                    atlas=None,
-                )
+            "input_data": utils.get_inputs(
+                b2t=b2t,
+                row=row,
+                atlas=None,
             ),
+            "input_group": row[["sub", "ses", "run"]].to_dict(),
             "cfg": cfg,
             "logger": logger,
         }
 
         # Perform processing
-        logger.info(f"Processing {(uid := utils.bids_name(**input_data['entities']))}")
+        logger.info(
+            f"Processing {(uid := utils.bids_name(**input_kwargs['input_group']))}"
+        )
         reconst.compute_dti(**input_kwargs)
         fods = reconst.compute_fods(**input_kwargs)
         tractography.generate_tractography(fod=fods, **input_kwargs)
