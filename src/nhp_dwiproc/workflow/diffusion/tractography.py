@@ -69,7 +69,7 @@ def generate_tractography(
         )
 
     # Save relevant outputs
-    utils.save(
+    utils.io.save(
         files=[tckgen.tracks, tcksift.out_weights, tdi["weighted"].output],
         out_dir=cfg["output_dir"].joinpath(bids(directory=True)),
     )

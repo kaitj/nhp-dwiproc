@@ -153,7 +153,7 @@ def compute_dti(
     )
 
     # Save relevant outputs
-    utils.save(
+    utils.io.save(
         files=[
             tensor2metrics.adc,
             tensor2metrics.fa,

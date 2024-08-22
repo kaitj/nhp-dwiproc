@@ -13,7 +13,7 @@ from nhp_dwiproc.workflow.diffusion.preprocess import denoise, unring
 def run(cfg: dict[str, Any], logger: Logger) -> None:
     """Runner for preprocessing-level analysis."""
     logger.info("Preprocess analysis-level")
-    b2t = utils.load_b2t(cfg=cfg, logger=logger)
+    b2t = utils.io.load_b2t(cfg=cfg, logger=logger)
 
     # Filter b2t based on string query
     if cfg["participant.query"]:
@@ -37,7 +37,7 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
             f"Processing {(uid := utils.bids_name(**input_kwargs['input_group']))}"
         )
         for _, row in group.ent.iterrows():
-            input_kwargs["input_data"] = utils.get_inputs(b2t=b2t, row=row)
+            input_kwargs["input_data"] = utils.io.get_inputs(b2t=b2t, row=row)
             entities = row[["sub", "ses", "run", "dir"]].to_dict()
             dwi = denoise.denoise(entities=entities, **input_kwargs)
             dwi = unring.degibbs(dwi=dwi, **input_kwargs)

@@ -13,7 +13,7 @@ from nhp_dwiproc.workflow.diffusion import connectivity
 def run(cfg: dict[str, Any], logger: Logger) -> None:
     """Runner for connectivity analysis-level."""
     logger.info("Connectivity analysis-level")
-    b2t = utils.load_b2t(cfg=cfg, logger=logger)
+    b2t = utils.io.load_b2t(cfg=cfg, logger=logger)
 
     # Filter b2t based on string query
     if cfg["participant.query"]:
@@ -27,7 +27,7 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
         ).flat.iterrows()
     ):
         input_kwargs: dict[str, Any] = {
-            "input_data": utils.get_inputs(
+            "input_data": utils.io.get_inputs(
                 b2t=b2t,
                 row=row,
                 atlas=cfg["participant.connectivity.atlas"],

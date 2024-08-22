@@ -51,7 +51,7 @@ def denoise(
     )
 
     if noise_map:
-        utils.save(
+        utils.io.save(
             files=denoise.noise,
             out_dir=cfg["output_dir"].joinpath(bids(directory=True)),
         )

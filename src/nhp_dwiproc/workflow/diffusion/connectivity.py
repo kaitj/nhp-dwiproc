@@ -50,7 +50,7 @@ def generate_conn_matrix(
         )
 
         # Save outputs
-        utils.save(
+        utils.io.save(
             files=tck2connectome[meas].connectome_out,
             out_dir=cfg["output_dir"].joinpath(bids(directory=True)),
         )
