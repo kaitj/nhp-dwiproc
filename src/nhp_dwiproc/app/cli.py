@@ -126,6 +126,28 @@ def _add_preprocess_args(app_parser: BidsAppArgumentParser) -> None:
         "preprocessing analysis-level options"
     )
     preprocess_args.add_argument(
+        "--pe-dirs",
+        "--pe_dirs",
+        metavar="direction",
+        dest="participant.preprocess.metadata.pe_dir",
+        type=str,
+        nargs="*",
+        help="""set phase encoding direction for dwi acquisition (space-separated for
+        multiple acquisitions), overwriting value provided in metadata (JSON) file
+        (default: %(default)s)
+        """,
+    )
+    preprocess_args.add_argument(
+        "--echo-spacing",
+        "--echo_spacing",
+        metavar="spacing",
+        dest="participant.preprocess.metadata.echo_spacing",
+        type=float,
+        default=0.0001,
+        help="""estimated echo spacing to use for all dwi acquisitions, value in
+        metadata (JSON) file will take priority (default: %(default).4f)""",
+    )
+    preprocess_args.add_argument(
         "--denoise-skip",
         "--denoise_skip",
         dest="participant.preprocess.denoise.skip",

@@ -39,16 +39,17 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
 
         # Inner loop process per direction, save to list
         dir_outs = defaultdict(list)
-        for _, row in group.ent.iterrows():
+        for idx, row in group.ent.iterrows():
             input_kwargs["input_data"] = utils.io.get_inputs(b2t=b2t, row=row)
             entities = row[["sub", "ses", "run", "dir"]].to_dict()
             dwi = preprocess.denoise.denoise(entities=entities, **input_kwargs)
             dwi = preprocess.unring.degibbs(dwi=dwi, entities=entities, **input_kwargs)
-            b0 = preprocess.dwi.extract_shell(
-                dwi=dwi, shell=0, entities=entities, **input_kwargs
+            b0, pe_data = preprocess.dwi.get_phenc_data(
+                dwi=dwi, idx=idx, entities=entities, **input_kwargs
             )
 
             dir_outs["dwi"].append(dwi)
             dir_outs["b0"].append(b0)
+            dir_outs["pe_data"].append(pe_data)
 
         logger.info(f"Completed processing for {uid}")

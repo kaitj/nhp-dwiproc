@@ -18,7 +18,7 @@ from styxdocker import DockerRunner
 from styxgraph import GraphRunner
 from styxsingularity import SingularityRunner
 
-from nhp_dwiproc.app.utils import APP_NAME
+from nhp_dwiproc.app import utils
 
 
 def initialize(cfg: dict[str, Any]) -> tuple[logging.Logger, Runner]:
@@ -55,8 +55,28 @@ def initialize(cfg: dict[str, Any]) -> tuple[logging.Logger, Runner]:
     set_global_runner(GraphRunner(runner))
 
     logger = logging.getLogger(runner.logger_name)
-    logger.info(f"Running {APP_NAME} v{ilm.version(APP_NAME)}")
+    logger.info(f"Running {utils.APP_NAME} v{ilm.version(utils.APP_NAME)}")
     return logger, get_global_runner()
+
+
+def validate_cfg(cfg: dict[str, Any]) -> None:
+    """Helper function to validate input arguments if necessary."""
+    match cfg["analysis_level"]:
+        case "index":
+            pass
+        case "preprocess":
+            # Check PE direction
+            valid_dirs = ("i", "i-", "j", "j-", "k", "k-")
+            pe_dirs = cfg.get("participant.preprocess.metadata.pe_dirs", [])
+            if len(pe_dirs) > 2:
+                raise ValueError("More than 2 phase encode directions provided")
+            assert all(
+                pe_dir in valid_dirs for pe_dir in pe_dirs
+            ), "Invalid PE direction provided"
+        case "tractography":
+            ...
+        case "connectivity":
+            ...
 
 
 @overload

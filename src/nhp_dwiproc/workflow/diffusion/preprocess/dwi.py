@@ -3,33 +3,29 @@
 from logging import Logger
 from typing import Any
 
+import numpy as np
 from niwrap import mrtrix
 from styxdefs import InputPathType, OutputPathType
 
 from nhp_dwiproc.app import utils
+from nhp_dwiproc.lib.dwi import generate_phenc_txt
 
 
-def extract_shell(
+def get_phenc_data(
     dwi: InputPathType,
-    shell: int,
+    idx: int,
     entities: dict[str, Any],
     input_data: dict[str, Any],
     cfg: dict[str, Any],
     logger: Logger,
     **kwargs,
-) -> OutputPathType:
-    """Extract specified shell."""
-    bzero = True if shell < cfg["participant.b0_thresh"] else False
-
-    logger.info(f"Extracting shell b={shell}")
-    dwi_shell = mrtrix.dwiextract(
+) -> tuple[OutputPathType, np.ndarray]:
+    """Generate phase-encoding direction data for downstream steps."""
+    logger.info("Getting phase-encoding information")
+    dwi_b0 = mrtrix.dwiextract(
         input_=dwi,
-        output=utils.bids_name(  # FIX NAME TO BIDS
-            datatype="dwi", shell=0, suffix="dwi", ext=".nii.gz", **entities
-        ),
-        bzero=bzero,
-        singleshell=not bzero,
-        shells=[shell] if not bzero else None,
+        output=utils.bids_name(datatype="dwi", suffix="b0", ext=".nii.gz", **entities),
+        bzero=True,
         fslgrad=mrtrix.DwiextractFslgrad(
             bvals=input_data["dwi"]["bval"],
             bvecs=input_data["dwi"]["bvec"],
@@ -37,4 +33,12 @@ def extract_shell(
         nthreads=cfg["opt.threads"],
     )
 
-    return dwi_shell.output
+    pe_data = generate_phenc_txt(
+        b0=dwi_b0.output,
+        idx=idx,
+        input_data=input_data,
+        cfg=cfg,
+        logger=logger,
+    )
+
+    return dwi_b0.output, pe_data

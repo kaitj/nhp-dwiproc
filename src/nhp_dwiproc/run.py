@@ -11,6 +11,9 @@ def main() -> None:
     # Initialize app and parse arguments
     cfg = app.parser().parse_args()
 
+    # Validate config
+    app.validate_cfg(cfg=cfg)
+
     # Run workflow
     logger, runner = app.initialize(cfg=cfg)
     match analysis_level := cfg["analysis_level"]:

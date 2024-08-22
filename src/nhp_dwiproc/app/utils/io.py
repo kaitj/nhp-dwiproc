@@ -10,7 +10,7 @@ import pandas as pd
 from bids2table import BIDSTable, bids2table
 from styxdefs import OutputPathType
 
-from nhp_dwiproc.app.utils import bids_name
+from nhp_dwiproc.app import utils
 
 
 def check_index_path(cfg: dict[str, Any]) -> pl.Path:
@@ -56,7 +56,7 @@ def get_inputs(
     b2t: BIDSTable, row: pd.Series, atlas: str | None = None
 ) -> dict[str, Any]:
     """Helper to grab relevant inputs for workflow."""
-    fpath = partial(bids_name, return_path=True, **row.dropna().to_dict())
+    fpath = partial(utils.bids_name, return_path=True, **row.dropna().to_dict())
 
     wf_inputs = {
         "dwi": {
