@@ -52,4 +52,8 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
             dir_outs["b0"].append(b0)
             dir_outs["pe_data"].append(pe_data)
 
+        phenc_fpath, b0_fpath = preprocess.dwi.gen_fsl_inputs(
+            dir_outs=dir_outs, **input_kwargs
+        )
+
         logger.info(f"Completed processing for {uid}")
