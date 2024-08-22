@@ -73,10 +73,20 @@ def validate_cfg(cfg: dict[str, Any]) -> None:
             assert all(
                 pe_dir in valid_dirs for pe_dir in pe_dirs
             ), "Invalid PE direction provided"
+
+            # Validate TOPUP config
+            topup_cfg = cfg.get("participant.preproces.topup.config", "b02b0_macaque")
+            if topup_cfg not in ["b02b0", "b02b0_macaque", "b02b0_marmoset"]:
+                if not pl.Path(topup_cfg).exists():
+                    logging.error("No topup configuration found")
+                    raise FileNotFoundError()
+            cfg["participant.preprocess.topup.config"] = (
+                pl.Path(__file__).parent / "resources" / "topup" / f"{topup_cfg}.cnf"
+            )
         case "tractography":
-            ...
+            pass
         case "connectivity":
-            ...
+            pass
 
 
 @overload

@@ -44,16 +44,26 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
             entities = row[["sub", "ses", "run", "dir"]].to_dict()
             dwi = preprocess.denoise.denoise(entities=entities, **input_kwargs)
             dwi = preprocess.unring.degibbs(dwi=dwi, entities=entities, **input_kwargs)
-            b0, pe_data = preprocess.dwi.get_phenc_data(
+            b0, pe_dir, pe_data = preprocess.dwi.get_phenc_data(
                 dwi=dwi, idx=idx, entities=entities, **input_kwargs
             )
 
             dir_outs["dwi"].append(dwi)
             dir_outs["b0"].append(b0)
             dir_outs["pe_data"].append(pe_data)
+            dir_outs["pe_dir"].append(pe_dir)
 
-        phenc_fpath, b0_fpath = preprocess.dwi.gen_fsl_inputs(
+        if len(set(dir_outs["pe_dir"])) < 2:
+            logger.info("Less than 2 phase-encode directions...skipping topup")
+            cfg["participant.preprocess.topup.skip"] = True
+
+        phenc_fpath, b0_fpath, pe_indices = preprocess.dwi.gen_fsl_inputs(
             dir_outs=dir_outs, **input_kwargs
         )
+
+        if not cfg["participant.preprocess.topup.skip"]:
+            preprocess.topup.run_apply_topup(
+                b0=b0_fpath, phenc=phenc_fpath, indices=pe_indices, **input_kwargs
+            )
 
         logger.info(f"Completed processing for {uid}")

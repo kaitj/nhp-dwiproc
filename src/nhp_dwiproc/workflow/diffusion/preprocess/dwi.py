@@ -9,7 +9,12 @@ from niwrap import mrtrix
 from styxdefs import InputPathType, OutputPathType
 
 from nhp_dwiproc.app import utils
-from nhp_dwiproc.lib.dwi import concat_dir_phenc_data, generate_phenc_txt, normalize
+from nhp_dwiproc.lib.dwi import (
+    concat_dir_phenc_data,
+    get_pe_indices,
+    get_phenc_info,
+    normalize,
+)
 
 
 def get_phenc_data(
@@ -20,7 +25,7 @@ def get_phenc_data(
     cfg: dict[str, Any],
     logger: Logger,
     **kwargs,
-) -> tuple[OutputPathType, np.ndarray]:
+) -> tuple[OutputPathType, str, np.ndarray]:
     """Generate phase-encoding direction data for downstream steps."""
     logger.info("Getting phase-encoding information")
     dwi_b0 = mrtrix.dwiextract(
@@ -34,7 +39,7 @@ def get_phenc_data(
         nthreads=cfg["opt.threads"],
     )
 
-    pe_data = generate_phenc_txt(
+    pe_dir, pe_data = get_phenc_info(
         b0=dwi_b0.output,
         idx=idx,
         input_data=input_data,
@@ -42,7 +47,7 @@ def get_phenc_data(
         logger=logger,
     )
 
-    return dwi_b0.output, pe_data
+    return dwi_b0.output, pe_dir, pe_data
 
 
 def gen_fsl_inputs(
@@ -50,13 +55,13 @@ def gen_fsl_inputs(
     input_group: dict[str, Any],
     cfg: dict[str, Any],
     **kwargs,
-) -> tuple[pl.Path, pl.Path]:
+) -> tuple[pl.Path, pl.Path, list[str]]:
     """Generate concatenated inputs for topup."""
     phenc_fpath = concat_dir_phenc_data(
         pe_data=dir_outs["pe_data"], input_group=input_group, cfg=cfg
     )
 
-    if len(dir_outs["b0"]) > 1:
+    if len(set(dir_outs["pe_dir"])) > 1:
         dwi_b0 = mrtrix.mrcat(
             image1=dir_outs["b0"][0],
             image2=dir_outs["b0"][1:],
@@ -70,4 +75,6 @@ def gen_fsl_inputs(
         dwi_b0 = dir_outs["b0"][0]
     dwi_fpath = normalize(dwi_b0, input_group=input_group, cfg=cfg)
 
-    return phenc_fpath, dwi_fpath
+    pe_indices = get_pe_indices(dir_outs["pe_dir"])
+
+    return phenc_fpath, dwi_fpath, pe_indices

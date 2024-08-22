@@ -227,6 +227,36 @@ def _add_preprocess_args(app_parser: BidsAppArgumentParser) -> None:
         default=3,
         help="right border of window used for computation",
     )
+    preprocess_args.add_argument(
+        "--topup-skip",
+        "--topup_skip",
+        dest="participant.preprocess.topup.skip",
+        action="store_true",
+        help="skip FSL topup step",
+    )
+    preprocess_args.add_argument(
+        "--topup-config",
+        "--topup_config",
+        metavar="topup_config",
+        dest="participant.preprocess.topup.config",
+        type=str,
+        default="b02b0_macaque",
+        help="""topup configuration file; custom-config can
+        be provided via path or choose from one of the
+        following: ['b02b0', 'b02b0_macaque', 'b02b0_marmoset']
+        (default: %(default)s)""",
+    )
+    preprocess_args.add_argument(
+        "--topup-method",
+        "--topup_method",
+        metavar="method",
+        dest="participant.preprocess.topup.method",
+        type=str,
+        default="jac",
+        choices=["jac", "slr"],
+        help="""method used for resampling in applytopup (one of %(choices)s);
+        default: %(default)s)""",
+    )
 
 
 def _add_tractography_args(app_parser: BidsAppArgumentParser) -> None:

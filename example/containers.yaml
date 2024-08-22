@@ -1,2 +1,3 @@
 # Saved as image_name: image_path
+mcin/docker-fsl:latest: path/to/fsl/singularity/container
 mrtrix3/mrtrix3:3.0.4: path/to/mrtrix/singularity/container
