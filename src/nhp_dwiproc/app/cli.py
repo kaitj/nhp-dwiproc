@@ -228,6 +228,16 @@ def _add_preprocess_args(app_parser: BidsAppArgumentParser) -> None:
         help="right border of window used for computation",
     )
     preprocess_args.add_argument(
+        "--undistort-method",
+        "--undistort_method",
+        metavar="method",
+        dest="participant.preprocess.undistort.method",
+        type=str,
+        default="fsl",
+        choices=["fsl", "shoreline"],
+        help="distortion correct method (one of [%(choices)s]; default: %(default)s)",
+    )
+    preprocess_args.add_argument(
         "--topup-skip",
         "--topup_skip",
         dest="participant.preprocess.topup.skip",
@@ -243,7 +253,7 @@ def _add_preprocess_args(app_parser: BidsAppArgumentParser) -> None:
         default="b02b0_macaque",
         help="""topup configuration file; custom-config can
         be provided via path or choose from one of the
-        following: ['b02b0', 'b02b0_macaque', 'b02b0_marmoset']
+        following: [b02b0, b02b0_macaque, b02b0_marmoset]
         (default: %(default)s)""",
     )
     preprocess_args.add_argument(
@@ -263,6 +273,33 @@ def _add_preprocess_args(app_parser: BidsAppArgumentParser) -> None:
         dest="participant.preprocess.eddy.gpu",
         action="store_true",
         help="use eddy_gpu processing",
+    )
+    preprocess_args.add_argument(
+        "--biascorrect-spacing",
+        "--biascorrect_spacing",
+        metavar="spacing",
+        dest="participant.preprocess.biascorrect.spacing",
+        type=float,
+        default=100.0,
+        help="initial mesh resolution in mm (default: %(default).2f)",
+    )
+    preprocess_args.add_argument(
+        "--biascorrect-iters",
+        "--biascorrect_iters",
+        metavar="iterations",
+        dest="participant.preprocess.biascorrect.iterations",
+        type=int,
+        default=1000,
+        help="number of iterations (default: %(default)d)",
+    )
+    preprocess_args.add_argument(
+        "--biascorrect-shrink",
+        "--biascorrect_shrink",
+        metavar="factor",
+        dest="participant.preprocess.biascorrect.shrink",
+        type=int,
+        default=4,
+        help="shrink factor applied to spatial dimension (default: %(default)d)",
     )
 
 

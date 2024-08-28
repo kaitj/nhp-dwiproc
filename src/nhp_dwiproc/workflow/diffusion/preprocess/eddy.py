@@ -6,7 +6,7 @@ from logging import Logger
 from typing import Any
 
 from niwrap import fsl, mrtrix
-from styxdefs import InputPathType
+from styxdefs import InputPathType, OutputPathType
 
 from nhp_dwiproc.app import utils
 from nhp_dwiproc.workflow.diffusion.preprocess.dwi import gen_eddy_inputs
@@ -21,7 +21,7 @@ def run_eddy(
     cfg: dict[str, Any],
     logger: Logger,
     **kwargs,
-) -> fsl.EddyOutputs:
+) -> tuple[OutputPathType, pl.Path, pl.Path]:
     """Perform FSL's eddy."""
     logger.info("Running FSL's eddy")
     if cfg["participant.preprocess.eddy.gpu"]:
@@ -37,10 +37,7 @@ def run_eddy(
     mask = mrtrix.dwi2mask(
         input_=mask_input,
         output=bids(desc="preEddy", suffix="mask"),
-        fslgrad=mrtrix.Dwi2maskFslgrad(
-            bvecs=bvec,
-            bvals=bval,
-        ),
+        fslgrad=mrtrix.Dwi2maskFslgrad(bvecs=bvec, bvals=bval),
         nthreads=cfg["opt.threads"],
     )
 
@@ -61,4 +58,4 @@ def run_eddy(
         implementation="_openmp",
     )
 
-    return eddy
+    return eddy.out, bval, bvec

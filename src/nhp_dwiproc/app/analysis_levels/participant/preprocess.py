@@ -55,22 +55,32 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
             dir_outs["pe_data"].append(pe_data)
             dir_outs["pe_dir"].append(pe_dir)
 
-        if len(set(dir_outs["pe_dir"])) < 2:
-            logger.info("Less than 2 phase-encode directions...skipping topup")
-            cfg["participant.preprocess.topup.skip"] = True
+        match cfg["participant.preprocess.undistort.method"]:
+            case "fsl":
+                if len(set(dir_outs["pe_dir"])) < 2:
+                    logger.info("Less than 2 phase-encode directions...skipping topup")
+                    cfg["participant.preprocess.topup.skip"] = True
 
-        topup = None
-        if not cfg["participant.preprocess.topup.skip"]:
-            phenc, topup, eddy_mask_input = preprocess.topup.run_apply_topup(
-                dir_outs=dir_outs, **input_kwargs
-            )
+                topup = None
+                if not cfg["participant.preprocess.topup.skip"]:
+                    phenc, topup, eddy_mask_input = preprocess.topup.run_apply_topup(
+                        dir_outs=dir_outs, **input_kwargs
+                    )
 
-        eddy = preprocess.eddy.run_eddy(
-            phenc=phenc,
-            topup=topup,
-            mask_input=eddy_mask_input,
-            dir_outs=dir_outs,
-            **input_kwargs,
+                dwi, bval, bvec = preprocess.eddy.run_eddy(
+                    phenc=phenc,
+                    topup=topup,
+                    mask_input=eddy_mask_input,
+                    dir_outs=dir_outs,
+                    **input_kwargs,
+                )
+            case "shoreline":
+                raise NotImplementedError(
+                    "SHOREline distortion method not yet implemented"
+                )
+
+        dwi, mask = preprocess.biascorrect.biascorrect(
+            dwi=dwi, bval=bval, bvec=bvec, **input_kwargs
         )
 
         logger.info(f"Completed processing for {uid}")
