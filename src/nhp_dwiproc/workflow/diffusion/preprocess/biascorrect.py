@@ -19,7 +19,7 @@ def biascorrect(
     cfg: dict[str, Any],
     logger: Logger,
     **kwargs,
-) -> tuple[OutputPathType, ...]:
+) -> OutputPathType:
     """Perform biascorrection steps."""
     logger.info("Performing biascorrection")
     bids = partial(utils.bids_name, datatype="dwi", ext=".nii.gz", **input_group)
@@ -52,7 +52,7 @@ def biascorrect(
         nthreads=cfg["opt.threads"],
     )
 
-    mask = mrtrix.dwi2mask(
+    mrtrix.dwi2mask(
         input_=biascorrect.out,
         output=bids(desc="biascorrect", suffix="mask"),
         fslgrad=mrtrix.Dwi2maskFslgrad(bvecs=bvec, bvals=bval),
@@ -63,4 +63,4 @@ def biascorrect(
         files=biascorrect.out, out_dir=cfg["output_dir"].joinpath(bids(directory=True))
     )
 
-    return biascorrect.output, mask.output
+    return biascorrect.output

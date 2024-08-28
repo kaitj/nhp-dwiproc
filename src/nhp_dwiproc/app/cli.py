@@ -301,6 +301,12 @@ def _add_preprocess_args(app_parser: BidsAppArgumentParser) -> None:
         default=4,
         help="shrink factor applied to spatial dimension (default: %(default)d)",
     )
+    preprocess_args.add_argument(
+        "--register",
+        dest="participant.preprocess.register.skip",
+        action="store_true",
+        help="register to participant structural t1w",
+    )
 
 
 def _add_tractography_args(app_parser: BidsAppArgumentParser) -> None:

@@ -140,3 +140,25 @@ def get_eddy_indices(
     np.savetxt(out_fpath, np.array(eddy_idxes), fmt="%d")
 
     return out_fpath
+
+
+def rotate_bvec(
+    bvec_file: pl.Path,
+    transformation: pl.Path,
+    cfg: dict[str, Any],
+    input_group: dict[str, Any],
+    **kwargs,
+) -> pl.Path:
+    """Rotate bvec file."""
+    bvec = np.loadtxt(bvec_file)
+    transformation_mat = np.loadtxt(transformation)
+    rotated_bvec = np.dot(transformation_mat[:3, :3], bvec)
+
+    out_dir = cfg["opt.working_dir"] / gen_hash()
+    out_fname = utils.bids_name(
+        datatype="dwi", space="T1w", res="dwi", suffix="dwi", ext=".bvec", **input_group
+    )
+    out_fpath = out_dir / out_fname
+    np.savetxt(out_fpath, rotated_bvec, fmt="%.5f")
+
+    return out_fpath

@@ -79,8 +79,29 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
                     "SHOREline distortion method not yet implemented"
                 )
 
-        dwi, mask = preprocess.biascorrect.biascorrect(
+        dwi = preprocess.biascorrect.biascorrect(
             dwi=dwi, bval=bval, bvec=bvec, **input_kwargs
         )
+
+        bval_fpath = cfg["output_dir"].joinpath(
+            utils.bids_name(
+                datatype="dwi",
+                space="T1w",
+                res="dwi",
+                suffix="dwi",
+                ext=".bval",
+                **input_kwargs["input_group"],
+            )
+        )
+        if not cfg["participant.preprocess.register.skip"]:
+            ref_b0, xfm = preprocess.registration.register(
+                dwi=dwi, bval=bval, bvec=bvec, **input_kwargs
+            )
+            preprocess.registration.apply_transform(
+                dwi=dwi, bvec=bvec, ref_b0=ref_b0, xfm=xfm, **input_kwargs
+            )
+        else:
+            bval_fpath = bval_fpath.replace("space-T1w", "")
+        utils.io.save(files=bval, out_dir=bval_fpath)
 
         logger.info(f"Completed processing for {uid}")

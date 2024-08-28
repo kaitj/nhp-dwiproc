@@ -6,8 +6,18 @@ from nhp_dwiproc.workflow.diffusion.preprocess import (
     denoise,
     dwi,
     eddy,
+    registration,
     topup,
     unring,
 )
 
-__all__ = ["biascorrect", "denoise", "dwi", "eddy", "metadata", "topup", "unring"]
+__all__ = [
+    "biascorrect",
+    "denoise",
+    "dwi",
+    "eddy",
+    "metadata",
+    "registration",
+    "topup",
+    "unring",
+]
