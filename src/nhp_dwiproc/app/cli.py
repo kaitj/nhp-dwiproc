@@ -257,6 +257,13 @@ def _add_preprocess_args(app_parser: BidsAppArgumentParser) -> None:
         help="""method used for resampling in applytopup (one of %(choices)s);
         default: %(default)s)""",
     )
+    preprocess_args.add_argument(
+        "--eddy-gpu",
+        "--eddy_gpu",
+        dest="participant.preprocess.eddy.gpu",
+        action="store_true",
+        help="use eddy_gpu processing",
+    )
 
 
 def _add_tractography_args(app_parser: BidsAppArgumentParser) -> None:

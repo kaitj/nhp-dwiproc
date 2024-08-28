@@ -49,6 +49,8 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
             )
 
             dir_outs["dwi"].append(dwi)
+            dir_outs["bval"].append(input_kwargs["input_data"]["dwi"]["bval"])
+            dir_outs["bvec"].append(input_kwargs["input_data"]["dwi"]["bvec"])
             dir_outs["b0"].append(b0)
             dir_outs["pe_data"].append(pe_data)
             dir_outs["pe_dir"].append(pe_dir)
@@ -57,13 +59,18 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
             logger.info("Less than 2 phase-encode directions...skipping topup")
             cfg["participant.preprocess.topup.skip"] = True
 
-        phenc_fpath, b0_fpath, pe_indices = preprocess.dwi.gen_fsl_inputs(
-            dir_outs=dir_outs, **input_kwargs
-        )
-
+        topup = None
         if not cfg["participant.preprocess.topup.skip"]:
-            preprocess.topup.run_apply_topup(
-                b0=b0_fpath, phenc=phenc_fpath, indices=pe_indices, **input_kwargs
+            phenc, topup, eddy_mask_input = preprocess.topup.run_apply_topup(
+                dir_outs=dir_outs, **input_kwargs
             )
+
+        eddy = preprocess.eddy.run_eddy(
+            phenc=phenc,
+            topup=topup,
+            mask_input=eddy_mask_input,
+            dir_outs=dir_outs,
+            **input_kwargs,
+        )
 
         logger.info(f"Completed processing for {uid}")

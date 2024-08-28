@@ -7,7 +7,6 @@ from typing import Any
 
 import nibabel as nib
 import numpy as np
-from styxdefs import OutputPathType
 
 from nhp_dwiproc.app import utils
 from nhp_dwiproc.lib import metadata
@@ -15,7 +14,6 @@ from nhp_dwiproc.lib.utils import gen_hash
 
 
 def get_phenc_info(
-    b0: OutputPathType,
     idx: int,
     input_data: dict[str, Any],
     cfg: dict[str, Any],
@@ -42,7 +40,7 @@ def get_phenc_info(
         pe_vec[np.where(pe_vec > 0)] = -1
 
     # Generate phase encoding data for use
-    img = nib.loadsave.load(b0)
+    img = nib.loadsave.load(input_data["dwi"]["nii"])
     img_size = np.array(img.header.get_data_shape())
     num_phase_encodes = img_size[np.where(np.abs(pe_vec) > 0)]
     pe_line = np.hstack([pe_vec, np.array(eff_echo * num_phase_encodes)])
@@ -119,3 +117,26 @@ def get_pe_indices(pe_dirs: list[str]) -> list[str]:
         )
     else:
         return [str(idx) for idx in range(len(pe["axe"]))]
+
+
+def get_eddy_indices(
+    niis: list[str | pl.Path], input_group: dict[str, Any], cfg: dict[str, Any]
+) -> pl.Path:
+    """Generate dwi index file for eddy."""
+    imsizes = [nib.loadsave.load(nii).header.get_data_shape() for nii in niis]
+
+    eddy_idxes = []
+    for idx, im in enumerate(imsizes, start=1):
+        if len(im) < 4:
+            eddy_idxes.append(idx)
+        else:
+            eddy_idxes.extend([idx] * im[3])
+
+    out_dir = cfg["opt.working_dir"] / gen_hash()
+    out_fname = utils.bids_name(
+        datatype="dwi", desc="eddy", suffix="indices", ext=".txt", **input_group
+    )
+    out_fpath = out_dir / out_fname
+    np.savetxt(out_fpath, np.array(eddy_idxes), fmt="%d")
+
+    return out_fpath
