@@ -53,7 +53,7 @@ def register(
             ).replace("from_", "from")
         ),
         transform_type="r",
-        initial_transform=[str(input_data["t1w"]["nii"]), str(b0.output), "0"],
+        initial_transform=['[str(input_data["t1w"]["nii"]),str(b0.output),0]'],
         random_seed=cfg["opt.seed_num"],
         threads=cfg["opt.threads"],
     )

@@ -50,17 +50,20 @@ dev-dependencies = [
 ]
 
 [tool.uv.sources]
-niwrap = {git = "https://github.com/childmindresearch/niwrap.git/", subdirectory = "python"}
+niwrap = {git = "https://github.com/childmindresearch/niwrap", subdirectory = "python"}
 bidsapp-helper = {git = "https://github.com/kaitj/bidsapp-helper"}
 styxdocker = {git = "https://github.com/childmindresearch/styxdocker"}
 styxsingularity = {git = "https://github.com/childmindresearch/styxsingularity"}
 styxgraph = {git = "https://github.com/childmindresearch/styxgraph"}
 
-[tool.hatch.version]
-source = "vcs"
+[tool.hatch.build]
+source = ["src/"]
 
 [tool.hatch.build.hooks.vcs]
 version-file = "_version.py"
+
+[tool.hatch.version]
+source = "vcs"
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]
@@ -70,29 +73,6 @@ testpaths = ["tests"]
 ignore_missing_imports = true
 
 [tool.ruff]
-exclude = [
-  ".bzr",
-  ".direnv",
-  ".eggs",
-  ".git",
-  ".git-rewrite",
-  ".hg",
-  ".mypy_cache",
-  ".nox",
-  ".pants.d",
-  ".pytype",
-  ".ruff_cache",
-  ".svn",
-  ".tox",
-  ".venv",
-  "__pypackages__",
-  "_build",
-  "buck-out",
-  "build",
-  "dist",
-  "node_modules",
-  "venv"
-]
 line-length = 88
 indent-width = 4
 src = ["src"]
