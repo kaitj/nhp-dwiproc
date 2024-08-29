@@ -49,7 +49,7 @@ def register(
         moving_image=b0.output,
         output_prefix=(
             ants_prefix := bids(
-                from_="dwi", to="T1w", method="ants", desc="registration"
+                from_="dwi", to="T1w", method="ants_", desc="registration"
             ).replace("from_", "from")
         ),
         transform_type="r",
@@ -70,7 +70,7 @@ def register(
     transform = c3d.c3d_affine_tool(
         reference_file=input_data["t1w"]["nii"],
         source_file=b0.output,
-        transform_file=b0_to_t1.output_transform,
+        transform_file=str(b0_to_t1.output_transform).replace("*", "0GenericAffine"),
         ras2fsl=True,
         out_matfile=bids(
             from_="dwi",
@@ -82,11 +82,14 @@ def register(
     )
 
     utils.io.save(
-        files=[ref_b0.root / b0_fname, transform.matrix_transform_outfile],
+        files=[
+            (ref_b0 := pl.Path(ref_b0.root).joinpath(b0_fname)),
+            transform.matrix_transform_outfile,
+        ],
         out_dir=cfg["output_dir"].joinpath(bids(directory=True)),
     )
 
-    return ref_b0.root / b0_fname, transform.matrix_transform_outfile
+    return ref_b0, transform.matrix_transform_outfile
 
 
 def apply_transform(
@@ -122,7 +125,7 @@ def apply_transform(
         transform=[ants.AntsApplyTransformsTransformFileName(xfm)],
         interpolation=ants.AntsApplyTransformsNearestNeighbor(),
         output=ants.AntsApplyTransformsWarpedOutput(
-            bids(space="T1w", res="dwi", suffix="dwi")
+            bids(space="T1w", res="dwi", suffix="mask")
         ),
     )
     xfm_bvec = rotate_bvec(
