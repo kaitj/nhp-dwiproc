@@ -99,6 +99,26 @@ def _add_optional_args(app_parser: BidsAppArgumentParser) -> None:
         help="string query with bids entities for specific participants",
     )
     app_parser.add_argument(
+        "--t1w-query",
+        "--t1w_query",
+        metavar="entities",
+        dest="participant.t1w_query",
+        type=str,
+        help="""string query for bids entities associated with t1w
+        (subject & session is assumed); if none provided,
+        assumed to be same as participant-query""",
+    )
+    app_parser.add_argument(
+        "--mask-query",
+        "--mask_query",
+        metavar="entities",
+        dest="participant.mask_query",
+        type=str,
+        help="""string query for bids entities associated with mask
+        (subject & session is assumed); if none provided,
+        assumed to be same as participant-query""",
+    )
+    app_parser.add_argument(
         "--b0-thresh",
         "--b0_thresh",
         metavar="thresh",

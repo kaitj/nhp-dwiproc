@@ -40,7 +40,12 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
         # Inner loop process per direction, save to list
         dir_outs = defaultdict(list)
         for idx, row in group.ent.iterrows():
-            input_kwargs["input_data"] = utils.io.get_inputs(b2t=b2t, row=row)
+            input_kwargs["input_data"] = utils.io.get_inputs(
+                b2t=b2t,
+                row=row,
+                t1w_query=cfg["participant.t1w_query"],
+                mask_query=cfg["participant.mask_query"],
+            )
             entities = row[["sub", "ses", "run", "dir"]].to_dict()
             dwi = preprocess.denoise.denoise(entities=entities, **input_kwargs)
             dwi = preprocess.unring.degibbs(dwi=dwi, entities=entities, **input_kwargs)
@@ -79,7 +84,7 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
                     "SHOREline distortion method not yet implemented"
                 )
 
-        dwi = preprocess.biascorrect.biascorrect(
+        dwi, mask = preprocess.biascorrect.biascorrect(
             dwi=dwi, bval=bval, bvec=bvec, **input_kwargs
         )
 
@@ -98,7 +103,7 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
                 dwi=dwi, bval=bval, bvec=bvec, **input_kwargs
             )
             preprocess.registration.apply_transform(
-                dwi=dwi, bvec=bvec, ref_b0=ref_b0, xfm=xfm, **input_kwargs
+                dwi=dwi, bvec=bvec, ref_b0=ref_b0, xfm=xfm, mask=mask, **input_kwargs
             )
         else:
             bval_fpath = bval_fpath.replace("space-T1w", "")

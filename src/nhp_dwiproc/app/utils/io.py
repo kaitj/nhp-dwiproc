@@ -53,10 +53,17 @@ def load_b2t(cfg: dict[str, Any], logger: logging.Logger) -> BIDSTable:
 
 
 def get_inputs(
-    b2t: BIDSTable, row: pd.Series, atlas: str | None = None
+    b2t: BIDSTable,
+    row: pd.Series,
+    atlas: str | None = None,
+    t1w_query: str | None = None,
+    mask_query: str | None = None,
 ) -> dict[str, Any]:
     """Helper to grab relevant inputs for workflow."""
     fpath = partial(utils.bids_name, return_path=True, **row.dropna().to_dict())
+    sub_ses_query = " & ".join(
+        [f"{key} == '{value}'" for key, value in row[["sub", "ses"]].to_dict().items()]
+    )
 
     wf_inputs = {
         "dwi": {
@@ -66,7 +73,24 @@ def get_inputs(
             "mask": fpath(suffix="mask"),
             "json": fpath(ext=".json"),
         },
-        "t1w": {"nii": fpath(datatype="anat", suffix="T1w")},
+        "t1w": {
+            "nii": (
+                b2t.loc[
+                    b2t.flat.query(f"{sub_ses_query} & {t1w_query}").index
+                ].flat.file_path
+                if t1w_query
+                else fpath(datatype="anat", suffix="T1w")
+            )
+        },
+        "custom": {
+            "mask": (
+                b2t.loc[
+                    b2t.flat.query(f"{sub_ses_query} & {mask_query}").index
+                ].flat_file_path
+                if mask_query
+                else None
+            )
+        },
         "atlas": {
             "nii": fpath(space="T1w", seg=atlas, suffix="dseg") if atlas else None
         },

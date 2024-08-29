@@ -96,6 +96,7 @@ def apply_transform(
     dwi: InputPathType,
     bvec: InputPathType,
     ref_b0: InputPathType,
+    mask: InputPathType,
     xfm: InputPathType,
     input_group: dict[str, Any],
     input_data: dict[str, Any],
@@ -120,7 +121,7 @@ def apply_transform(
     xfm_mask = ants.ants_apply_transforms(
         dimensionality=3,
         input_image_type=0,
-        input_image=input_data["dwi"]["mask"],
+        input_image=input_data["custom"]["mask"] or mask,
         reference_image=ref_b0,
         transform=[ants.AntsApplyTransformsTransformFileName(xfm)],
         interpolation=ants.AntsApplyTransformsNearestNeighbor(),
