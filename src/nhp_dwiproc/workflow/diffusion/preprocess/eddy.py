@@ -13,9 +13,8 @@ from nhp_dwiproc.workflow.diffusion.preprocess.dwi import gen_eddy_inputs
 
 
 def run_eddy(
-    phenc: pl.Path,
     topup: fsl.TopupOutputs | None,
-    mask_input: InputPathType,
+    mask_input: InputPathType | None,
     dir_outs: dict[str, Any],
     input_group: dict[str, Any],
     cfg: dict[str, Any],
@@ -28,14 +27,15 @@ def run_eddy(
         logger.warning("eddy_gpu not yet integrated into workflow...using cpu")
 
     bids = partial(utils.bids_name, datatype="dwi", ext=".nii.gz", **input_group)
-    dwi, bval, bvec, indices = gen_eddy_inputs(
+    dwi, bval, bvec, phenc, indices = gen_eddy_inputs(
         dir_outs=dir_outs,
         input_group=input_group,
+        cfg=cfg,
         **kwargs,
     )
 
     mask = mrtrix.dwi2mask(
-        input_=mask_input,
+        input_=mask_input or dwi,
         output=bids(desc="preEddy", suffix="mask"),
         fslgrad=mrtrix.Dwi2maskFslgrad(bvecs=bvec, bvals=bval),
         nthreads=cfg["opt.threads"],
@@ -55,7 +55,6 @@ def run_eddy(
             else None
         ),
         out=bids(),
-        implementation="_openmp",
     )
 
     return eddy.out, bval, bvec

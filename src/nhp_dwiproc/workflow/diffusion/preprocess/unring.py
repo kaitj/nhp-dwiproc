@@ -19,10 +19,9 @@ def degibbs(
 ) -> OutputPathType:
     """Minimize Gibbs ringing."""
     bids = partial(
-        utils.bids_name(
-            datatype="dwi",
-            **entities,
-        )
+        utils.bids_name,
+        datatype="dwi",
+        **entities,
     )
     if cfg["participant.preprocess.unring.skip"]:
         return OutputPathType(dwi)
@@ -36,7 +35,7 @@ def degibbs(
             suffix="dwi",
             ext=".nii.gz",
         ),
-        axes=cfg["participant.preprocess.unring.axes"],
+        axes=cfg.get("participant.preprocess.unring.axes"),
         nshifts=cfg["participant.preprocess.unring.nshifts"],
         min_w=cfg["participant.preprocess.unring.minW"],
         max_w=cfg["participant.preprocess.unring.maxW"],

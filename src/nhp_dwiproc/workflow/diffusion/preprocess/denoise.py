@@ -46,7 +46,7 @@ def denoise(
         )
         if (noise_map := cfg["participant.preprocess.denoise.map"])
         else None,
-        extent=cfg["participant.preprocess.denoise.extent"],
+        extent=cfg.get("participant.preprocess.denoise.extent"),
         nthreads=cfg["opt.threads"],
     )
 

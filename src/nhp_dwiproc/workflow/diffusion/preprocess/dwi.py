@@ -5,6 +5,7 @@ from functools import partial
 from logging import Logger
 from typing import Any
 
+import nibabel as nib
 import numpy as np
 from niwrap import mrtrix
 from styxdefs import InputPathType, OutputPathType
@@ -43,7 +44,6 @@ def get_phenc_data(
     )
 
     pe_dir, pe_data = get_phenc_info(
-        b0=dwi_b0.output,
         idx=idx,
         input_data=input_data,
         cfg=cfg,
@@ -60,24 +60,31 @@ def gen_topup_inputs(
     **kwargs,
 ) -> tuple[pl.Path, pl.Path, list[str]]:
     """Generate concatenated inputs for topup."""
-    phenc_fpath = concat_dir_phenc_data(
-        pe_data=dir_outs["pe_data"], input_group=input_group, cfg=cfg
+    dwi_b0 = mrtrix.mrcat(
+        image1=dir_outs["b0"][0],
+        image2=dir_outs["b0"][1:],
+        output=utils.bids_name(
+            datatype="dwi", suffix="b0", ext=".nii.gz", **input_group
+        ),
+        nthreads=cfg["opt.threads"],
     )
-
-    if len(set(dir_outs["pe_dir"])) > 1:
-        dwi_b0 = mrtrix.mrcat(
-            image1=dir_outs["b0"][0],
-            image2=dir_outs["b0"][1:],
-            output=utils.bids_name(
-                datatype="dwi", suffix="b0", ext=".nii.gz", **input_group
-            ),
-            nthreads=cfg["opt.threads"],
-        )
-        dwi_b0 = dwi_b0.output
-    else:
-        dwi_b0 = dir_outs["b0"][0]
+    dwi_b0 = dwi_b0.output
     dwi_fpath = normalize(dwi_b0, input_group=input_group, cfg=cfg)
 
+    # Get matching PE data to b0
+    vols = [
+        np.array(img_size[3])
+        if len(img_size := nib.loadsave.load(b0).header.get_data_shape()) == 4
+        else 1
+        for b0 in dir_outs["b0"]
+    ]
+    phenc_fpath = concat_dir_phenc_data(
+        pe_data=[
+            pe_data[: vols[idx]] for idx, pe_data in enumerate(dir_outs["pe_data"])
+        ],
+        input_group=input_group,
+        cfg=cfg,
+    )
     pe_indices = get_pe_indices(dir_outs["pe_dir"])
 
     return phenc_fpath, dwi_fpath, pe_indices
@@ -91,16 +98,16 @@ def concat_bv(
     **kwargs,
 ) -> tuple[pl.Path, ...]:
     """Concatenate .bval and .bvec files."""
-    out_dir = cfg["opt.working_dir"] / gen_hash()
+    out_dir = cfg["opt.working_dir"] / f"{gen_hash()}_concat_bv"
     bids = partial(
         utils.bids_name,
-        return_path=True,
         datatype="dwi",
         desc="concat",
         suffix="dwi",
         **input_group,
     )
-    out_files = (out_dir / bids("bval"), out_dir / bids("bvec"))
+    out_dir.mkdir(parents=True, exist_ok=False)
+    out_files = out_dir / bids(ext=".bval"), out_dir / bids(ext=".bvec")
 
     for in_bvs, out_bv in zip([bvals, bvecs], list(out_files)):
         concat_bv = np.hstack([np.loadtxt(bv, ndmin=2) for bv in in_bvs])
@@ -135,9 +142,21 @@ def gen_eddy_inputs(
         dwi = dir_outs["dwi"][0]
 
     # Concatenate bval / bvec
-    bval, bvec = concat_bv(bvals=dir_outs["bval"], bvecs=dir_outs["bvec"], **kwargs)
+    bval, bvec = concat_bv(
+        bvals=dir_outs["bval"],
+        bvecs=dir_outs["bvec"],
+        input_group=input_group,
+        cfg=cfg,
+        **kwargs,
+    )
+
+    # Get phase encoding data
+    phenc = concat_dir_phenc_data(
+        pe_data=dir_outs["pe_data"],
+        **kwargs,
+    )
 
     # Generate indices
-    indices = get_eddy_indices(niis=dir_outs["dwi"], **kwargs)
+    indices = get_eddy_indices(niis=dir_outs["dwi"], input_group=input_group, cfg=cfg)
 
-    return dwi, bval, bvec, indices
+    return dwi, bval, bvec, phenc, indices

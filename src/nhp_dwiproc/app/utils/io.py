@@ -3,21 +3,18 @@
 import logging
 import pathlib as pl
 import shutil
-from functools import partial
 from typing import Any
 
 import pandas as pd
 from bids2table import BIDSTable, bids2table
 from styxdefs import OutputPathType
 
-from nhp_dwiproc.app import utils
-
 
 def check_index_path(cfg: dict[str, Any]) -> pl.Path:
     """Helper to check for index path."""
     return (
         index_fpath
-        if (index_fpath := cfg["opt.index_path"])
+        if (index_fpath := cfg.get("opt.index_path"))
         else cfg["bids_dir"] / "index.b2t"
     )
 
@@ -28,7 +25,7 @@ def load_b2t(cfg: dict[str, Any], logger: logging.Logger) -> BIDSTable:
 
     if index_path.exists():
         logger.info("Existing bids2table found")
-        if overwrite := cfg["opt.overwrite"]:
+        if overwrite := cfg["index.overwrite"]:
             logger.info("Overwriting existing table")
         b2t = bids2table(
             root=cfg["bids_dir"],
@@ -55,50 +52,95 @@ def load_b2t(cfg: dict[str, Any], logger: logging.Logger) -> BIDSTable:
 def get_inputs(
     b2t: BIDSTable,
     row: pd.Series,
-    atlas: str | None = None,
-    t1w_query: str | None = None,
-    mask_query: str | None = None,
+    cfg: dict[str, Any],
 ) -> dict[str, Any]:
     """Helper to grab relevant inputs for workflow."""
-    fpath = partial(utils.bids_name, return_path=True, **row.dropna().to_dict())
+
+    def _get_file_path(
+        entities: dict[str, Any] = {},
+        queries: list[str] = [],
+        metadata: bool = False,
+        row: pd.Series = row,
+        b2t: BIDSTable = b2t,
+    ) -> pl.Path:
+        """Internal function to grab file path from b2t."""
+        if len(entities) > 0 and (len(queries) > 0):
+            raise ValueError("Provide only one of 'entities' or 'query'")
+        elif len(queries) > 0:
+            query = " & ".join(q for q in queries)
+            data = b2t.loc[b2t.flat.query(query).index].flat
+        else:
+            entities_dict = row.dropna().to_dict()
+            entities_dict.update(entities)
+            data = b2t.filter_multi(**entities_dict).flat
+
+        return data.json.iloc[0] if metadata else data.file_path.iloc[0]
+
     sub_ses_query = " & ".join(
         [f"{key} == '{value}'" for key, value in row[["sub", "ses"]].to_dict().items()]
     )
 
+    # Base inputs
     wf_inputs = {
         "dwi": {
-            "nii": fpath(),
-            "bval": fpath(ext=".bval"),
-            "bvec": fpath(ext=".bvec"),
-            "mask": fpath(suffix="mask"),
-            "json": fpath(ext=".json"),
+            "nii": _get_file_path(),
+            "bval": _get_file_path(entities={"ext": ".bval"}),
+            "bvec": _get_file_path(entities={"ext": ".bvec"}),
+            "json": _get_file_path(metadata=True),
         },
         "t1w": {
             "nii": (
-                b2t.loc[
-                    b2t.flat.query(f"{sub_ses_query} & {t1w_query}").index
-                ].flat.file_path
-                if t1w_query
-                else fpath(datatype="anat", suffix="T1w")
+                _get_file_path(queries=[sub_ses_query, cfg["participant.query_t1w"]])
+                if cfg["participant.query_t1w"]
+                else _get_file_path(entities={"datatype": "anat", "suffix": "T1w"})
             )
-        },
-        "custom": {
-            "mask": (
-                b2t.loc[
-                    b2t.flat.query(f"{sub_ses_query} & {mask_query}").index
-                ].flat_file_path
-                if mask_query
-                else None
-            )
-        },
-        "atlas": {
-            "nii": fpath(space="T1w", seg=atlas, suffix="dseg") if atlas else None
-        },
-        "tractography": {
-            "tck": fpath(method="iFOD2", suffix="tractography", ext=".tck"),
-            "weights": fpath(method="SIFT2", suffix="tckWeights", ext=".txt"),
         },
     }
+
+    # Additional inputs to update / grab based on analysis level
+    if cfg["analysis_level"] == "preprocess":
+        wf_inputs["dwi"].update(
+            {
+                "mask": _get_file_path(
+                    queries=[sub_ses_query, cfg["participant.query_mask"]]
+                )
+            }
+        )
+    else:
+        wf_inputs["dwi"].update({"mask": _get_file_path(entities={"suffix": "mask"})})
+
+    if cfg["analysis_level"] == "connectivity":
+        wf_inputs.update(
+            {
+                "atlas": {
+                    "nii": _get_file_path(
+                        entities={
+                            "space": "T1w",
+                            "seg": cfg.get("participant.connectivity.atlas"),
+                            "suffix": "dseg",
+                        }
+                    )
+                },
+                "tractography": {
+                    "tck": _get_file_path(
+                        entities={
+                            "method": "iFOD2",
+                            "suffix": "tractography",
+                            "ext": ".tck",
+                        }
+                    ),
+                    "weights": _get_file_path(
+                        entities={
+                            "method": "SIFT2",
+                            "suffix": "tckWeights",
+                            "ext": ".txt",
+                        }
+                    ),
+                }
+                if cfg["analysis_level"] == "connectivity"
+                else {},
+            }
+        )
 
     return wf_inputs
 

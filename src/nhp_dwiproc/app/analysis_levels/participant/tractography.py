@@ -31,7 +31,7 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
             "input_data": utils.io.get_inputs(
                 b2t=b2t,
                 row=row,
-                atlas=None,
+                cfg=cfg,
             ),
             "input_group": row[["sub", "ses", "run"]].to_dict(),
             "cfg": cfg,

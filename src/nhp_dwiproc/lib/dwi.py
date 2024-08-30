@@ -1,8 +1,6 @@
 """Helper functions for generating diffusion related files for workflow."""
 
-import json
 import pathlib as pl
-from logging import Logger
 from typing import Any
 
 import nibabel as nib
@@ -16,18 +14,13 @@ from nhp_dwiproc.lib.utils import gen_hash
 def get_phenc_info(
     idx: int,
     input_data: dict[str, Any],
-    cfg: dict[str, Any],
-    logger: Logger,
     **kwargs,
 ) -> tuple[str, np.ndarray]:
     """Generate phase encode information file."""
-    with open(input_data["dwi"]["json"], "r") as fpath:
-        dwi_json = json.load(fpath)
-
     # Gather relevant metadata
-    eff_echo = metadata.echo_spacing(dwi_json=dwi_json, cfg=cfg, logger=logger)
+    eff_echo = metadata.echo_spacing(dwi_json=input_data["dwi"]["json"], **kwargs)
     pe_dir = metadata.phase_encode_dir(
-        idx=idx, dwi_json=dwi_json, cfg=cfg, logger=logger
+        idx=idx, dwi_json=input_data["dwi"]["json"], **kwargs
     )
     # Determine corresponding phase-encoding vector, set accordingly
     possible_vecs = {
@@ -35,7 +28,7 @@ def get_phenc_info(
         "j": np.array([0, 1, 0]),
         "k": np.array([0, 0, 1]),
     }
-    pe_vec = possible_vecs[pe_dir]
+    pe_vec = possible_vecs[pe_dir[0]]
     if len(pe_dir) == 2 and pe_dir.endswith("-"):
         pe_vec[np.where(pe_vec > 0)] = -1
 
@@ -60,11 +53,11 @@ def concat_dir_phenc_data(
     **kwargs,
 ) -> pl.Path:
     """Concatenate opposite phase encoding directions."""
-    hash = gen_hash()
     phenc_fname = utils.bids_name(
         datatype="dwi", desc="concat", suffix="phenc", ext=".txt", **input_group
     )
-    phenc_fpath = cfg["opt.working_dir"] / hash / phenc_fname
+    phenc_fpath = cfg["opt.working_dir"] / f"{gen_hash()}_phenc" / phenc_fname
+    phenc_fpath.parent.mkdir(parents=True, exist_ok=False)
     np.savetxt(phenc_fpath, np.vstack(pe_data), fmt="%.5f")
 
     return phenc_fpath
@@ -75,7 +68,7 @@ def normalize(
 ) -> pl.Path:
     """Normalize 4D image."""
     nii = nib.loadsave.load(img)
-    arr = nii.dataobj
+    arr = np.array(nii.dataobj)
 
     ref_mean = np.mean(arr[..., 0])
 
@@ -86,11 +79,11 @@ def normalize(
 
     norm_nii = nib.nifti1.Nifti1Image(dataobj=arr, affine=nii.affine, header=nii.header)
 
-    hash = gen_hash()
     nii_fname = utils.bids_name(
         datatype="dwi", desc="normalized", suffix="b0", ext=".nii.gz", **input_group
     )
-    nii_fpath = cfg["opt.working_dir"] / hash / nii_fname
+    nii_fpath = cfg["opt.working_dir"] / f"{gen_hash()}_normalize" / nii_fname
+    nii_fpath.parent.mkdir(parents=True, exist_ok=False)
     nib.loadsave.save(norm_nii, nii_fpath)
 
     return nii_fpath
@@ -116,7 +109,7 @@ def get_pe_indices(pe_dirs: list[str]) -> list[str]:
             else indices["ap"]
         )
     else:
-        return [str(idx) for idx in range(len(pe["axe"]))]
+        return [str(idx) for idx in range(1, len(pe["axe"]) + 1)]
 
 
 def get_eddy_indices(
@@ -132,11 +125,12 @@ def get_eddy_indices(
         else:
             eddy_idxes.extend([idx] * im[3])
 
-    out_dir = cfg["opt.working_dir"] / gen_hash()
+    out_dir = cfg["opt.working_dir"] / f"{gen_hash()}_eddy_indices"
     out_fname = utils.bids_name(
         datatype="dwi", desc="eddy", suffix="indices", ext=".txt", **input_group
     )
     out_fpath = out_dir / out_fname
+    out_fpath.parent.mkdir(parents=True, exist_ok=False)
     np.savetxt(out_fpath, np.array(eddy_idxes), fmt="%d")
 
     return out_fpath
@@ -154,11 +148,12 @@ def rotate_bvec(
     transformation_mat = np.loadtxt(transformation)
     rotated_bvec = np.dot(transformation_mat[:3, :3], bvec)
 
-    out_dir = cfg["opt.working_dir"] / gen_hash()
+    out_dir = cfg["opt.working_dir"] / f"{gen_hash()}_rotate_bvec"
     out_fname = utils.bids_name(
         datatype="dwi", space="T1w", res="dwi", suffix="dwi", ext=".bvec", **input_group
     )
     out_fpath = out_dir / out_fname
+    out_fpath.parent.mkdir(parents=True, exist_ok=False)
     np.savetxt(out_fpath, rotated_bvec, fmt="%.5f")
 
     return out_fpath

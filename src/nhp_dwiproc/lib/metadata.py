@@ -8,8 +8,8 @@ def phase_encode_dir(
     idx: int, dwi_json: dict[str, Any], cfg: dict[str, Any], logger: Logger, **kwargs
 ) -> str:
     """Check phase encoding direction - set if able / necessary."""
-    if pe_dirs := cfg["participant.preprocess.metadata.pe_dirs"]:
-        logger.warning("Setting 'PhaseEncodeDirection'")
+    if pe_dirs := cfg.get("participant.preprocess.metadata.pe_dirs"):
+        logger.warning("Setting 'PhaseEncodingDirection'")
         dwi_json["PhaseEncodingDirection"] = pe_dirs[idx]
     elif "PhaseEncodingDirection" not in dwi_json:
         if "PhaseEncodingAxis" in dwi_json:
@@ -19,7 +19,7 @@ def phase_encode_dir(
             logger.error("'PhaseEncodingDirection' not found and cannot be assumed")
             exit(1)
 
-    return dwi_json["PhaseEncodingDirecion"]
+    return dwi_json["PhaseEncodingDirection"]
 
 
 def echo_spacing(

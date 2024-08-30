@@ -1,6 +1,5 @@
 """Preprocess steps associated with FSL's topup."""
 
-import pathlib as pl
 from functools import partial
 from logging import Logger
 from typing import Any
@@ -18,14 +17,16 @@ def run_apply_topup(
     cfg: dict[str, Any],
     logger: Logger,
     **kwargs,
-) -> tuple[pl.Path, fsl.TopupOutputs, OutputPathType]:
+) -> tuple[fsl.TopupOutputs, OutputPathType]:
     """Perform FSL's topup."""
     bids = partial(
         utils.bids_name, datatype="dwi", desc="topup", ext=".nii.gz", **input_group
     )
     logger.info("Running FSL's topup")
 
-    phenc, b0, indices = gen_topup_inputs(dir_outs=dir_outs, **kwargs)
+    phenc, b0, indices = gen_topup_inputs(
+        dir_outs=dir_outs, input_group=input_group, cfg=cfg, **kwargs
+    )
 
     topup = fsl.topup(
         imain=b0,
@@ -34,15 +35,19 @@ def run_apply_topup(
         out=bids(ext=None),
         iout=bids(suffix="b0s"),
         fout=bids(suffix="fmap"),
+        nthr=cfg["opt.threads"],
     )
 
     apply_topup = fsl.applytopup(
         datain=phenc,
-        imain=dir_outs["dwi"],
+        imain=[str(dwi) for dwi in dir_outs["dwi"]],
         inindex=indices,
-        topup="".join(word for word in str(topup.movpar).split("_")[:-1]),
+        topup=str(
+            topup.root
+            / f'{"_".join(word for word in str(topup.movpar).split("_")[:-1])}_'
+        ),
         method=cfg["participant.preprocess.topup.method"],
         out=bids(suffix="topup"),
     )
 
-    return phenc, topup, apply_topup.output_file
+    return topup, apply_topup.output_file

@@ -13,7 +13,9 @@ def parser() -> BidsAppArgumentParser:
         app_name=APP_NAME,
         description="Diffusion processing NHP data.",
     )
-    app_parser.update_analysis_level(["index", "tractography", "connectivity"])
+    app_parser.update_analysis_level(
+        ["index", "preprocess", "tractography", "connectivity"]
+    )
     _add_optional_args(app_parser=app_parser)
     _add_index_args(app_parser=app_parser)
     _add_preprocess_args(app_parser=app_parser)
@@ -29,7 +31,6 @@ def _add_optional_args(app_parser: BidsAppArgumentParser) -> None:
         metavar="runner",
         dest="opt.runner",
         type=str,
-        default=None,
         choices=[None, "Docker", "Singularity", "Apptainer"],
         help="workflow runner to use (one of [%(choices)s]; default: %(default)s)",
     )
@@ -99,10 +100,20 @@ def _add_optional_args(app_parser: BidsAppArgumentParser) -> None:
         help="string query with bids entities for specific participants",
     )
     app_parser.add_argument(
+        "--dwi-query",
+        "--dwi_query",
+        metavar="query",
+        dest="participant.query_dwi",
+        type=str,
+        help="""string query for bids entities associated with dwi
+        (subject & session is assumed); if not provided,
+        assumed to be same as participant-query""",
+    )
+    app_parser.add_argument(
         "--t1w-query",
         "--t1w_query",
         metavar="query",
-        dest="participant.t1w_query",
+        dest="participant.query_t1w",
         type=str,
         help="""string query for bids entities associated with t1w
         (subject & session is assumed); if none provided,
@@ -112,7 +123,7 @@ def _add_optional_args(app_parser: BidsAppArgumentParser) -> None:
         "--mask-query",
         "--mask_query",
         metavar="query",
-        dest="participant.mask_query",
+        dest="participant.query_mask",
         type=str,
         help="""string query for bids entities associated with custom mask
         (subject & session is assumed); no custom query is assumed""",
@@ -148,7 +159,7 @@ def _add_preprocess_args(app_parser: BidsAppArgumentParser) -> None:
         "--pe-dirs",
         "--pe_dirs",
         metavar="direction",
-        dest="participant.preprocess.metadata.pe_dir",
+        dest="participant.preprocess.metadata.pe_dirs",
         type=str,
         nargs="*",
         help="""set phase encoding direction for dwi acquisition (space-separated for

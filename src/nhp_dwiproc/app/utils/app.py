@@ -3,6 +3,7 @@
 import importlib.metadata as ilm
 import logging
 import pathlib as pl
+import re
 from datetime import datetime
 from typing import Any, Literal, overload
 
@@ -31,7 +32,7 @@ def initialize(cfg: dict[str, Any]) -> tuple[logging.Logger, Runner]:
         case "Docker":
             runner = DockerRunner()
         case "Singularity" | "Apptainer":
-            if not cfg["opt.containers"]:
+            if not cfg.get("opt.containers"):
                 raise ValueError(
                     """Container config not provided ('--container-config')\n
                 See https://github.com/kaitj/nhp-dwiproc/blob/main/src/nhp_dwiproc/app/resources/containers.yaml
@@ -61,27 +62,36 @@ def initialize(cfg: dict[str, Any]) -> tuple[logging.Logger, Runner]:
 
 def validate_cfg(cfg: dict[str, Any]) -> None:
     """Helper function to validate input arguments if necessary."""
+    # Check that participant query only contains general entities
+    allowed_keys = {"sub", "ses", "run"}
+    query_keys = re.findall(r"\b(\w+)=", cfg["participant.query"])
+    invalid_keys = [key for key in query_keys if key not in allowed_keys]
+    assert not invalid_keys, "Only 'sub', 'ses', 'run' accepted for participant query"
+
     match cfg["analysis_level"]:
         case "index":
             pass
         case "preprocess":
             # Check PE direction
             valid_dirs = ("i", "i-", "j", "j-", "k", "k-")
-            pe_dirs = cfg.get("participant.preprocess.metadata.pe_dirs", [])
-            if len(pe_dirs) > 2:
-                raise ValueError("More than 2 phase encode directions provided")
-            assert all(
-                pe_dir in valid_dirs for pe_dir in pe_dirs
-            ), "Invalid PE direction provided"
+            if pe_dirs := cfg.get("participant.preprocess.metadata.pe_dirs"):
+                if len(pe_dirs) > 2:
+                    raise ValueError("More than 2 phase encode directions provided")
+                assert all(
+                    pe_dir in valid_dirs for pe_dir in pe_dirs
+                ), "Invalid PE direction provided"
 
             # Validate TOPUP config
-            topup_cfg = cfg.get("participant.preproces.topup.config", "b02b0_macaque")
+            topup_cfg = cfg.get("participant.preprocess.topup.config", "b02b0_macaque")
             if topup_cfg not in ["b02b0", "b02b0_macaque", "b02b0_marmoset"]:
                 if not pl.Path(topup_cfg).exists():
                     logging.error("No topup configuration found")
                     raise FileNotFoundError()
             cfg["participant.preprocess.topup.config"] = (
-                pl.Path(__file__).parent / "resources" / "topup" / f"{topup_cfg}.cnf"
+                pl.Path(__file__).parent.parent
+                / "resources"
+                / "topup"
+                / f"{topup_cfg}.cnf"
             )
         case "tractography":
             pass

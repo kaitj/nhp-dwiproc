@@ -20,10 +20,15 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
     if cfg["participant.query"]:
         b2t = b2t.loc[b2t.flat.query(cfg["participant.query"]).index]
 
-    # Loop through remaining subjects after query
     assert isinstance(b2t, BIDSTable)
+    dwi_b2t = b2t
+    if cfg.get("participant.query_dwi"):
+        dwi_b2t = b2t.loc[b2t.flat.query(cfg["participant.query_dwi"]).index]
+
+    # Loop through remaining subjects after query
+    assert isinstance(dwi_b2t, BIDSTable)
     for (subject, session, run_id), group in tqdm(
-        b2t.filter_multi(suffix="dwi", ext={"items": [".nii", ".nii.gz"]}).groupby(
+        dwi_b2t.filter_multi(suffix="dwi", ext={"items": [".nii", ".nii.gz"]}).groupby(
             ["ent__sub", "ent__ses", "ent__run"]
         )
     ):
@@ -43,8 +48,7 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
             input_kwargs["input_data"] = utils.io.get_inputs(
                 b2t=b2t,
                 row=row,
-                t1w_query=cfg["participant.t1w_query"],
-                mask_query=cfg["participant.mask_query"],
+                cfg=cfg,
             )
             entities = row[["sub", "ses", "run", "dir"]].to_dict()
             dwi = preprocess.denoise.denoise(entities=entities, **input_kwargs)
@@ -66,14 +70,15 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
                     logger.info("Less than 2 phase-encode directions...skipping topup")
                     cfg["participant.preprocess.topup.skip"] = True
 
-                topup = None
                 if not cfg["participant.preprocess.topup.skip"]:
-                    phenc, topup, eddy_mask_input = preprocess.topup.run_apply_topup(
+                    topup, eddy_mask_input = preprocess.topup.run_apply_topup(
                         dir_outs=dir_outs, **input_kwargs
                     )
+                else:
+                    topup = None
+                    eddy_mask_input = None
 
                 dwi, bval, bvec = preprocess.eddy.run_eddy(
-                    phenc=phenc,
                     topup=topup,
                     mask_input=eddy_mask_input,
                     dir_outs=dir_outs,
@@ -107,6 +112,12 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
             )
         else:
             bval_fpath = bval_fpath.replace("space-T1w", "")
-        utils.io.save(files=bval, out_dir=bval_fpath)
+
+        # Create JSON sidecar
+        json_fpath = bval_fpath.replace(".bval", ".json")
+        with open(json_fpath, "w") as metadata:
+            metadata.write(input_kwargs["input_data"]["dwi"]["json"])
+
+        utils.io.save(files=[bval_fpath, json_fpath], out_dir=bval_fpath)
 
         logger.info(f"Completed processing for {uid}")
