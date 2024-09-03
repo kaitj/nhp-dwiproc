@@ -16,8 +16,8 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
     b2t = utils.io.load_b2t(cfg=cfg, logger=logger)
 
     # Filter b2t based on string query
-    if cfg["participant.query"]:
-        b2t = b2t.loc[b2t.flat.query(cfg["participant.query"]).index]
+    if cfg.get("participant.query"):
+        b2t = b2t.loc[b2t.flat.query(cfg.get("participant.query")).index]
 
     # Loop through remaining subjects after query
     assert isinstance(b2t, BIDSTable)

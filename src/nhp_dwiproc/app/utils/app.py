@@ -44,14 +44,12 @@ def initialize(cfg: dict[str, Any]) -> tuple[logging.Logger, Runner]:
         case _:
             runner = LocalRunner()
 
-    # Finish configuring runner - if keeping temp, redirect runner's output
-    runner.data_dir = (
-        cfg["output_dir"].joinpath(
+    # Redirect intermediate files if option selected
+    if cfg["opt.keep_tmp"]:
+        cfg["opt.working_dir"] = cfg["output_dir"].joinpath(
             f'working/{datetime.now().isoformat(timespec="seconds").replace(":", "-")}'
         )
-        if cfg["opt.keep_tmp"]
-        else cfg["opt.working_dir"]
-    )
+    runner.data_dir = cfg["opt.working_dir"]
     runner.environ = {"MRTRIX_RNG_SEED": str(cfg["opt.seed_num"])}
     set_global_runner(GraphRunner(runner))
 
@@ -64,9 +62,12 @@ def validate_cfg(cfg: dict[str, Any]) -> None:
     """Helper function to validate input arguments if necessary."""
     # Check that participant query only contains general entities
     allowed_keys = {"sub", "ses", "run"}
-    query_keys = re.findall(r"\b(\w+)=", cfg["participant.query"])
-    invalid_keys = [key for key in query_keys if key not in allowed_keys]
-    assert not invalid_keys, "Only 'sub', 'ses', 'run' accepted for participant query"
+    if cfg.get("participant.query"):
+        query_keys = re.findall(r"\b(\w+)=", cfg["participant.query"])
+        invalid_keys = [key for key in query_keys if key not in allowed_keys]
+        assert (
+            not invalid_keys
+        ), "Only 'sub', 'ses', 'run' accepted for participant query"
 
     match cfg["analysis_level"]:
         case "index":

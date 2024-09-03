@@ -26,7 +26,7 @@ def echo_spacing(
     dwi_json: dict[str, Any], cfg: dict[str, Any], logger: Logger, **kwargs
 ) -> float:
     """Check echo spacing - set if required."""
-    if "EffectiveEcoSpacing" not in dwi_json:
+    if "EffectiveEchoSpacing" not in dwi_json:
         if "EstimatedEffectiveEchoSpacing" in dwi_json:
             logger.warning(
                 "Assuming 'EffectiveEchoSpacing' from 'EstimatedEffectiveEchoSpacing'"

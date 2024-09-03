@@ -277,7 +277,7 @@ def _add_preprocess_args(app_parser: BidsAppArgumentParser) -> None:
     preprocess_args.add_argument(
         "--topup-config",
         "--topup_config",
-        metavar="topup_config",
+        metavar="config",
         dest="participant.preprocess.topup.config",
         type=str,
         default="b02b0_macaque",
@@ -292,10 +292,10 @@ def _add_preprocess_args(app_parser: BidsAppArgumentParser) -> None:
         metavar="method",
         dest="participant.preprocess.topup.method",
         type=str,
-        default="jac",
-        choices=["jac", "slr"],
-        help="""method used for resampling in applytopup (one of %(choices)s);
-        default: %(default)s)""",
+        default="lsr",
+        choices=["jac", "lsr"],
+        help="""resampling method to use for applytopup
+        (one of [%(choices)s]; default: %(default)s)""",
     )
     preprocess_args.add_argument(
         "--eddy-gpu",
@@ -303,6 +303,44 @@ def _add_preprocess_args(app_parser: BidsAppArgumentParser) -> None:
         dest="participant.preprocess.eddy.gpu",
         action="store_true",
         help="use eddy_gpu processing",
+    )
+    preprocess_args.add_argument(
+        "--eddy-slm",
+        "--eddy_slm",
+        dest="participant.preprocess.eddy.slm",
+        type=str,
+        default=None,
+        choices=[None, "linear", "quadratic"],
+        help="""model for how diffusion gradients generate eddy currents
+        (one of [%(choices)s]; default: %(default)s)""",
+    )
+    preprocess_args.add_argument(
+        "--eddy-cnr-maps",
+        "--eddy_cnr_maps",
+        dest="participant.preprocess.eddy.cnr_maps",
+        action="store_true",
+        help="generate cnr maps",
+    )
+    preprocess_args.add_argument(
+        "--eddy-repol",
+        "--eddy_repol",
+        dest="participant.preprocess.eddy.repol",
+        action="store_true",
+        help="replace outliers",
+    )
+    preprocess_args.add_argument(
+        "--eddy-residuals",
+        "--eddy_residuals",
+        dest="participant.preprocess.eddy.residuals",
+        action="store_true",
+        help="generate 4d residual volume",
+    )
+    preprocess_args.add_argument(
+        "--eddy-data-is-shelled",
+        "--eddy_data_is_shelled",
+        dest="participant.preprocess.eddy.shelled",
+        action="store_true",
+        help="skip eddy checking that data is shelled",
     )
     preprocess_args.add_argument(
         "--biascorrect-spacing",
@@ -332,10 +370,10 @@ def _add_preprocess_args(app_parser: BidsAppArgumentParser) -> None:
         help="shrink factor applied to spatial dimension (default: %(default)d)",
     )
     preprocess_args.add_argument(
-        "--register",
+        "--register-skip",
         dest="participant.preprocess.register.skip",
         action="store_true",
-        help="register to participant structural t1w",
+        help="skip registration to participant structural t1w",
     )
 
 

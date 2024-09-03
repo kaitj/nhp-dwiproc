@@ -1,12 +1,13 @@
 """Utility functions for working with library sub module."""
 
-import hashlib
-from datetime import datetime
+from styxdefs import get_global_runner
 
 
 def gen_hash() -> str:
     """Generate a hash using the current date/time."""
-    cur_time = datetime.now().isoformat().encode("utf-8")
-    hash = hashlib.sha256(cur_time)
+    runner = get_global_runner()
+    runner.base.execution_counter += 1
 
-    return hash.hexdigest()
+    hash = f"{runner.base.uid}_{runner.base.execution_counter - 1}_python"
+
+    return hash

@@ -50,7 +50,7 @@ dev-dependencies = [
 ]
 
 [tool.uv.sources]
-niwrap = {git = "https://github.com/childmindresearch/niwrap", subdirectory = "python"}
+niwrap = {git = "https://github.com/kaitj/niwrap", subdirectory = "python"}
 bidsapp-helper = {git = "https://github.com/kaitj/bidsapp-helper"}
 styxdocker = {git = "https://github.com/childmindresearch/styxdocker"}
 styxsingularity = {git = "https://github.com/childmindresearch/styxsingularity"}

@@ -29,16 +29,21 @@ def get_phenc_data(
     cfg: dict[str, Any],
     logger: Logger,
     **kwargs,
-) -> tuple[OutputPathType, str, np.ndarray]:
+) -> tuple[OutputPathType, OutputPathType, OutputPathType, str, np.ndarray]:
     """Generate phase-encoding direction data for downstream steps."""
     logger.info("Getting phase-encoding information")
+    bids = partial(utils.bids_name, datatype="dwi", suffix="b0", **entities)
     dwi_b0 = mrtrix.dwiextract(
         input_=dwi,
-        output=utils.bids_name(datatype="dwi", suffix="b0", ext=".nii.gz", **entities),
+        output=bids(ext=".nii.gz"),
         bzero=True,
         fslgrad=mrtrix.DwiextractFslgrad(
             bvals=input_data["dwi"]["bval"],
             bvecs=input_data["dwi"]["bvec"],
+        ),
+        export_grad_fsl=mrtrix.DwiextractExportGradFsl(
+            bvecs_path=bids(ext=".bvec"),
+            bvals_path=bids(ext=".bval"),
         ),
         nthreads=cfg["opt.threads"],
     )
@@ -49,8 +54,13 @@ def get_phenc_data(
         cfg=cfg,
         logger=logger,
     )
-
-    return dwi_b0.output, pe_dir, pe_data
+    return (
+        dwi_b0.output,
+        dwi_b0.export_grad_fsl.bvals_path,
+        dwi_b0.export_grad_fsl.bvecs_path,
+        pe_dir,
+        pe_data,
+    )
 
 
 def gen_topup_inputs(
@@ -85,7 +95,7 @@ def gen_topup_inputs(
         input_group=input_group,
         cfg=cfg,
     )
-    pe_indices = get_pe_indices(dir_outs["pe_dir"])
+    pe_indices = get_pe_indices(dir_outs["pe_dir"], vols)
 
     return phenc_fpath, dwi_fpath, pe_indices
 
@@ -98,7 +108,7 @@ def concat_bv(
     **kwargs,
 ) -> tuple[pl.Path, ...]:
     """Concatenate .bval and .bvec files."""
-    out_dir = cfg["opt.working_dir"] / f"{gen_hash()}_concat_bv"
+    out_dir = cfg["opt.working_dir"] / f"{gen_hash()}_concat-bv"
     bids = partial(
         utils.bids_name,
         datatype="dwi",
@@ -117,6 +127,8 @@ def concat_bv(
 
 
 def gen_eddy_inputs(
+    phenc: pl.Path | None,
+    indices: list[str] | None,
     dir_outs: dict[str, Any],
     input_group: dict[str, Any],
     cfg: dict[str, Any],
@@ -150,13 +162,17 @@ def gen_eddy_inputs(
         **kwargs,
     )
 
-    # Get phase encoding data
-    phenc = concat_dir_phenc_data(
-        pe_data=dir_outs["pe_data"],
-        **kwargs,
+    # Generate phenc file if necessary
+    if not phenc:
+        phenc = concat_dir_phenc_data(
+            pe_data=[dir_outs["pe_data"][0]],
+            input_group=input_group,
+            cfg=cfg,
+        )
+
+    # Generate index file
+    index_fpath = get_eddy_indices(
+        niis=dir_outs["dwi"], indices=indices, input_group=input_group, cfg=cfg
     )
 
-    # Generate indices
-    indices = get_eddy_indices(niis=dir_outs["dwi"], input_group=input_group, cfg=cfg)
-
-    return dwi, bval, bvec, phenc, indices
+    return dwi, bval, bvec, phenc, index_fpath

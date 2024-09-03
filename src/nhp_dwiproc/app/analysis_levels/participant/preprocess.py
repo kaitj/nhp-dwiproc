@@ -1,5 +1,8 @@
 """Preprocessing of participants."""
 
+import json
+import pathlib as pl
+import shutil
 from collections import defaultdict
 from logging import Logger
 from typing import Any
@@ -17,8 +20,8 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
     b2t = utils.io.load_b2t(cfg=cfg, logger=logger)
 
     # Filter b2t based on string query
-    if cfg["participant.query"]:
-        b2t = b2t.loc[b2t.flat.query(cfg["participant.query"]).index]
+    if cfg.get("participant.query"):
+        b2t = b2t.loc[b2t.flat.query(cfg.get("participant.query")).index]
 
     assert isinstance(b2t, BIDSTable)
     dwi_b2t = b2t
@@ -53,7 +56,7 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
             entities = row[["sub", "ses", "run", "dir"]].to_dict()
             dwi = preprocess.denoise.denoise(entities=entities, **input_kwargs)
             dwi = preprocess.unring.degibbs(dwi=dwi, entities=entities, **input_kwargs)
-            b0, pe_dir, pe_data = preprocess.dwi.get_phenc_data(
+            b0, b0_bval, b0_bvec, pe_dir, pe_data = preprocess.dwi.get_phenc_data(
                 dwi=dwi, idx=idx, entities=entities, **input_kwargs
             )
 
@@ -61,6 +64,8 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
             dir_outs["bval"].append(input_kwargs["input_data"]["dwi"]["bval"])
             dir_outs["bvec"].append(input_kwargs["input_data"]["dwi"]["bvec"])
             dir_outs["b0"].append(b0)
+            dir_outs["b0_bval"].append(b0_bval)
+            dir_outs["b0_bvec"].append(b0_bvec)
             dir_outs["pe_data"].append(pe_data)
             dir_outs["pe_dir"].append(pe_dir)
 
@@ -71,16 +76,20 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
                     cfg["participant.preprocess.topup.skip"] = True
 
                 if not cfg["participant.preprocess.topup.skip"]:
-                    topup, eddy_mask_input = preprocess.topup.run_apply_topup(
+                    phenc, indices, topup, eddy_mask = preprocess.topup.run_apply_topup(
                         dir_outs=dir_outs, **input_kwargs
                     )
                 else:
+                    phenc = None
+                    indices = None
                     topup = None
-                    eddy_mask_input = None
+                    eddy_mask = None
 
                 dwi, bval, bvec = preprocess.eddy.run_eddy(
+                    phenc=phenc,
+                    indices=indices,
                     topup=topup,
-                    mask_input=eddy_mask_input,
+                    mask=eddy_mask,
                     dir_outs=dir_outs,
                     **input_kwargs,
                 )
@@ -95,6 +104,7 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
 
         bval_fpath = cfg["output_dir"].joinpath(
             utils.bids_name(
+                return_path=True,
                 datatype="dwi",
                 space="T1w",
                 res="dwi",
@@ -104,20 +114,24 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
             )
         )
         if not cfg["participant.preprocess.register.skip"]:
-            ref_b0, xfm = preprocess.registration.register(
+            ref_b0, transforms = preprocess.registration.register(
                 dwi=dwi, bval=bval, bvec=bvec, **input_kwargs
             )
             preprocess.registration.apply_transform(
-                dwi=dwi, bvec=bvec, ref_b0=ref_b0, xfm=xfm, mask=mask, **input_kwargs
+                dwi=dwi,
+                bvec=bvec,
+                ref_b0=ref_b0,
+                transforms=transforms,
+                mask=mask,
+                **input_kwargs,
             )
         else:
-            bval_fpath = bval_fpath.replace("space-T1w", "")
+            bval_fpath = pl.Path(str(bval_fpath).replace("space-T1w_", ""))
+        shutil.copy2(bval, bval_fpath)
 
         # Create JSON sidecar
-        json_fpath = bval_fpath.replace(".bval", ".json")
+        json_fpath = pl.Path(str(bval_fpath).replace(".bval", ".json"))
         with open(json_fpath, "w") as metadata:
-            metadata.write(input_kwargs["input_data"]["dwi"]["json"])
-
-        utils.io.save(files=[bval_fpath, json_fpath], out_dir=bval_fpath)
+            json.dump(input_kwargs["input_data"]["dwi"]["json"], metadata, indent=2)
 
         logger.info(f"Completed processing for {uid}")

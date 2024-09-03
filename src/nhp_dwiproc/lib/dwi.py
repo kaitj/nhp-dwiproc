@@ -56,7 +56,7 @@ def concat_dir_phenc_data(
     phenc_fname = utils.bids_name(
         datatype="dwi", desc="concat", suffix="phenc", ext=".txt", **input_group
     )
-    phenc_fpath = cfg["opt.working_dir"] / f"{gen_hash()}_phenc" / phenc_fname
+    phenc_fpath = cfg["opt.working_dir"] / f"{gen_hash()}_concat-phenc" / phenc_fname
     phenc_fpath.parent.mkdir(parents=True, exist_ok=False)
     np.savetxt(phenc_fpath, np.vstack(pe_data), fmt="%.5f")
 
@@ -89,7 +89,7 @@ def normalize(
     return nii_fpath
 
 
-def get_pe_indices(pe_dirs: list[str]) -> list[str]:
+def get_pe_indices(pe_dirs: list[str], vols: list[int]) -> list[str]:
     """Get PE indices - LR/RL if available, AP otherwise."""
     indices: dict[str, list[Any]] = {"lr": [], "ap": []}
     pe: dict[str, list[Any]] = {
@@ -97,41 +97,40 @@ def get_pe_indices(pe_dirs: list[str]) -> list[str]:
         "dir": [ax[1:] for ax in pe_dirs],
     }
 
-    if len(set(pe["axe"])) > 1:
-        for idx, pe in enumerate(pe["axe"]):
-            if pe == "i":
-                indices["lr"].append(idx)
-            elif pe == "j":
-                indices["ap"].append(idx)
-        return (
-            indices["lr"]
-            if len(set([pe_dirs[idx] for idx in indices["lr"]])) == 2
-            else indices["ap"]
-        )
+    # If multiple directions, use LR indices if possible, else use AP
+    if len(set(pe_dirs)) > 1:
+        for idx, (ax, vol) in enumerate(zip(pe["axe"], vols)):
+            idxes = idx + 1 if idx == 0 else vol * idx + 1
+            if ax == "i":
+                indices["lr"].append(str(idxes))
+            elif ax == "j":
+                indices["ap"].append(str(idxes))
+        return indices["lr"] if len(set(indices["lr"])) == 2 else indices["ap"]
     else:
-        return [str(idx) for idx in range(1, len(pe["axe"]) + 1)]
+        return ["1"] * len(pe["axe"])
 
 
 def get_eddy_indices(
-    niis: list[str | pl.Path], input_group: dict[str, Any], cfg: dict[str, Any]
+    niis: list[str | pl.Path],
+    indices: list[str] | None,
+    input_group: dict[str, Any],
+    cfg: dict[str, Any],
 ) -> pl.Path:
     """Generate dwi index file for eddy."""
     imsizes = [nib.loadsave.load(nii).header.get_data_shape() for nii in niis]
 
-    eddy_idxes = []
-    for idx, im in enumerate(imsizes, start=1):
-        if len(im) < 4:
-            eddy_idxes.append(idx)
-        else:
-            eddy_idxes.extend([idx] * im[3])
+    eddy_idxes = [
+        idx if len(imsize) < 4 else [idx] * imsize[3]
+        for idx, imsize in zip(indices or ["1"] * len(imsizes), imsizes)
+    ]
 
-    out_dir = cfg["opt.working_dir"] / f"{gen_hash()}_eddy_indices"
+    out_dir = cfg["opt.working_dir"] / f"{gen_hash()}_eddy-indices"
     out_fname = utils.bids_name(
         datatype="dwi", desc="eddy", suffix="indices", ext=".txt", **input_group
     )
     out_fpath = out_dir / out_fname
     out_fpath.parent.mkdir(parents=True, exist_ok=False)
-    np.savetxt(out_fpath, np.array(eddy_idxes), fmt="%d")
+    np.savetxt(out_fpath, np.array(eddy_idxes).flatten(), fmt="%s", newline=" ")
 
     return out_fpath
 
@@ -148,7 +147,7 @@ def rotate_bvec(
     transformation_mat = np.loadtxt(transformation)
     rotated_bvec = np.dot(transformation_mat[:3, :3], bvec)
 
-    out_dir = cfg["opt.working_dir"] / f"{gen_hash()}_rotate_bvec"
+    out_dir = cfg["opt.working_dir"] / f"{gen_hash()}_rotate-bvec"
     out_fname = utils.bids_name(
         datatype="dwi", space="T1w", res="dwi", suffix="dwi", ext=".bvec", **input_group
     )
