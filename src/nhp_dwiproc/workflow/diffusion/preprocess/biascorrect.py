@@ -36,7 +36,7 @@ def biascorrect(
     )
     biascorrect = mrtrix.dwibiascorrect(
         input_image=biascorrect.output_image_file,
-        output_image=bids(desc="biascorrect", suffix="dwi"),
+        output_image=bids(desc="preproc", suffix="dwi"),
         algorithm="ants",
         fslgrad_bvecs=[bvec, bval],
         ants_b=f"{cfg['participant.preprocess.biascorrect.spacing']},3",

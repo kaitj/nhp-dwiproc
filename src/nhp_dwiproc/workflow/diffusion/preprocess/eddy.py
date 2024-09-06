@@ -6,7 +6,7 @@ from logging import Logger
 from typing import Any
 
 from niwrap import fsl, mrtrix
-from styxdefs import OutputPathType
+from styxdefs import InputPathType, OutputPathType
 
 from nhp_dwiproc.app import utils
 from nhp_dwiproc.workflow.diffusion.preprocess.dwi import gen_eddy_inputs
@@ -16,7 +16,7 @@ def run_eddy(
     phenc: pl.Path | None,
     indices: list[str] | None,
     topup: fsl.TopupOutputs | None,
-    mask: mrtrix.Dwi2maskOutputs | None,
+    mask: InputPathType | None,
     dir_outs: dict[str, Any],
     input_group: dict[str, Any],
     cfg: dict[str, Any],
@@ -34,18 +34,14 @@ def run_eddy(
         **kwargs,
     )
 
+    # Generate crude mask for eddy if necessary
     if not mask:
-        # mask = mrtrix.dwi2mask(
-        #     input_=dwi,
-        #     output=bids(desc="preEddy", suffix="mask"),
-        #     fslgrad=mrtrix.Dwi2maskFslgrad(bvecs=bvec, bvals=bval),
-        #     nthreads=cfg["opt.threads"],
-        # )
-        # Also need to update eddy mask input
-        mask = fsl.bet(
-            infile=dwi,
-            maskfile=bids(desc="preEddy", suffix="mask", ext=None),
-        )
+        mask = mrtrix.dwi2mask(
+            input_=dwi,
+            output=bids(desc="preEddy", suffix="mask"),
+            fslgrad=mrtrix.Dwi2maskFslgrad(bvecs=bvec, bvals=bval),
+            nthreads=cfg["opt.threads"],
+        ).output
 
     logger.info("Running FSL's eddy")
     if cfg["participant.preprocess.eddy.gpu"]:
@@ -53,7 +49,7 @@ def run_eddy(
     bids = partial(utils.bids_name, datatype="dwi", desc="eddy", **input_group)
     eddy = fsl.eddy(
         imain=dwi,
-        mask=mask.outfile,  # mask.output,
+        mask=mask,
         bvecs=bvec,
         bvals=bval,
         acqp=phenc,

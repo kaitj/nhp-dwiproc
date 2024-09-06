@@ -108,6 +108,7 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
                 datatype="dwi",
                 space="T1w",
                 res="dwi",
+                desc="preproc",
                 suffix="dwi",
                 ext=".bval",
                 **input_kwargs["input_group"],

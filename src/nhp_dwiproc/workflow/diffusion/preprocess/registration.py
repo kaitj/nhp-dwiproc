@@ -53,7 +53,6 @@ def register(
             ).replace("from_", "from")
         ),
         transform_type="r",
-        initial_transform=[f'[{input_data["t1w"]["nii"]},{b0.output},0]'],
         use_repro_mode=1,
         random_seed=cfg["opt.seed_num"],
         threads=cfg["opt.threads"],
@@ -123,7 +122,7 @@ def apply_transform(
         transform=[ants.AntsApplyTransformsTransformFileName(transforms["ants"])],
         interpolation=ants.AntsApplyTransformsLinear(),
         output=ants.AntsApplyTransformsWarpedOutput(
-            bids(space="T1w", res="dwi", suffix="dwi")
+            bids(space="T1w", res="dwi", desc="preproc", suffix="dwi")
         ),
     )
     xfm_mask = ants.ants_apply_transforms(
@@ -134,7 +133,7 @@ def apply_transform(
         transform=[ants.AntsApplyTransformsTransformFileName(transforms["ants"])],
         interpolation=ants.AntsApplyTransformsNearestNeighbor(),
         output=ants.AntsApplyTransformsWarpedOutput(
-            bids(space="T1w", res="dwi", suffix="mask")
+            bids(space="T1w", res="dwi", desc="preproc", suffix="mask")
         ),
     )
     xfm_bvec = rotate_bvec(

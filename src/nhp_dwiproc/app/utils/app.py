@@ -61,7 +61,7 @@ def initialize(cfg: dict[str, Any]) -> tuple[logging.Logger, Runner]:
 def validate_cfg(cfg: dict[str, Any]) -> None:
     """Helper function to validate input arguments if necessary."""
     # Check that participant query only contains general entities
-    allowed_keys = {"sub", "ses", "run"}
+    allowed_keys = {"sub", "ses"}
     if cfg.get("participant.query"):
         query_keys = re.findall(r"\b(\w+)=", cfg["participant.query"])
         invalid_keys = [key for key in query_keys if key not in allowed_keys]
@@ -88,6 +88,7 @@ def validate_cfg(cfg: dict[str, Any]) -> None:
                 if not pl.Path(topup_cfg).exists():
                     logging.error("No topup configuration found")
                     raise FileNotFoundError()
+                topup_cfg = str(topup_cfg).rstrip(".cnf")
             cfg["participant.preprocess.topup.config"] = (
                 pl.Path(__file__).parent.parent
                 / "resources"

@@ -30,7 +30,8 @@ def main() -> None:
         app.generate_descriptor(cfg=cfg, out_fname="dataset_description.json")
 
     # Finish cleaning up workflow
-    shutil.rmtree(cfg["opt.working_dir"])
+    if not cfg["opt.keep_tmp"]:
+        shutil.rmtree(runner.base.data_dir)
 
     # Print graph
     if cfg["opt.graph"]:
