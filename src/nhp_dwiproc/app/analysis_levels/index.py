@@ -5,13 +5,13 @@ from typing import Any
 
 from bids2table import bids2table
 
-from .. import utils
+from nhp_dwiproc.app import utils
 
 
 def run(cfg: dict[str, Any], logger: Logger) -> None:
     """Runner for index-level analysis."""
     logger.info("Index analysis-level")
-    index_path = utils.check_index_path(cfg=cfg)
+    index_path = utils.io.check_index_path(cfg=cfg)
     if index_path.exists() and not cfg["index.overwrite"]:
         logger.info("Index already exists - not overwriting")
     else:

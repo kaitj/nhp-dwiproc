@@ -1,25 +1,24 @@
 """Pre-tractography participant processing (to compute FODs)."""
 
-from functools import partial
 from logging import Logger
 from typing import Any
 
-from bids2table import BIDSEntities, BIDSTable
+from bids2table import BIDSTable
 from tqdm import tqdm
 
-from ....workflow.diffusion import reconst, tractography
-from ... import utils
+from nhp_dwiproc.app import utils
+from nhp_dwiproc.workflow.diffusion import reconst, tractography
 
 
 def run(cfg: dict[str, Any], logger: Logger) -> None:
     """Runner for tractography-level analysis."""
     logger.info("Tractography analysis-level")
-    b2t = utils.load_b2t(cfg=cfg, logger=logger)
+    b2t = utils.io.load_b2t(cfg=cfg, logger=logger)
 
     # Filter b2t based on string query
-    if cfg["participant.query"]:
+    if cfg.get("participant.query"):
         assert isinstance(b2t, BIDSTable)
-        b2t = b2t.loc[b2t.flat.query(cfg["participant.query"]).index]
+        b2t = b2t.loc[b2t.flat.query(cfg.get("participant.query")).index]
 
     # Loop through remaining subjects after query
     assert isinstance(b2t, BIDSTable)
@@ -28,28 +27,22 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
             space="T1w", suffix="dwi", ext={"items": [".nii", ".nii.gz"]}
         ).flat.iterrows()
     ):
-        entities = utils.unique_entities(row)
         input_kwargs: dict[str, Any] = {
-            "input_data": (
-                input_data := utils.get_inputs(
-                    b2t=b2t,
-                    entities=entities,
-                    atlas=None,
-                )
+            "input_data": utils.io.get_inputs(
+                b2t=b2t,
+                row=row,
+                cfg=cfg,
             ),
-            "bids": (
-                bids := partial(
-                    BIDSEntities.from_dict(input_data["entities"]).with_update,
-                    datatype="dwi",
-                )
-            ),
+            "input_group": row[["sub", "ses", "run"]].to_dict(),
             "cfg": cfg,
             "logger": logger,
         }
 
         # Perform processing
-        logger.info(f"Processing {bids().to_path().name}")
+        logger.info(
+            f"Processing {(uid := utils.bids_name(**input_kwargs['input_group']))}"
+        )
         reconst.compute_dti(**input_kwargs)
         fods = reconst.compute_fods(**input_kwargs)
         tractography.generate_tractography(fod=fods, **input_kwargs)
-        logger.info(f"Completed processing for {bids().to_path().name}")
+        logger.info(f"Completed processing for {uid}")

@@ -184,7 +184,7 @@ wheels = [
 
 [[package]]
 name = "nhp-dwiproc"
-version = "0.1.0"
+version = "0.1.dev73+g6b79741.d20240903"
 source = { editable = "." }
 dependencies = [
     { name = "bids2table" },
@@ -209,7 +209,7 @@ dev = [
 requires-dist = [
     { name = "bids2table", specifier = ">=0.1.0" },
     { name = "bidsapp-helper", git = "https://github.com/kaitj/bidsapp-helper" },
-    { name = "niwrap", git = "https://github.com/childmindresearch/niwrap.git/?subdirectory=python" },
+    { name = "niwrap", git = "https://github.com/kaitj/niwrap?subdirectory=python" },
     { name = "pyyaml", specifier = ">=6.0.2" },
     { name = "styxdocker", git = "https://github.com/childmindresearch/styxdocker" },
     { name = "styxgraph", git = "https://github.com/childmindresearch/styxgraph" },
@@ -241,7 +241,7 @@ wheels = [
 [[package]]
 name = "niwrap"
 version = "0.1.0"
-source = { git = "https://github.com/childmindresearch/niwrap.git/?subdirectory=python#d39e7913e1deb1ffe5b88acf89ad3d1e2a079576" }
+source = { git = "https://github.com/kaitj/niwrap?subdirectory=python#f5bf1fa94acb5124b0001da5c52070a08934662c" }
 dependencies = [
     { name = "styxdefs" },
 ]
