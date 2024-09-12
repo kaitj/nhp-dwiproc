@@ -49,7 +49,7 @@ def register(
     )
 
     # Perform registration
-    b0_to_t1 = greedy.greedy(
+    b0_to_t1 = greedy.greedy_(
         input_images=[input_data["t1w"]["nii"], b0.output],
         output=bids(
             from_="dwi",
@@ -68,7 +68,7 @@ def register(
         threads=cfg["opt.threads"],
     )
     transforms = {"ras": b0_to_t1.output_file}
-    b0_resliced = greedy.greedy(
+    b0_resliced = greedy.greedy_(
         fixed_reslicing_image=input_data["t1w"]["nii"],
         reslice_moving_image=b0.output,
         reslice_output_image=bids(space="T1w", desc="avg", suffix="b0", ext=".nii.gz"),
@@ -80,7 +80,7 @@ def register(
     # Create reference in original resolution
     im = nib.loadsave.load(b0.output)
     res = "x".join([str(vox) for vox in im.header.get_zooms()]) + "mm"
-    ref_b0 = c3d.c3d(
+    ref_b0 = c3d.c3d_(
         input_=[b0_resliced.reslice_output_file],
         operations=c3d.C3dResampleMm(res),
         output=(
@@ -130,25 +130,25 @@ def apply_transform(
     """Apply transform to dwi volume."""
     logger.info("Applying transformations to DWI")
     bids = partial(utils.bids_name, datatype="dwi", ext=".nii.gz", **input_group)
-    xfm_dwi = ants.ants_apply_transforms(
+    xfm_dwi = ants.apply_transforms(
         dimensionality=3,
         input_image_type=3,
         input_image=dwi,
         reference_image=ref_b0,
-        transform=[ants.AntsApplyTransformsTransformFileName(transforms["itk"])],
-        interpolation=ants.AntsApplyTransformsLinear(),
-        output=ants.AntsApplyTransformsWarpedOutput(
+        transform=[ants.ApplyTransformsTransformFileName(transforms["itk"])],
+        interpolation=ants.ApplyTransformsLinear(),
+        output=ants.ApplyTransformsWarpedOutput(
             bids(space="T1w", res="dwi", desc="preproc", suffix="dwi")
         ),
     )
-    xfm_mask = ants.ants_apply_transforms(
+    xfm_mask = ants.apply_transforms(
         dimensionality=3,
         input_image_type=0,
         input_image=input_data["dwi"]["mask"] or mask,
         reference_image=ref_b0,
-        transform=[ants.AntsApplyTransformsTransformFileName(transforms["itk"])],
-        interpolation=ants.AntsApplyTransformsNearestNeighbor(),
-        output=ants.AntsApplyTransformsWarpedOutput(
+        transform=[ants.ApplyTransformsTransformFileName(transforms["itk"])],
+        interpolation=ants.ApplyTransformsNearestNeighbor(),
+        output=ants.ApplyTransformsWarpedOutput(
             bids(space="T1w", res="dwi", desc="preproc", suffix="mask")
         ),
     )
