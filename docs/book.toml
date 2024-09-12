@@ -6,9 +6,11 @@ language = "en"
 multilingual = false
 src = "src"
 
+[preprocessor.alerts]
+
 [output.html]
 no-section-label = true
 
 [output.html.fold]
 enable = true
-level = 0
+level = 1

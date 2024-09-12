@@ -12,32 +12,32 @@ Python package dependencies are managed by [uv](https://docs.astral.sh/uv/).
 
 1. Clone the repository to your local machine:
 
-   ```shell
+   ```bash
    git clone https://github.com/kaitj/nhp-dwiproc
    ```
 
 1. Create a new environment to install the library with dependencies, for example
 using `uv`:
 
-   ```shell
+   ```bash
    uv venv --python python3.11 nhp-dwiproc-venv
    source activate nhp-dwiproc-venv/bin/activate
    ```
 
    Install `nhp-dwiproc` using the following command in the projects main directory.
 
-   ```shell
+   ```bash
    uv pip install -e .
    ```
 
    Also don't forget to setup the `pre-commit` hook, which ensures code style:
 
-   ```shell
+   ```bash
    uv run pre-commit install
    ```
 
 1. Checkout a new branch for your changes from the main branch.
-   ```shell
+   ```bash
    git checkout -b feature/your-feature-name main
    ```
 
@@ -50,7 +50,7 @@ a pull request:
 
 1. Push your changes back:
 
-   ```shell
+   ```bash
    git push origin feature/your-feature-name
    ```
 
@@ -59,7 +59,7 @@ description of your changes in the pull request message.
 
 #### Pull request guidelines
 
-* Write clear and consie commit messages
+* Write clear and concise commit messages
 * Test your changes thoroughly before submitting a pull request
 * If the pull request adds functionality, the documentation should also be updated.
 Improving documentation helps users better understand how to use `nhp-dwiproc`.

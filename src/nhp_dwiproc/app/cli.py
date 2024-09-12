@@ -296,26 +296,9 @@ def _add_preprocess_args(app_parser: BidsAppArgumentParser) -> None:
         (default: %(default)s)""",
     )
     preprocess_args.add_argument(
-        "--topup-method",
-        "--topup_method",
-        metavar="method",
-        dest="participant.preprocess.topup.method",
-        type=str,
-        default="lsr",
-        choices=["jac", "lsr"],
-        help="""resampling method to use for applytopup
-        (one of [%(choices)s]; default: %(default)s)""",
-    )
-    preprocess_args.add_argument(
-        "--eddy-gpu",
-        "--eddy_gpu",
-        dest="participant.preprocess.eddy.gpu",
-        action="store_true",
-        help="use eddy_gpu processing",
-    )
-    preprocess_args.add_argument(
         "--eddy-slm",
         "--eddy_slm",
+        metavar="model",
         dest="participant.preprocess.eddy.slm",
         type=str,
         default=None,
@@ -364,7 +347,7 @@ def _add_preprocess_args(app_parser: BidsAppArgumentParser) -> None:
         "--biascorrect-iters",
         "--biascorrect_iters",
         metavar="iterations",
-        dest="participant.preprocess.biascorrect.iterations",
+        dest="participant.preprocess.biascorrect.iters",
         type=int,
         default=1000,
         help="number of iterations (default: %(default)d)",
@@ -398,6 +381,7 @@ def _add_preprocess_args(app_parser: BidsAppArgumentParser) -> None:
     preprocess_args.add_argument(
         "--register-iters",
         "--register_iters",
+        metavar="iterations",
         dest="participant.preprocess.register.iters",
         type=str,
         default="50x50",
