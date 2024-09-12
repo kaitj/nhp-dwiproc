@@ -1,6 +1,6 @@
 <!-- prettier ignore -->
 <div align="center">
-<h1> NHP Diffusion Processing (nhp-dwiproc) </h1>
+<h1> NHP Diffusion Processing</br>(nhp-dwiproc) </h1>
 
 ![Python3](https://img.shields.io/badge/python->=3.11-blue.svg)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
