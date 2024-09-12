@@ -264,8 +264,17 @@ def _add_preprocess_args(app_parser: BidsAppArgumentParser) -> None:
         dest="participant.preprocess.undistort.method",
         type=str,
         default="fsl",
-        choices=["fsl", "shoreline"],
+        choices=["fsl", "eddymotion"],
         help="distortion correct method (one of [%(choices)s]; default: %(default)s)",
+    )
+    preprocess_args.add_argument(
+        "--eddymotion-iters",
+        "--eddymotion_iters",
+        metavar="iterations",
+        dest="participant.preprocess.eddymotion.iters",
+        type=int,
+        default=2,
+        help="number of iterations to repeat for eddymotion",
     )
     preprocess_args.add_argument(
         "--topup-skip",

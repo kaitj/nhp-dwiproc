@@ -91,9 +91,14 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
                     dir_outs=dir_outs,
                     **input_kwargs,
                 )
-            case "shoreline":
+            case "eddymotion":
+                dwi, bval, bvec = preprocess.eddymotion.eddymotion(
+                    dir_outs=dir_outs,
+                    **input_kwargs,
+                )
+            case _:
                 raise NotImplementedError(
-                    "SHOREline distortion method not yet implemented"
+                    "Selected distortion correction method not implemented"
                 )
 
         dwi, mask = preprocess.biascorrect.biascorrect(
