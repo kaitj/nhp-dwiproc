@@ -7,10 +7,10 @@ readme = "README.md"
 dynamic = ["version"]
 requires-python = ">=3.11"
 dependencies = [
-  "bids2table>=0.1.0",
-  "pyyaml>=6.0.2",
-  "niwrap>=0.2.0",
   "bidsapp-helper>=0.1.0",
+  "bids2table>=0.1.0",
+  "niwrap>=0.2.0",
+  "pyyaml>=6.0.2",
   "styxdocker",
   "styxsingularity",
   "styxgraph"
@@ -50,8 +50,8 @@ dev-dependencies = [
 ]
 
 [tool.uv.sources]
-niwrap = {git = "https://github.com/childmindresearch/niwrap", subdirectory = "python"}
 bidsapp-helper = {git = "https://github.com/kaitj/bidsapp-helper"}
+niwrap = {git = "https://github.com/childmindresearch/niwrap", subdirectory = "python"}
 styxdocker = {git = "https://github.com/childmindresearch/styxdocker"}
 styxsingularity = {git = "https://github.com/childmindresearch/styxsingularity"}
 styxgraph = {git = "https://github.com/childmindresearch/styxgraph"}

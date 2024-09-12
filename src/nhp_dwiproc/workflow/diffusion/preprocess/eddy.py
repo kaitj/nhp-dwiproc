@@ -54,10 +54,7 @@ def run_eddy(
         bvals=bval,
         acqp=phenc,
         index=index_fpath,
-        topup_dir=f"{topup.movpar.parent}" if topup else None,
-        topup=f'{"_".join(word for word in topup.movpar.name.split("_")[:-1])}'
-        if topup
-        else None,
+        topup_="_".join(str(topup.movpar).split("_")[:-1]) if topup else None,
         out=bids(),
         slm=cfg.get("participant.preprocess.eddy.slm", None),
         cnr_maps=cfg["participant.preprocess.eddy.cnr_maps"],
