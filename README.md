@@ -73,8 +73,8 @@ If you encounter any issues or have questions, pleasee open an issue on the
 [issue tracker]
 
 <!-- Links -->
-[Contributions]: https://github.com/kaitj/nhp-dwiproc/CONTRIBUTING.md
-[LICENSE]: https://github.com/kaitj/nhp-dwiproc/LICENSE.md
+[Contributions]: https://github.com/kaitj/nhp-dwiproc/blob/main/CONTRIBUTING.md
+[LICENSE]: https://github.com/kaitj/nhp-dwiproc/blob/main/LICENSE
 [Niwrap]: https://github.com/childmindresearch/niwrap
 [Styx]:https://github.com/childmindresearch/styx
 [documentation]: #

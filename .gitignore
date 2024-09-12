@@ -1,5 +1,10 @@
+# Development
 .ruff_cache
 .vscode
+
+# MDbook
+book/
+index.html
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
