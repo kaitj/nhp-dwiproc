@@ -9,8 +9,8 @@ requires-python = ">=3.11"
 dependencies = [
   "bids2table>=0.1.0",
   "pyyaml>=6.0.2",
-  "niwrap",
-  "bidsapp-helper",
+  "niwrap>=0.2.0",
+  "bidsapp-helper>=0.1.0",
   "styxdocker",
   "styxsingularity",
   "styxgraph"
@@ -50,7 +50,7 @@ dev-dependencies = [
 ]
 
 [tool.uv.sources]
-niwrap = {git = "https://github.com/kaitj/niwrap", subdirectory = "python"}
+niwrap = {git = "https://github.com/childmindresearch/niwrap", subdirectory = "python"}
 bidsapp-helper = {git = "https://github.com/kaitj/bidsapp-helper"}
 styxdocker = {git = "https://github.com/childmindresearch/styxdocker"}
 styxsingularity = {git = "https://github.com/childmindresearch/styxsingularity"}
