@@ -49,6 +49,11 @@ def load_b2t(cfg: dict[str, Any], logger: logging.Logger) -> BIDSTable:
     return b2t.drop(columns="ent__extra_entities")
 
 
+def valid_groupby(b2t: BIDSTable, keys: list[str]) -> list[str]:
+    """Return a list of valid keys to group by."""
+    return [f"ent__{key}" for key in keys if b2t[f"ent__{key}"].notna().any()]
+
+
 def get_inputs(
     b2t: BIDSTable,
     row: pd.Series,
@@ -67,7 +72,7 @@ def get_inputs(
         if len(entities) > 0 and (len(queries) > 0):
             raise ValueError("Provide only one of 'entities' or 'query'")
         elif len(queries) > 0:
-            query = " & ".join(q for q in queries)
+            query = " & ".join(q for q in queries if q is not None)
             data = b2t.loc[b2t.flat.query(query).index].flat
         else:
             entities_dict = row.dropna().to_dict()

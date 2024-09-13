@@ -30,13 +30,16 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
 
     # Loop through remaining subjects after query
     assert isinstance(dwi_b2t, BIDSTable)
-    for (subject, session, run_id), group in tqdm(
+    groupby_keys = utils.io.valid_groupby(b2t=dwi_b2t, keys=["sub", "ses", "run"])
+    for group_vals, group in tqdm(
         dwi_b2t.filter_multi(suffix="dwi", ext={"items": [".nii", ".nii.gz"]}).groupby(
-            ["ent__sub", "ent__ses", "ent__run"]
+            groupby_keys
         )
     ):
         input_kwargs: dict[str, Any] = {
-            "input_group": {"sub": subject, "ses": session, "run": run_id},
+            "input_group": dict(
+                zip([key.lstrip("ent__") for key in groupby_keys], group_vals)
+            ),
             "cfg": cfg,
             "logger": logger,
         }
@@ -60,7 +63,7 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
                 dwi=dwi, idx=idx, entities=entities, **input_kwargs
             )
 
-            dir_outs["dwi"].append(dwi)
+            dir_outs["dwi"].append(dwi or input_kwargs["input_data"]["dwi"]["nii"])
             dir_outs["bval"].append(input_kwargs["input_data"]["dwi"]["bval"])
             dir_outs["bvec"].append(input_kwargs["input_data"]["dwi"]["bvec"])
             dir_outs["b0"].append(b0)
@@ -91,9 +94,14 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
                     dir_outs=dir_outs,
                     **input_kwargs,
                 )
-            case "shoreline":
+            case "eddymotion":
+                dwi, bval, bvec = preprocess.eddymotion.eddymotion(
+                    dir_outs=dir_outs,
+                    **input_kwargs,
+                )
+            case _:
                 raise NotImplementedError(
-                    "SHOREline distortion method not yet implemented"
+                    "Selected distortion correction method not implemented"
                 )
 
         dwi, mask = preprocess.biascorrect.biascorrect(
