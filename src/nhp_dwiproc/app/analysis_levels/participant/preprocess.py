@@ -30,13 +30,16 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
 
     # Loop through remaining subjects after query
     assert isinstance(dwi_b2t, BIDSTable)
-    for (subject, session, run_id), group in tqdm(
+    groupby_keys = utils.io.valid_groupby(b2t=dwi_b2t, keys=["sub", "ses", "run"])
+    for group_vals, group in tqdm(
         dwi_b2t.filter_multi(suffix="dwi", ext={"items": [".nii", ".nii.gz"]}).groupby(
-            ["ent__sub", "ent__ses", "ent__run"]
+            groupby_keys
         )
     ):
         input_kwargs: dict[str, Any] = {
-            "input_group": {"sub": subject, "ses": session, "run": run_id},
+            "input_group": dict(
+                zip([key.lstrip("ent__") for key in groupby_keys], group_vals)
+            ),
             "cfg": cfg,
             "logger": logger,
         }
