@@ -31,7 +31,7 @@ def _add_optional_args(app_parser: BidsAppArgumentParser) -> None:
         metavar="runner",
         dest="opt.runner",
         type=str,
-        choices=[None, "Docker", "Singularity", "Apptainer"],
+        choices=["None", "Docker", "Singularity", "Apptainer"],
         help="workflow runner to use (one of [%(choices)s]; default: %(default)s)",
     )
     app_parser.add_argument(
@@ -319,7 +319,7 @@ def _add_preprocess_args(app_parser: BidsAppArgumentParser) -> None:
         dest="participant.preprocess.eddy.slm",
         type=str,
         default=None,
-        choices=[None, "linear", "quadratic"],
+        choices=["None", "linear", "quadratic"],
         help="""model for how diffusion gradients generate eddy currents
         (one of [%(choices)s]; default: %(default)s)""",
     )

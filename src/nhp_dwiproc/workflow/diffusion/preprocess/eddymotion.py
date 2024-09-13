@@ -24,7 +24,7 @@ def eddymotion(
     bids = partial(
         utils.bids_name, datatype="dwi", desc="eddymotion", ext=".nii.gz", **input_group
     )
-    logger.info("Running Eddymotion")
+    logger.info("Running eddymotion")
 
     if any(
         (len(dir_outs["dwi"]) > 1, len(dir_outs["bvec"]) > 1, len(dir_outs["bval"]) > 1)
@@ -32,8 +32,13 @@ def eddymotion(
         raise ValueError("Multiple diffusion-associated files found")
 
     out_fpath = cfg["opt.working_dir"] / f"{gen_hash()}_eddymotion"
+    out_fpath.mkdir(parents=True, exist_ok=True)
 
-    dwi_data = dmri.load(dir_outs["dwi"])
+    dwi_data = dmri.load(
+        filename=dir_outs["dwi"][0],
+        bvec_file=dir_outs["bvec"][0],
+        bval_file=dir_outs["bval"][0],
+    )
 
     estimator = EddyMotionEstimator()
     estimator.estimate(
@@ -54,4 +59,4 @@ def eddymotion(
     bvecs_fpath = out_fpath / bids(suffix="dwi", ext=".bvec")
     np.savetxt(bvecs_fpath, bvecs, fmt="%.5f")
 
-    return dwi_fpath, dir_outs["bval"], bvecs_fpath
+    return dwi_fpath, dir_outs["bval"][0], bvecs_fpath

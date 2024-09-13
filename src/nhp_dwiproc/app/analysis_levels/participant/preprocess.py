@@ -63,7 +63,7 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
                 dwi=dwi, idx=idx, entities=entities, **input_kwargs
             )
 
-            dir_outs["dwi"].append(dwi)
+            dir_outs["dwi"].append(dwi or input_kwargs["input_data"]["dwi"]["nii"])
             dir_outs["bval"].append(input_kwargs["input_data"]["dwi"]["bval"])
             dir_outs["bvec"].append(input_kwargs["input_data"]["dwi"]["bvec"])
             dir_outs["b0"].append(b0)
