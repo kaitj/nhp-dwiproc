@@ -2,7 +2,7 @@
 [Introduction](../../README.md)
 
 # User Guide
-- [Installation]()
+- [Installation](./installation/main.md)
 - [Usage](./usage/usage.md)
   - [CLI](./usage/cli.md)
   - [Configuration]()
