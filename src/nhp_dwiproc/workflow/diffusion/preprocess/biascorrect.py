@@ -30,7 +30,7 @@ def biascorrect(
         algorithm="ants",
         fslgrad_bvecs=[bvec, bval],
         ants_b=f"{cfg['participant.preprocess.biascorrect.spacing']},3",
-        ants_c=f"{cfg['participant.preprocess.biascorrect.iterations']},0.0",
+        ants_c=f"{cfg['participant.preprocess.biascorrect.iters']},0.0",
         ants_s=f"{cfg['participant.preprocess.biascorrect.shrink']}",
         nthreads=cfg["opt.threads"],
     )
@@ -40,7 +40,7 @@ def biascorrect(
         algorithm="ants",
         fslgrad_bvecs=[bvec, bval],
         ants_b=f"{cfg['participant.preprocess.biascorrect.spacing']},3",
-        ants_c=f"{cfg['participant.preprocess.biascorrect.iterations']},0.0",
+        ants_c=f"{cfg['participant.preprocess.biascorrect.iters']},0.0",
         ants_s=f"{cfg['participant.preprocess.biascorrect.shrink']}",
         nthreads=cfg["opt.threads"],
     )
