@@ -11,10 +11,10 @@
     - [Preprocess](./usage/analysis_levels/preprocess.md)
     - [Tractography](./usage/analysis_levels/tractography.md)
     - [Connectivity](./usage/analysis_levels/connectivity.md)
-  - [Runners]()
-    - [StyxLocal]()
-    - [StyxDocker]()
-    - [StyxSingularity]()
+  - [Runners](./runners/main.md)
+    - [StyxLocal](./runners/styxlocal.md)
+    - [StyxDocker](./runners/styxdocker.md)
+    - [StyxSingularity](./runners/styxsingularity.md)
 
 # Miscellaneous
 - [Contributing](./contributing/main.md)
