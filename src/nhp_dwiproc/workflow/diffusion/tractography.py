@@ -13,6 +13,7 @@ def generate_tractography(
     input_data: dict[str, Any],
     input_group: dict[str, Any],
     fod: mrtrix.MtnormaliseOutputs,
+    wm_mask: mrtrix.MrthresholdOutputs,
     cfg: dict[str, Any],
     logger: Logger,
     **kwargs,
@@ -37,8 +38,8 @@ def generate_tractography(
         seed_dynamic=wm_fod,
         algorithm="iFOD2",
         step=cfg.get("participant.tractography.steps"),
-        cutoff=cfg["participant.tractography.cutoff"],
-        select_=cfg["participant.tractography.streamlines"],
+        cutoff=cfg.get("participant.tractography.cutoff"),
+        select_=cfg.get("participant.tractography.streamlines"),
         nthreads=cfg["opt.threads"],
     )
 
