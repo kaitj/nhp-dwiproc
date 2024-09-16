@@ -1,0 +1,16 @@
+[book]
+title = "nhp-dwiproc documentation"
+authors = ["Jason Kai"]
+description = "This book provides documentation for nhp-dwiproc."
+language = "en"
+multilingual = false
+src = "src"
+
+[preprocessor.alerts]
+
+[output.html]
+no-section-label = true
+
+[output.html.fold]
+enable = true
+level = 1
