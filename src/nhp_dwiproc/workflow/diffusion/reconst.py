@@ -156,7 +156,7 @@ def compute_dti(
     wm_mask = mrtrix.mrthreshold(
         input_=tensor2metrics.fa,
         output=bids(desc="wm", suffix="dseg", ext=".nii.gz"),
-        abs_=0.15,
+        abs_=cfg["participant.tractography.fa_thresh"],
         nthreads=cfg["opt.threads"],
     )
 

@@ -15,8 +15,10 @@ nhp_dwiproc bids_dir output_dir analysis_level [options]
 
 </br>
 > [!NOTE]
-> The majority of CLI options also have a associated config key. Config keys are overwritten by parameters provided
-> the CLI unless otherwise noted. Each `.` represents a nested level in the config (see configuration for details).
+> The majority of CLI options also have a associated config key. Values
+> provided in the CLI will be overwritten by those provided in the configuration
+> file unless otherwise noted. Each `.` represents a nested level in the config
+> (see configuration for details).
 
 ## Global options
 These optional arguments can be used for all analysis level stages:
