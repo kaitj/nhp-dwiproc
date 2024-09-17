@@ -427,6 +427,25 @@ def _add_tractography_args(app_parser: BidsAppArgumentParser) -> None:
         help="step size (in mm) for tractography (default: 0.5 x voxel size)",
     )
     tractography_args.add_argument(
+        "--tractography-method",
+        "--tractography_method",
+        metavar="method",
+        dest="participant.tractography.method",
+        type=str,
+        default="wm",
+        choices=["wm", "act"],
+        help="tractography seeding method (one of [%(choices)s]; default: %(default)s)",
+    )
+    tractography_args.add_argument(
+        "--fa-thresh",
+        "--fa_thresh",
+        metavar="threshold",
+        dest="participant.tractography.fa_thresh",
+        type=float,
+        default=0.1,
+        help="FA threshold to generate white-matter mask (default: %(default).2f)",
+    )
+    tractography_args.add_argument(
         "--cutoff",
         metavar="cutoff",
         dest="participant.tractography.cutoff",
@@ -439,7 +458,7 @@ def _add_tractography_args(app_parser: BidsAppArgumentParser) -> None:
         metavar="streamlines",
         dest="participant.tractography.streamlines",
         type=int,
-        default=10_000,
+        default=10000,
         help="number of streamlines to select (default %(default)d)",
     )
 
