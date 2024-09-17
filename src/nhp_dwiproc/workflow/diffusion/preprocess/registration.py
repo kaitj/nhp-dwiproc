@@ -148,7 +148,7 @@ def apply_transform(
     xfm_mask = ants.apply_transforms(
         dimensionality=3,
         input_image_type=0,
-        input_image=input_data["dwi"]["mask"] or mask,
+        input_image=input_data["dwi"].get("mask") or mask,
         reference_image=ref_b0,
         transform=[ants.ApplyTransformsTransformFileName(transforms["itk"])],
         interpolation=ants.ApplyTransformsNearestNeighbor(),

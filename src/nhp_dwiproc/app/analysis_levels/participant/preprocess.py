@@ -7,7 +7,7 @@ from collections import defaultdict
 from logging import Logger
 from typing import Any
 
-from bids2table import BIDSTable
+from bids2table import BIDSEntities, BIDSTable
 from tqdm import tqdm
 
 from nhp_dwiproc.app import utils
@@ -80,6 +80,70 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
                     phenc, indices, topup, eddy_mask = preprocess.topup.run_apply_topup(
                         dir_outs=dir_outs, **input_kwargs
                     )
+                else:
+                    phenc = None
+                    indices = None
+                    topup = None
+                    eddy_mask = None
+
+                dwi, bval, bvec = preprocess.eddy.run_eddy(
+                    phenc=phenc,
+                    indices=indices,
+                    topup=topup,
+                    mask=eddy_mask,
+                    dir_outs=dir_outs,
+                    **input_kwargs,
+                )
+            case "fieldmap":
+                # Mimic input_data dict for preprocessing
+                fmap_data = {
+                    "dwi": {
+                        "nii": input_kwargs["input_data"]["fmap"]["nii"],
+                        "bval": input_kwargs["input_data"]["fmap"]["bval"],
+                        "bvec": input_kwargs["input_data"]["fmap"]["bvec"],
+                        "json": input_kwargs["input_data"]["fmap"]["json"],
+                    }
+                }
+                entities = BIDSEntities.from_path(fmap_data["dwi"]["nii"]).to_dict()
+                entities = {
+                    k: v
+                    for k, v in entities.items()
+                    if k in ["sub", "ses", "run", "dir"]
+                }
+                fmap = preprocess.denoise.denoise(
+                    entities=entities,
+                    input_data=fmap_data,
+                    cfg=cfg,
+                    logger=logger,
+                )
+                fmap = preprocess.unring.degibbs(
+                    dwi=fmap, entities=entities, cfg=cfg, logger=logger
+                )
+                b0, pe_dir, pe_data = preprocess.dwi.get_phenc_data(
+                    dwi=fmap,
+                    idx=len(dir_outs["dwi"]),
+                    entities=entities,
+                    input_data=fmap_data,
+                    cfg=cfg,
+                    logger=logger,
+                )
+                dir_outs["dwi"].append(fmap or fmap_data["dwi"]["nii"])
+                dir_outs["bval"].append(fmap_data["dwi"]["bval"])
+                dir_outs["bvec"].append(fmap_data["dwi"]["bvec"])
+                dir_outs["b0"].append(b0)
+                dir_outs["pe_data"].append(pe_data)
+                dir_outs["pe_dir"].append(pe_dir)
+
+                if len(set(dir_outs["pe_dir"])) < 2:
+                    logger.info("Less than 2 phase-encode directions...skipping topup")
+                    cfg["participant.preprocess.topup.skip"] = True
+
+                if not cfg["participant.preprocess.topup.skip"]:
+                    phenc, indices, topup, eddy_mask = preprocess.topup.run_apply_topup(
+                        dir_outs=dir_outs, **input_kwargs
+                    )
+                    for key in dir_outs.keys():
+                        dir_outs[key].pop()
                 else:
                     phenc = None
                     indices = None

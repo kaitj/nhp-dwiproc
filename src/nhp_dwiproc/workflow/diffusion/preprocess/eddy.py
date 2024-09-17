@@ -44,8 +44,6 @@ def run_eddy(
         ).output
 
     logger.info("Running FSL's eddy")
-    if cfg["participant.preprocess.eddy.gpu"]:
-        logger.warning("eddy_gpu not yet integrated into workflow...using cpu")
     bids = partial(utils.bids_name, datatype="dwi", desc="eddy", **input_group)
     eddy = fsl.eddy(
         imain=dwi,

@@ -36,6 +36,7 @@ These optional arguments can be used for all analysis level stages:
 | `--dwi-query <query>` | `participant.query_dwi` | string query for DWI-associated BIDS entities |
 | `--t1w-query <query>` | `participant.query_t1w` | string query for T1w-associated BIDS entities |
 | `--mask-query <query>` | `participant.query_mask` | string query for custom mask-associated BIDS entities (in T1w space) |
+| `--fmap-query <query>` | `participant.query_fmap` | string query for fieldmap-associated BIDS entities |
 | `--b0-thresh <thresh>` | `participant.b0_thresh` | threshold for shell to be considered b=0 - default: `10` |
 
 </br>
