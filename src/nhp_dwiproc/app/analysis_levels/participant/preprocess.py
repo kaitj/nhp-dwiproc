@@ -186,7 +186,7 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
         )
         if not cfg["participant.preprocess.register.skip"]:
             ref_b0, transforms = preprocess.registration.register(
-                dwi=dwi, bval=bval, bvec=bvec, **input_kwargs
+                dwi=dwi, bval=bval, bvec=bvec, mask=mask, **input_kwargs
             )
             preprocess.registration.apply_transform(
                 dwi=dwi,
