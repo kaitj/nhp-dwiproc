@@ -35,7 +35,7 @@ def initialize(cfg: dict[str, Any]) -> tuple[logging.Logger, Runner]:
             if not cfg.get("opt.containers"):
                 raise ValueError(
                     """Container config not provided ('--container-config')\n
-                See https://github.com/kaitj/nhp-dwiproc/blob/main/src/nhp_dwiproc/app/resources/containers.yaml
+                See https://github.com/HumanBrainED/nhp-dwiproc/blob/main/src/nhp_dwiproc/app/resources/containers.yaml
                 for an example."""
                 )
             with open(cfg["opt.containers"], "r") as container_config:

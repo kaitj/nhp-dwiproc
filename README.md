@@ -5,7 +5,7 @@
 ![Python3](https://img.shields.io/badge/python->=3.11-blue.svg)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 ![stability-stable](https://img.shields.io/badge/stability-experimental-orange.svg)
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/kaitj/blob/main/LICENSE)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/HumanBrainED/blob/main/LICENSE)
 [![Documentation](https://img.shields.io/badge/documentation-8CA1AF?logo=readthedocs&logoColor=fff)](#)
 
 </div>
@@ -35,7 +35,7 @@ You will need the following pre-requisites:
 You can install `nhp-dwiproc` using `pip`:
 
 ```shell
-pip install git+https://github.com/kaitj/nhp-dwiproc
+pip install git+https://github.com/HumanBrainED/nhp-dwiproc
 ```
 
 For additional details, please consult the [documentation].
@@ -73,12 +73,12 @@ If you encounter any issues or have questions, pleasee open an issue on the
 [issue tracker]
 
 <!-- Links -->
-[Contributions]: https://github.com/kaitj/nhp-dwiproc/blob/main/CONTRIBUTING.md
-[LICENSE]: https://github.com/kaitj/nhp-dwiproc/blob/main/LICENSE
+[Contributions]: https://github.com/HumanBrainED/nhp-dwiproc/blob/main/CONTRIBUTING.md
+[LICENSE]: https://github.com/HumanBrainED/nhp-dwiproc/blob/main/LICENSE
 [Niwrap]: https://github.com/childmindresearch/niwrap
 [Styx]:https://github.com/childmindresearch/styx
 [documentation]: #
-[issue tracker]: https://github.com/kaitj/nhp-dwiproc/issues/new/choose
+[issue tracker]: https://github.com/HumanBrainED/nhp-dwiproc/issues/new/choose
 <!-- Software dependency links -->
 [Python]: https://www.python.org/
 [ANTs]:   https://github.com/ANTsX/ANTs

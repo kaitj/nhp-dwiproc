@@ -16,7 +16,7 @@ def generate_descriptor(cfg: dict[str, Any], out_fname: str) -> None:
         ),
         bids_version="1.9.0",
         app_version=ilm.version(APP_NAME),
-        repo_url="https://github.com/kaitj/nhp-dwiproc",
+        repo_url="https://github.com/HumanBrainED/nhp-dwiproc",
         author="Jason Kai",
         author_email="jason.kai@childmind.org",
     )

@@ -32,7 +32,7 @@ classifiers = [
 ]
 
 [project.urls]
-Repository = "https://github.com/kaitj/nhp-dwiproc"
+Repository = "https://github.com/HumanBrainED/nhp-dwiproc"
 
 [project.scripts]
 nhp_dwiproc = "nhp_dwiproc.run:main"

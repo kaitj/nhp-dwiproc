@@ -12,7 +12,7 @@ neuroimaging tools like `ANTs`, `mrtrix`, `c3d`, and others listed in the [intro
 Clone the repository and install the python dependencies using `uv`:
 
 ```bash
-git clone https://github.com/kaitj/nhp-dwiproc nhp-dwiproc
+git clone https://github.com/HumanBrainED/nhp-dwiproc nhp-dwiproc
 cd nhp-dwiproc
 uv venv --python python3.11 nhp-dwiproc-venv
 source activate nhp-dwiproc-venv/bin/activate

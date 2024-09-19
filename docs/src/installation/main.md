@@ -4,7 +4,7 @@ To install `nhp-dwiproc`, you can use your installer of choice (e.g. `pip`, `pip
 to install the application with `pip`, use the following command:
 
 ```bash
-pip install git+https://github.com/kaitj/nhp-dwiproc
+pip install git+https://github.com/HumanBrainED/nhp-dwiproc
 ```
 
 > [!TIP]
