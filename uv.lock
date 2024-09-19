@@ -51,10 +51,14 @@ wheels = [
 
 [[package]]
 name = "bidsapp-helper"
-version = "0.1.0a0"
-source = { git = "https://github.com/kaitj/bidsapp-helper#1e76d1060410f982f43e4e612777c12da7e0b952" }
+version = "0.1.0"
+source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "pyyaml" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/4f/92/549e97a86cdfbb9047e127632fd5941ace437d8108f4dbd8b53207ff0bb6/bidsapp_helper-0.1.0.tar.gz", hash = "sha256:3276f26c9039d0bc395fc97cf52d8b963978d8fd32dc7fdbdc6339f26b8283da", size = 28190 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/d2/ae/a563cb4f7865bb2ead92763703d29535bffe97a1053c74891eb3e96f57f9/bidsapp_helper-0.1.0-py3-none-any.whl", hash = "sha256:cec1d6de3339638103261933bc629cee82e39220edaa7ac4444abdfe999bb1e2", size = 5188 },
 ]
 
 [[package]]
@@ -827,7 +831,7 @@ wheels = [
 
 [[package]]
 name = "nhp-dwiproc"
-version = "0.1.dev58+g1dee47e"
+version = "0.1.dev59+gc1e99b2.d20240919"
 source = { editable = "." }
 dependencies = [
     { name = "bids2table" },
@@ -852,9 +856,9 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "bids2table", specifier = ">=0.1.0" },
-    { name = "bidsapp-helper", git = "https://github.com/kaitj/bidsapp-helper" },
+    { name = "bidsapp-helper", specifier = ">=0.1.0" },
     { name = "eddymotion", specifier = ">=0.1.15" },
-    { name = "niwrap", specifier = ">=0.1.0" },
+    { name = "niwrap", specifier = "==0.1.0" },
     { name = "pyyaml", specifier = ">=6.0.2" },
     { name = "styxdocker", specifier = ">=0.1.0" },
     { name = "styxgraph", git = "https://github.com/childmindresearch/styxgraph" },
@@ -1698,16 +1702,16 @@ wheels = [
 
 [[package]]
 name = "templateflow"
-version = "24.2.1"
+version = "24.2.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "pybids" },
     { name = "requests" },
     { name = "tqdm" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/f6/db/7ce7dfbb9d6703759925b1ce4848455c21da990d93834d4a8c7cd58fa53a/templateflow-24.2.1.tar.gz", hash = "sha256:b4ca6480481eb6a8d29ccb148ad6058e96f40f10976801934353ba1f75ebde53", size = 2129975 }
+sdist = { url = "https://files.pythonhosted.org/packages/cf/13/108e001e09b243ac7593c8caaa4c21e0f6551609ffc444f27a4b221bfb96/templateflow-24.2.2.tar.gz", hash = "sha256:6b5ec6a566b4e21d0db8588fef1aa8c491c542e05d9433054100445a4c2c9cd0", size = 2129856 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/2e/bf/e1046674f2d65602686e5be99a4359aa6db00572c29322fb83c884f5dbec/templateflow-24.2.1-py3-none-any.whl", hash = "sha256:8b31feaf3dc35c0c99206403a2c0e9e216157f868d941736fb337fa3a67190dd", size = 689917 },
+    { url = "https://files.pythonhosted.org/packages/df/0e/683b39083bc22c1f3a0237568d35453e2582cec33f6706999b7783f9dece/templateflow-24.2.2-py3-none-any.whl", hash = "sha256:ca295ccc91e1435b226823e423a2b56e1ee4c5d02dbc1fc4d8bcd159c8586101", size = 688789 },
 ]
 
 [[package]]
