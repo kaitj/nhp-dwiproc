@@ -65,7 +65,10 @@ def register(
         affine=True,
         affine_dof=6,
         ia_identity=True,
+<<<<<<< HEAD
         fixed_mask=input_data["dwi"].get("mask"),
+=======
+>>>>>>> 18fa740 (Add moving mask for registration)
         moving_mask=mask,
         iterations=cfg["participant.preprocess.register.iters"],
         metric=greedy.GreedyMetric(cfg["participant.preprocess.register.metric"]),
