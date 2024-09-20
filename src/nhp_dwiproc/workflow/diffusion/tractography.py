@@ -33,11 +33,24 @@ def _tckgen(
         nthreads=cfg["opt.threads"],
     )
 
+    # Create exclusion mask for single-shell (minimal GM signal suppression)
+    if cfg["participant.tractography.single_shell"]:
+        exclude_mask = mrtrix.mrthreshold(
+            input_=wm_mask.output,
+            output=bids(desc="exclusion", suffix="dseg", ext=".mif"),
+            invert=True,
+            nthreads=cfg["opt.threads"],
+        )
+
     match cfg["participant.tractography.method"]:
         case "wm":
             return tckgen_cmd(
-                mask=[mrtrix.TckgenMask(mrtrix.TckgenVariousFile(wm_mask.output))],
                 seed_dynamic=wm_fod,
+                exclude=[
+                    mrtrix.TckgenExclude(mrtrix.TckgenVariousFile_(exclude_mask.output))
+                ]
+                if cfg["participant.tractography.single_shell"]
+                else None,
             )
         case "act":
             raise NotImplementedError
