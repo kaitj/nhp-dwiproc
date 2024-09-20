@@ -22,7 +22,7 @@ def run_eddy(
     cfg: dict[str, Any],
     logger: Logger,
     **kwargs,
-) -> tuple[OutputPathType, pl.Path, pl.Path]:
+) -> tuple[OutputPathType, pl.Path, OutputPathType]:
     """Perform FSL's eddy."""
     bids = partial(utils.bids_name, datatype="dwi", ext=".nii.gz", **input_group)
     dwi, bval, bvec, phenc, index_fpath = gen_eddy_inputs(
@@ -54,7 +54,7 @@ def run_eddy(
         bvals=bval,
         acqp=phenc,
         index=index_fpath,
-        topup_="_".join(str(topup.movpar).split("_")[:-1]) if topup else None,
+        topup="_".join(str(topup.movpar).split("_")[:-1]) if topup else None,
         out=bids(),
         slm=cfg.get("participant.preprocess.eddy.slm", None),
         cnr_maps=cfg["participant.preprocess.eddy.cnr_maps"],
@@ -62,8 +62,7 @@ def run_eddy(
         residuals=cfg["participant.preprocess.eddy.residuals"],
         data_is_shelled=cfg["participant.preprocess.eddy.shelled"],
     )
-    bvec_fpath = pl.Path(str(eddy.out).replace(".nii.gz", ".eddy_rotated_bvecs"))
 
     # TODO: save cnr maps, residuals
 
-    return eddy.out, bval, bvec_fpath
+    return eddy.out, bval, eddy.rotated_bvecs

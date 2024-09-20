@@ -13,7 +13,7 @@ Python package dependencies are managed by [uv](https://docs.astral.sh/uv/).
 1. Clone the repository to your local machine:
 
    ```bash
-   git clone https://github.com/kaitj/nhp-dwiproc
+   git clone https://github.com/HumanBrainED/nhp-dwiproc
    ```
 
 1. Create a new environment to install the library with dependencies, for example

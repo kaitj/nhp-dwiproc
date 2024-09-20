@@ -50,7 +50,9 @@ def register(
 
     # Perform registration
     b0_to_t1 = greedy.greedy_(
-        input_images=[input_data["t1w"]["nii"], b0.output],
+        input_images=greedy.GreedyInputImages(
+            fixed=input_data["t1w"]["nii"], moving=b0.output
+        ),
         output=bids(
             from_="dwi",
             to="T1w",
@@ -63,16 +65,18 @@ def register(
         affine_dof=6,
         ia_identity=True,
         iterations=cfg["participant.preprocess.register.iters"],
-        metric=cfg["participant.preprocess.register.metric"],
+        metric=greedy.GreedyMetric(cfg["participant.preprocess.register.metric"]),
         dimensions=3,
         threads=cfg["opt.threads"],
     )
     transforms = {"ras": b0_to_t1.output_file}
     b0_resliced = greedy.greedy_(
         fixed_reslicing_image=input_data["t1w"]["nii"],
-        reslice_moving_image=b0.output,
-        reslice_output_image=bids(space="T1w", desc="avg", suffix="b0", ext=".nii.gz"),
-        reslice=transforms["ras"],
+        reslice_moving_image=greedy.GreedyResliceMovingImage(
+            moving=b0.output,
+            output=bids(space="T1w", desc="avg", suffix="b0", ext=".nii.gz"),
+        ),
+        reslice=[transforms["ras"]],
         dimensions=3,
         threads=cfg["opt.threads"],
     )
@@ -81,8 +85,8 @@ def register(
     im = nib.loadsave.load(b0.output)
     res = "x".join([str(vox) for vox in im.header.get_zooms()]) + "mm"
     ref_b0 = c3d.c3d_(
-        input_=[b0_resliced.reslice_output_file],
-        operations=c3d.C3dResampleMm(res),
+        input_=[b0_resliced.reslice_moving_image.resliced_image],
+        operations=[c3d.C3dResampleMm(res)],
         output=(
             b0_fname := bids(
                 space="T1w", res="dwi", desc="ref", suffix="b0", ext=".nii.gz"
