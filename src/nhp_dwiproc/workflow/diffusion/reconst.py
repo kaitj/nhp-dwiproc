@@ -11,6 +11,7 @@ from nhp_dwiproc.app import utils
 
 def compute_fods(
     input_data: dict[str, Any],
+    input_group: dict[str, Any],
     cfg: dict[str, Any],
     logger: Logger,
     **kwargs,
@@ -23,7 +24,7 @@ def compute_fods(
         method="dhollander",
         suffix="response",
         ext=".txt",
-        **input_data["entities"],
+        **input_group,
     )
     dwi2response = mrtrix.dwi2response(
         algorithm=mrtrix.Dwi2responseDhollander(
@@ -37,8 +38,8 @@ def compute_fods(
             bvals=input_data["dwi"]["bval"],
         ),
         mask=input_data["dwi"]["mask"],
-        shells=shells if (shells := cfg["participant.tractography.shells"]) else None,
-        lmax=lmax if (lmax := cfg["participant.tractography.lmax"]) else None,
+        shells=cfg.get("participant.tractography.shells"),
+        lmax=cfg.get("participant.tractography.lmax"),
         nthreads=cfg["opt.threads"],
         config=[
             mrtrix.Dwi2responseConfig(
@@ -54,7 +55,7 @@ def compute_fods(
         model="csd",
         suffix="dwimap",
         ext=".mif",
-        **input_data["entities"],
+        **input_group,
     )
     response_odf = [
         mrtrix.Dwi2fodResponseOdf(
@@ -82,7 +83,7 @@ def compute_fods(
             bvals=input_data["dwi"]["bval"],
         ),
         mask=input_data["dwi"]["mask"],
-        shells=shells if shells else None,
+        shells=cfg.get("participant.tractography.shells"),
         nthreads=cfg["opt.threads"],
         config=[mrtrix.Dwi2fodConfig("BZeroThreshold", b0_thresh)],
     )
@@ -106,20 +107,20 @@ def compute_fods(
 
 def compute_dti(
     input_data: dict[str, Any],
+    input_group: dict[str, Any],
     cfg: dict[str, Any],
     logger: Logger,
     **kwargs,
-) -> None:
+) -> mrtrix.MrthresholdOutputs:
     """Process diffusion tensors."""
     logger.info("Performing tensor fitting")
     bids = partial(
-        utils.bids_name(
-            datatype="dwi",
-            model="tensor",
-            suffix="dwimap",
-            ext=".nii.gz",
-            **input_data["entities"],
-        )
+        utils.bids_name,
+        datatype="dwi",
+        model="tensor",
+        suffix="dwimap",
+        ext=".nii.gz",
+        **input_group,
     )
     dwi2tensor = mrtrix.dwi2tensor(
         dwi=input_data["dwi"]["nii"],
@@ -152,6 +153,13 @@ def compute_dti(
         config=[mrtrix.Tensor2metricConfig("BZeroThreshold", b0_thresh)],
     )
 
+    wm_mask = mrtrix.mrthreshold(
+        input_=tensor2metrics.fa,
+        output=bids(desc="wm", suffix="dseg", ext=".nii.gz"),
+        abs_=cfg["participant.tractography.fa_thresh"],
+        nthreads=cfg["opt.threads"],
+    )
+
     # Save relevant outputs
     utils.io.save(
         files=[
@@ -163,6 +171,8 @@ def compute_dti(
             tensor2metrics.vector,
         ],
         out_dir=cfg["output_dir"].joinpath(
-            utils.bids_name(directory=True, datatype="dwi", **input_data["entities"])
+            utils.bids_name(directory=True, datatype="dwi", **input_group)
         ),
     )
+
+    return wm_mask

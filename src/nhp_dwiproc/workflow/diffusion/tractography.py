@@ -5,14 +5,50 @@ from logging import Logger
 from typing import Any
 
 from niwrap import mrtrix
+from styxdefs import InputPathType
 
 from nhp_dwiproc.app import utils
 
 
+def _tckgen(
+    wm_fod: InputPathType,
+    wm_mask: mrtrix.MrthresholdOutputs,
+    bids: partial[str],
+    cfg: dict[str, Any],
+    **kwargs,
+) -> mrtrix.TckgenOutputs:
+    """Generate tractography with selected method."""
+    tckgen_cmd = partial(
+        mrtrix.tckgen,
+        source=wm_fod,
+        tracks=bids(
+            method="iFOD2",
+            suffix="tractography",
+            ext=".tck",
+        ),
+        algorithm="iFOD2",
+        step=cfg.get("participant.tractography.steps"),
+        cutoff=cfg.get("participant.tractography.cutoff"),
+        select_=cfg.get("participant.tractography.streamlines"),
+        nthreads=cfg["opt.threads"],
+    )
+
+    match cfg["participant.tractography.method"]:
+        case "wm":
+            return tckgen_cmd(
+                mask=[mrtrix.TckgenMask(mrtrix.TckgenVariousFile(wm_mask.output))],
+                seed_dynamic=wm_fod,
+            )
+        case "act":
+            raise NotImplementedError
+        case _:
+            raise NotImplementedError
+
+
 def generate_tractography(
-    input_data: dict[str, Any],
     input_group: dict[str, Any],
     fod: mrtrix.MtnormaliseOutputs,
+    wm_mask: mrtrix.MrthresholdOutputs,
     cfg: dict[str, Any],
     logger: Logger,
     **kwargs,
@@ -25,21 +61,11 @@ def generate_tractography(
         datatype="dwi",
         **input_group,
     )
-
-    tckgen = mrtrix.tckgen(
-        source=wm_fod,
-        tracks=bids(
-            method="iFOD2",
-            suffix="tractography",
-            ext=".tck",
-        ),
-        mask=[mrtrix.TckgenMask(mrtrix.TckgenVariousFile_2(input_data["dwi"]["mask"]))],
-        seed_dynamic=wm_fod,
-        algorithm="iFOD2",
-        step=cfg.get("participant.tractography.steps"),
-        cutoff=cfg["participant.tractography.cutoff"],
-        select_=cfg["participant.tractography.streamlines"],
-        nthreads=cfg["opt.threads"],
+    tckgen = _tckgen(
+        wm_fod=wm_fod,
+        wm_mask=wm_mask,
+        bids=bids,
+        cfg=cfg,
     )
 
     logger.info("Computing per-streamline multipliers")
