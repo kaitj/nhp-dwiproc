@@ -17,9 +17,7 @@ generation.
 
 </br>
 > [!NOTE]
-> * If using `--single-shell`, the `msmt_csd` algorithm is still used to estimate
-> fiber orientation distribution maps without the use of gray matter response function, which
-> results in an error. This allows for the FOD map to be take advantage of the CSF suppression
-> in the algorithm.
+> * If using `--single-shell`, the `ss3t_csd_beta1` algorithm from `Mrtrix3Tissue` is used to estimate
+> fiber orientation distribution maps.
 > * Diffusion tensor fitting is performed two stages, fitting to the log-signal first using
 > weight least squares (WLS) and additional iteration of WLS fitting

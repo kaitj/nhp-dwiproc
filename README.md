@@ -29,6 +29,10 @@ You will need the following pre-requisites:
 | [FSL] | 6.0.5 |
 | [Greedy] | 1.0.1 |
 | [Mrtrix3] | 3.0.4 |
+| [Mrtrix3Tissue] | 5.2.8 |
+
+> [!Note]
+> [Mrtrix3Tissue] is only required if processing single-shell data.
 
 ## Installation
 
@@ -85,4 +89,5 @@ If you encounter any issues or have questions, pleasee open an issue on the
 [c3d]:    http://www.itksnap.org/pmwiki/pmwiki.php?n=Convert3D.Convert3D
 [FSL]:    https://fsl.fmrib.ox.ac.uk/fsl/docs/#/
 [Greedy]: https://sites.google.com/view/greedyreg/about
-[Mrtrix3]:https://www.mrtrix.org/
+[Mrtrix3]: https://www.mrtrix.org/
+[Mrtrix3Tissue]: https://3tissue.github.io/
