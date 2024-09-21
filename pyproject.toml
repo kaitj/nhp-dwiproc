@@ -52,7 +52,7 @@ dev-dependencies = [
 
 [tool.uv.sources]
 styxgraph = {git = "https://github.com/childmindresearch/styxgraph"}
-niwrap = {git = "https://github.com/childmindresearch/niwrap", subdirectory = "python"}
+niwrap = {git = "https://github.com/kaitj/niwrap", subdirectory = "python"}
 
 [tool.hatch.build]
 source = ["src/"]
