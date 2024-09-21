@@ -4,9 +4,26 @@ from functools import partial
 from logging import Logger
 from typing import Any
 
-from niwrap import mrtrix
+from niwrap import mrtrix, mrtrix3tissue
 
 from nhp_dwiproc.app import utils
+
+
+def _create_response_odf(
+    response: mrtrix.Dwi2responseDhollanderOutputs, bids: partial, single_shell: bool
+) -> list[mrtrix.Dwi2fodResponseOdf | mrtrix3tissue.Ss3tCsdBeta1ResponseOdf]:
+    """Helper to create ODFs."""
+    if single_shell:
+        return [
+            mrtrix3tissue.Ss3tCsdBeta1ResponseOdf(response.out_sfwm, bids(param="wm")),
+            mrtrix3tissue.Ss3tCsdBeta1ResponseOdf(response.out_gm, bids(param="gm")),
+            mrtrix3tissue.Ss3tCsdBeta1ResponseOdf(response.out_csf, bids(param="csf")),
+        ]
+    return [
+        mrtrix.Dwi2fodResponseOdf(response.out_sfwm, bids(param="wm")),
+        mrtrix.Dwi2fodResponseOdf(response.out_gm, bids(param="gm")),
+        mrtrix.Dwi2fodResponseOdf(response.out_csf, bids(param="csf")),
+    ]
 
 
 def compute_fods(
@@ -26,16 +43,22 @@ def compute_fods(
         ext=".txt",
         **input_group,
     )
+
+    mrconvert = mrtrix.mrconvert(
+        input_=input_data["dwi"]["nii"],
+        output=input_data["dwi"]["nii"].name.replace(".nii.gz", ".mif"),
+        fslgrad=mrtrix.MrconvertFslgrad(
+            bvecs=input_data["dwi"]["bvec"],
+            bvals=input_data["dwi"]["bval"],
+        ),
+        nthreads=cfg["opt.threads"],
+    )
     dwi2response = mrtrix.dwi2response(
         algorithm=mrtrix.Dwi2responseDhollander(
-            input_=input_data["dwi"]["nii"],
+            input_=mrconvert.output,
             out_sfwm=bids(param="wm"),
             out_gm=bids(param="gm"),
             out_csf=bids(param="csf"),
-        ),
-        fslgrad=mrtrix.Dwi2responseFslgrad(
-            bvecs=input_data["dwi"]["bvec"],
-            bvals=input_data["dwi"]["bval"],
         ),
         mask=input_data["dwi"]["mask"],
         shells=cfg.get("participant.tractography.shells"),
@@ -57,36 +80,30 @@ def compute_fods(
         ext=".mif",
         **input_group,
     )
-    response_odf = [
-        mrtrix.Dwi2fodResponseOdf(
-            dwi2response.algorithm.out_sfwm,
-            bids(param="wm"),
-        ),
-        mrtrix.Dwi2fodResponseOdf(
-            dwi2response.algorithm.out_gm,
-            bids(param="gm"),
-        ),
-        mrtrix.Dwi2fodResponseOdf(
-            dwi2response.algorithm.out_csf,
-            bids(param="csf"),
-        ),
-    ]
     if cfg["participant.tractography.single_shell"]:
-        logger.info("Leaving out GM for single-shell computation")
-        response_odf = [response_odf[0], response_odf[2]]
-    dwi2fod = mrtrix.dwi2fod(
-        algorithm="msmt_csd",
-        dwi=input_data["dwi"]["nii"],
-        response_odf=response_odf,
-        fslgrad=mrtrix.Dwi2fodFslgrad(
-            bvecs=input_data["dwi"]["bvec"],
-            bvals=input_data["dwi"]["bval"],
-        ),
-        mask=input_data["dwi"]["mask"],
-        shells=cfg.get("participant.tractography.shells"),
-        nthreads=cfg["opt.threads"],
-        config=[mrtrix.Dwi2fodConfig("BZeroThreshold", b0_thresh)],
-    )
+        response_odf = _create_response_odf(
+            response=dwi2response.algorithm, bids=bids, single_shell=True
+        )
+        odfs = mrtrix3tissue.ss3t_csd_beta1(
+            dwi=mrconvert.output,
+            response_odf=response_odf,
+            mask=input_data["dwi"]["mask"],
+            nthreads=cfg["opt.threads"],
+            config=[mrtrix3tissue.Ss3tCsdBeta1Config("BZeroThreshold", b0_thresh)],
+        )
+    else:
+        response_odf = _create_response_odf(
+            response=dwi2response.algorithm, bids=bids, single_shell=False
+        )
+        odfs = mrtrix.dwi2fod(
+            algorithm="msmt_csd",
+            dwi=mrconvert.output,
+            response_odf=response_odf,
+            mask=input_data["dwi"]["mask"],
+            shells=cfg.get("participant.tractography.shells"),
+            nthreads=cfg["opt.threads"],
+            config=[mrtrix.Dwi2fodConfig("BZeroThreshold", b0_thresh)],
+        )
 
     logger.info("Normalizing fiber orientation distributions")
     normalize_odf = [
@@ -94,7 +111,7 @@ def compute_fods(
             tissue_odf.odf,
             tissue_odf.odf.name.replace("dwimap.mif", "desc-normalized_dwimap.mif"),
         )
-        for tissue_odf in dwi2fod.response_odf
+        for tissue_odf in odfs.response_odf
     ]
     mtnormalise = mrtrix.mtnormalise(
         input_output=normalize_odf,
@@ -111,7 +128,7 @@ def compute_dti(
     cfg: dict[str, Any],
     logger: Logger,
     **kwargs,
-) -> mrtrix.MrthresholdOutputs:
+) -> None:
     """Process diffusion tensors."""
     logger.info("Performing tensor fitting")
     bids = partial(
@@ -153,13 +170,6 @@ def compute_dti(
         config=[mrtrix.Tensor2metricConfig("BZeroThreshold", b0_thresh)],
     )
 
-    wm_mask = mrtrix.mrthreshold(
-        input_=tensor2metrics.fa,
-        output=bids(desc="wm", suffix="dseg", ext=".nii.gz"),
-        abs_=cfg["participant.tractography.fa_thresh"],
-        nthreads=cfg["opt.threads"],
-    )
-
     # Save relevant outputs
     utils.io.save(
         files=[
@@ -174,5 +184,3 @@ def compute_dti(
             utils.bids_name(directory=True, datatype="dwi", **input_group)
         ),
     )
-
-    return wm_mask

@@ -50,9 +50,7 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
             logger.info(
                 f"Processing {(uid := utils.bids_name(**input_kwargs['input_group']))}"
             )
-            wm_mask = reconst.compute_dti(**input_kwargs)
+            reconst.compute_dti(**input_kwargs)
             fods = reconst.compute_fods(**input_kwargs)
-            tractography.generate_tractography(
-                fod=fods, wm_mask=wm_mask, **input_kwargs
-            )
+            tractography.generate_tractography(fod=fods, **input_kwargs)
             logger.info(f"Completed processing for {uid}")
