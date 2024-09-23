@@ -86,7 +86,7 @@ def get_inputs(
     )
 
     # Base inputs
-    wf_inputs = {
+    wf_inputs: dict[str, Any] = {
         "dwi": {
             "nii": _get_file_path(),
             "bval": _get_file_path(entities={"ext": ".bval"}),
@@ -170,17 +170,14 @@ def get_inputs(
         wf_inputs["dwi"].update({"mask": _get_file_path(entities={"suffix": "mask"})})
 
     if cfg["analysis_level"] == "connectivity":
-        wf_inputs.update(
+        wf_inputs["dwi"].update(
             {
-                "atlas": {
-                    "nii": _get_file_path(
-                        entities={
-                            "space": "T1w",
-                            "seg": cfg.get("participant.connectivity.atlas"),
-                            "suffix": "dseg",
-                        }
-                    )
-                },
+                "atlas": _get_file_path(
+                    entities={
+                        "seg": cfg.get("participant.connectivity.atlas"),
+                        "suffix": "dseg",
+                    }
+                ),
                 "tractography": {
                     "tck": _get_file_path(
                         entities={
