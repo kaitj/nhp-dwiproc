@@ -65,6 +65,7 @@ def register(
         affine=True,
         affine_dof=6,
         ia_identity=True,
+        fixed_mask=input_data["dwi"].get("mask"),
         moving_mask=mask,
         iterations=cfg["participant.preprocess.register.iters"],
         metric=greedy.GreedyMetric(cfg["participant.preprocess.register.metric"]),
@@ -111,7 +112,7 @@ def register(
 
     utils.io.save(
         files=[
-            pl.Path(b0_resliced.reslice_output_file),
+            pl.Path(b0_resliced.reslice_moving_image.resliced_image),
             (ref_b0 := pl.Path(ref_b0.root).joinpath(b0_fname)),
             *transforms.values(),
         ],
