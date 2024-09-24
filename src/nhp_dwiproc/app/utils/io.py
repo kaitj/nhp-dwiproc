@@ -79,7 +79,7 @@ def get_inputs(
             entities_dict.update(entities)
             data = b2t.filter_multi(**entities_dict).flat
 
-        return data.json.iloc[0] if metadata else data.file_path.iloc[0]
+        return data.json.iloc[0] if metadata else pl.Path(data.file_path.iloc[0])
 
     sub_ses_query = " & ".join(
         [f"{key} == '{value}'" for key, value in row[["sub", "ses"]].to_dict().items()]

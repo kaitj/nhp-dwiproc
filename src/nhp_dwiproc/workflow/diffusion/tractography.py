@@ -12,48 +12,26 @@ from nhp_dwiproc.app import utils
 
 def _tckgen(
     wm_fod: InputPathType,
-    wm_mask: mrtrix.MrthresholdOutputs,
     bids: partial[str],
     cfg: dict[str, Any],
     **kwargs,
 ) -> mrtrix.TckgenOutputs:
     """Generate tractography with selected method."""
-    tckgen_cmd = partial(
-        mrtrix.tckgen,
-        source=wm_fod,
-        tracks=bids(
-            method="iFOD2",
-            suffix="tractography",
-            ext=".tck",
-        ),
-        algorithm="iFOD2",
-        step=cfg.get("participant.tractography.steps"),
-        cutoff=cfg.get("participant.tractography.cutoff"),
-        select_=cfg.get("participant.tractography.streamlines"),
-        nthreads=cfg["opt.threads"],
-    )
-
-    # Create exclusion mask for single-shell (minimal GM signal suppression)
-    exclude_mask = None
-    if cfg["participant.tractography.single_shell"]:
-        exclude_mask = [
-            mrtrix.TckgenExclude(
-                mrtrix.TckgenVariousFile_(
-                    mrtrix.mrthreshold(
-                        input_=wm_mask.output,
-                        output=bids(desc="exclusion", suffix="dseg", ext=".mif"),
-                        invert=True,
-                        nthreads=cfg["opt.threads"],
-                    ).output
-                )
-            )
-        ]
-
     match cfg["participant.tractography.method"]:
         case "wm":
-            return tckgen_cmd(
+            return mrtrix.tckgen(
+                source=wm_fod,
+                tracks=bids(
+                    method="iFOD2",
+                    suffix="tractography",
+                    ext=".tck",
+                ),
+                algorithm="iFOD2",
                 seed_dynamic=wm_fod,
-                exclude=exclude_mask,
+                step=cfg.get("participant.tractography.steps"),
+                cutoff=cfg.get("participant.tractography.cutoff"),
+                select_=cfg.get("participant.tractography.streamlines"),
+                nthreads=cfg["opt.threads"],
             )
         case "act":
             raise NotImplementedError
@@ -64,7 +42,6 @@ def _tckgen(
 def generate_tractography(
     input_group: dict[str, Any],
     fod: mrtrix.MtnormaliseOutputs,
-    wm_mask: mrtrix.MrthresholdOutputs,
     cfg: dict[str, Any],
     logger: Logger,
     **kwargs,
@@ -79,7 +56,6 @@ def generate_tractography(
     )
     tckgen = _tckgen(
         wm_fod=wm_fod,
-        wm_mask=wm_mask,
         bids=bids,
         cfg=cfg,
     )
