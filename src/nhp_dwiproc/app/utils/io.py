@@ -96,7 +96,7 @@ def get_inputs(
         "t1w": {
             "nii": (
                 _get_file_path(queries=[sub_ses_query, cfg["participant.query_t1w"]])
-                if cfg["participant.query_t1w"]
+                if cfg.get("participant.query_t1w")
                 else _get_file_path(entities={"datatype": "anat", "suffix": "T1w"})
             )
         },
@@ -104,13 +104,68 @@ def get_inputs(
 
     # Additional inputs to update / grab based on analysis level
     if cfg["analysis_level"] == "preprocess":
-        wf_inputs["dwi"].update(
-            {
-                "mask": _get_file_path(
-                    queries=[sub_ses_query, cfg["participant.query_mask"]]
+        if cfg.get("participant.query_mask"):
+            wf_inputs["dwi"].update(
+                {
+                    "mask": _get_file_path(
+                        queries=[sub_ses_query, cfg["participant.query_mask"]]
+                    )
+                }
+            )
+        if cfg["participant.preprocess.undistort.method"] == "fieldmap":
+            if cfg.get("participant.query_fmap") is not None:
+                fmap_queries: list[str] = [sub_ses_query, cfg["participant.query_fmap"]]
+                wf_inputs.update(
+                    {
+                        "fmap": {
+                            "nii": _get_file_path(
+                                queries=(fmap_queries + ["ext=='.nii.gz'"])
+                            ),
+                            "bval": _get_file_path(
+                                queries=(fmap_queries + ["ext=='.bval'"])
+                            ),
+                            "bvec": _get_file_path(
+                                queries=(fmap_queries + ["ext=='.bvec'"])
+                            ),
+                            "json": _get_file_path(
+                                queries=(fmap_queries + ["ext=='.nii.gz'"]),
+                                metadata=True,
+                            ),
+                        }
+                    }
                 )
-            }
-        )
+            else:
+                wf_inputs.update(
+                    {
+                        "fmap": {
+                            "nii": _get_file_path(
+                                entities={"datatype": "fmap", "suffix": "epi"}
+                            ),
+                            "bval": _get_file_path(
+                                entities={
+                                    "datatype": "fmap",
+                                    "suffix": "epi",
+                                    "ext": ".bval",
+                                }
+                            ),
+                            "bvec": _get_file_path(
+                                entities={
+                                    "datatype": "fmap",
+                                    "suffix": "epi",
+                                    "ext": ".bvec",
+                                }
+                            ),
+                            "json": _get_file_path(
+                                entities={
+                                    "datatype": "fmap",
+                                    "suffix": "epi",
+                                    "ext": ".bvec",
+                                },
+                                metadata=True,
+                            ),
+                        }
+                    }
+                )
     else:
         wf_inputs["dwi"].update({"mask": _get_file_path(entities={"suffix": "mask"})})
 
@@ -141,9 +196,7 @@ def get_inputs(
                             "ext": ".txt",
                         }
                     ),
-                }
-                if cfg["analysis_level"] == "connectivity"
-                else {},
+                },
             }
         )
 

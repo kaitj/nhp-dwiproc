@@ -114,6 +114,7 @@ def _add_optional_args(app_parser: BidsAppArgumentParser) -> None:
         "--t1w_query",
         metavar="query",
         dest="participant.query_t1w",
+        default=None,
         type=str,
         help="""string query for bids entities associated with t1w
         (subject & session is assumed); if none provided,
@@ -124,8 +125,19 @@ def _add_optional_args(app_parser: BidsAppArgumentParser) -> None:
         "--mask_query",
         metavar="query",
         dest="participant.query_mask",
+        default=None,
         type=str,
         help="""string query for bids entities associated with custom mask
+        (subject & session is assumed); no custom query is assumed""",
+    )
+    app_parser.add_argument(
+        "--fmap-query",
+        "--fmap_query",
+        metavar="query",
+        dest="participant.query_fmap",
+        default=None,
+        type=str,
+        help="""string query for bids entities associated with epi fieldmap
         (subject & session is assumed); no custom query is assumed""",
     )
     app_parser.add_argument(
@@ -264,7 +276,7 @@ def _add_preprocess_args(app_parser: BidsAppArgumentParser) -> None:
         dest="participant.preprocess.undistort.method",
         type=str,
         default="fsl",
-        choices=["fsl", "eddymotion"],
+        choices=["fsl", "fieldmap", "eddymotion"],
         help="distortion correct method (one of [%(choices)s]; default: %(default)s)",
     )
     preprocess_args.add_argument(

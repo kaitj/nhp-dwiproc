@@ -54,7 +54,10 @@ The next stage (and usually the most time-consuming) is the distortion correctio
 
 | Argument | Config Key | Description |
 | :- | :- | :- |
-| `--undistort-method <method>` | `participant.preprocess.undistort.method` | distortion correction method; one of `fsl`, `eddymotion` - default: `fsl` |
+| `--undistort-method <method>` | `participant.preprocess.undistort.method` | distortion correction method; one of `fsl`, `fieldmap`, `eddymotion` - default: `fsl` |
+
+_`fieldmap` uses the `fsl` method, but uses the opposite phase-encoding field map from the
+`fmap` bids directory instead for `topup._
 
 #### FSL
 

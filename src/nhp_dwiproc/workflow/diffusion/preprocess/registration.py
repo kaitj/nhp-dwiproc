@@ -17,6 +17,7 @@ def register(
     dwi: InputPathType,
     bval: InputPathType,
     bvec: InputPathType,
+    mask: InputPathType,
     input_group: dict[str, Any],
     input_data: dict[str, Any],
     cfg: dict[str, Any],
@@ -64,6 +65,8 @@ def register(
         affine=True,
         affine_dof=6,
         ia_identity=True,
+        fixed_mask=input_data["dwi"].get("mask"),
+        moving_mask=mask,
         iterations=cfg["participant.preprocess.register.iters"],
         metric=greedy.GreedyMetric(cfg["participant.preprocess.register.metric"]),
         dimensions=3,
@@ -109,7 +112,7 @@ def register(
 
     utils.io.save(
         files=[
-            pl.Path(b0_resliced.reslice_output_file),
+            pl.Path(b0_resliced.reslice_moving_image.resliced_image),
             (ref_b0 := pl.Path(ref_b0.root).joinpath(b0_fname)),
             *transforms.values(),
         ],
@@ -148,7 +151,7 @@ def apply_transform(
     xfm_mask = ants.apply_transforms(
         dimensionality=3,
         input_image_type=0,
-        input_image=input_data["dwi"]["mask"] or mask,
+        input_image=input_data["dwi"].get("mask") or mask,
         reference_image=ref_b0,
         transform=[ants.ApplyTransformsTransformFileName(transforms["itk"])],
         interpolation=ants.ApplyTransformsNearestNeighbor(),
