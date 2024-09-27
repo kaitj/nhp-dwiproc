@@ -174,7 +174,7 @@ def get_inputs(
             {
                 "atlas": _get_file_path(
                     entities={
-                        "seg": cfg.get("participant.connectivity.atlas"),
+                        "atlas": cfg.get("participant.connectivity.atlas"),
                         "suffix": "dseg",
                     }
                 ),
