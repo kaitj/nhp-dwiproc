@@ -26,7 +26,9 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
         dwi_b2t = b2t.loc[b2t.flat.query(cfg["participant.query_dwi"]).index]
 
     assert isinstance(dwi_b2t, BIDSTable)
-    groupby_keys = utils.io.valid_groupby(b2t=dwi_b2t, keys=["sub", "ses", "run"])
+    groupby_keys = utils.io.valid_groupby(
+        b2t=dwi_b2t, keys=["sub", "ses", "run", "space"]
+    )
     for group_vals, group in tqdm(
         dwi_b2t.filter_multi(suffix="dwi", ext={"items": [".nii", ".nii.gz"]}).groupby(
             groupby_keys
