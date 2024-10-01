@@ -77,6 +77,8 @@ def get_inputs(
         else:
             entities_dict = row.dropna().to_dict()
             entities_dict.update(entities)
+            # Remove any None entities from filtering
+            entities_dict = {k: v for k, v in entities_dict.items() if v is not None}
             data = b2t.filter_multi(**entities_dict).flat
 
         return data.json.iloc[0] if metadata else pl.Path(data.file_path.iloc[0])
@@ -174,13 +176,16 @@ def get_inputs(
             {
                 "atlas": _get_file_path(
                     entities={
-                        "atlas": cfg.get("participant.connectivity.atlas"),
+                        "desc": None,
+                        "seg": cfg.get("participant.connectivity.atlas", ""),
                         "suffix": "dseg",
                     }
                 ),
                 "tractography": {
                     "tck": _get_file_path(
                         entities={
+                            "desc": None,
+                            "res": None,
                             "method": "iFOD2",
                             "suffix": "tractography",
                             "ext": ".tck",
@@ -188,6 +193,8 @@ def get_inputs(
                     ),
                     "weights": _get_file_path(
                         entities={
+                            "desc": None,
+                            "res": None,
                             "method": "SIFT2",
                             "suffix": "tckWeights",
                             "ext": ".txt",
