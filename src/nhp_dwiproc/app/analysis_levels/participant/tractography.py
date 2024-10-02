@@ -54,10 +54,7 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
                 f"Processing {(uid := utils.bids_name(**input_kwargs['input_group']))}"
             )
 
-            input_kwargs["input_data"]["dwi"]["bvec"] = dwi_lib.grad_check(
-                cfg=cfg,
-                **input_kwargs["input_data"]["dwi"],
-            )
+            dwi_lib.grad_check(cfg=cfg, **input_kwargs["input_data"]["dwi"])
             reconst.compute_dti(**input_kwargs)
             fods = reconst.compute_fods(**input_kwargs)
             tractography.generate_tractography(fod=fods, **input_kwargs)

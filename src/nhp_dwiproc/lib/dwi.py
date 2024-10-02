@@ -6,7 +6,6 @@ from typing import Any
 import nibabel as nib
 import numpy as np
 from niwrap import mrtrix
-from styxdefs import OutputPathType
 
 from nhp_dwiproc.app import utils
 from nhp_dwiproc.lib import metadata
@@ -163,16 +162,16 @@ def rotate_bvec(
 
 
 def grad_check(
-    dwi: pl.Path,
+    nii: pl.Path,
     bvec: pl.Path,
     bval: pl.Path,
     mask: pl.Path | None,
     cfg: dict[str, Any],
     **kwargs,
-) -> OutputPathType:
+) -> None:
     """Check and update orientation of diffusion gradient."""
     bvec_check = mrtrix.dwigradcheck(
-        input_image=dwi,
+        input_image=nii,
         mask_image=mask,
         number=10_000,  # Small number to enable quick permutations,
         fslgrad=mrtrix.DwigradcheckFslgrad(
@@ -180,10 +179,13 @@ def grad_check(
             bvals=bval,
         ),
         export_grad_fsl=mrtrix.DwigradcheckExportGradFsl(
-            bvecs_path="checked.bvec",  # Will be updated with name from previous step,
-            bvals_path="checked.bval",  # replacing file if necessary
+            bvecs_path=bvec.name,
+            bvals_path=bval.name,  # replacing file if necessary
         ),
         nthreads=cfg["opt.threads"],
     )
 
-    return bvec_check.export_grad_fsl_.bvecs_path
+    utils.io.save(
+        files=bvec_check.export_grad_fsl_.bvecs_path,
+        out_dir=bvec.parent,
+    )
