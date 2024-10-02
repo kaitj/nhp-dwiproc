@@ -26,12 +26,12 @@ def generate_conn_matrix(
     tck2connectome = {}
     for meas, tck_weights, length in zip(
         ["afd", "count", "avgLength"],
-        [input_data["tractography"]["weights"], None, None],
+        [input_data["dwi"]["tractography"]["weights"], None, None],
         [False, False, True],
     ):
         tck2connectome[meas] = mrtrix.tck2connectome(
-            tracks_in=input_data["tractography"]["tck"],
-            nodes_in=input_data["atlas"],
+            tracks_in=input_data["dwi"]["tractography"]["tck"],
+            nodes_in=input_data["dwi"]["atlas"],
             connectome_out=bids(
                 meas=meas,
                 desc="probabilisticTracking",
