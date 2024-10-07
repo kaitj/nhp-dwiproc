@@ -7,6 +7,7 @@ from bids2table import BIDSTable
 from tqdm import tqdm
 
 from nhp_dwiproc.app import utils
+from nhp_dwiproc.lib import dwi as dwi_lib
 from nhp_dwiproc.workflow.diffusion import reconst, tractography
 
 
@@ -52,6 +53,8 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
             logger.info(
                 f"Processing {(uid := utils.bids_name(**input_kwargs['input_group']))}"
             )
+
+            dwi_lib.grad_check(cfg=cfg, **input_kwargs["input_data"]["dwi"])
             reconst.compute_dti(**input_kwargs)
             fods = reconst.compute_fods(**input_kwargs)
             tractography.generate_tractography(fod=fods, **input_kwargs)

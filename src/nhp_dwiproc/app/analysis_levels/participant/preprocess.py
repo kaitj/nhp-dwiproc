@@ -11,6 +11,7 @@ from bids2table import BIDSEntities, BIDSTable
 from tqdm import tqdm
 
 from nhp_dwiproc.app import utils
+from nhp_dwiproc.lib import dwi as dwi_lib
 from nhp_dwiproc.workflow.diffusion import preprocess
 
 
@@ -188,7 +189,7 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
             ref_b0, transforms = preprocess.registration.register(
                 dwi=dwi, bval=bval, bvec=bvec, mask=mask, **input_kwargs
             )
-            preprocess.registration.apply_transform(
+            dwi, mask, bvec = preprocess.registration.apply_transform(
                 dwi=dwi,
                 bvec=bvec,
                 ref_b0=ref_b0,
@@ -199,6 +200,7 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
         else:
             bval_fpath = pl.Path(str(bval_fpath).replace("space-T1w_", ""))
         shutil.copy2(bval, bval_fpath)
+        dwi_lib.grad_check(nii=dwi, bvec=bvec, bval=bval_fpath, mask=mask, cfg=cfg)
 
         # Create JSON sidecar
         json_fpath = pl.Path(str(bval_fpath).replace(".bval", ".json"))
