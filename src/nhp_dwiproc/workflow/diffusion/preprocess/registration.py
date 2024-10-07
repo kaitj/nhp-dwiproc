@@ -7,7 +7,7 @@ from typing import Any
 
 import nibabel as nib
 from niwrap import ants, c3d, greedy, mrtrix
-from styxdefs import InputPathType
+from styxdefs import InputPathType, OutputPathType
 
 from nhp_dwiproc.app import utils
 from nhp_dwiproc.lib.dwi import rotate_bvec
@@ -133,7 +133,7 @@ def apply_transform(
     cfg: dict[str, Any],
     logger: Logger,
     **kwargs,
-) -> None:
+) -> tuple[OutputPathType, OutputPathType, pl.Path]:
     """Apply transform to dwi volume."""
     logger.info("Applying transformations to DWI")
     bids = partial(utils.bids_name, datatype="dwi", ext=".nii.gz", **input_group)
@@ -174,4 +174,10 @@ def apply_transform(
             xfm_bvec,
         ],
         out_dir=cfg["output_dir"].joinpath(bids(directory=True)),
+    )
+
+    return (
+        xfm_dwi.output.output_image_outfile,
+        xfm_mask.output.output_image_outfile,
+        xfm_bvec,
     )
