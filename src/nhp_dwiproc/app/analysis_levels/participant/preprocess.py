@@ -22,7 +22,7 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
 
     # Filter b2t based on string query
     if cfg.get("participant.query"):
-        b2t = b2t.loc[b2t.flat.query(cfg.get("participant.query")).index]
+        b2t = b2t.loc[b2t.flat.query(cfg.get("participant.query", "")).index]
 
     assert isinstance(b2t, BIDSTable)
     dwi_b2t = b2t
@@ -60,16 +60,21 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
             entities = row[["sub", "ses", "run", "dir"]].to_dict()
             dwi = preprocess.denoise.denoise(entities=entities, **input_kwargs)
             dwi = preprocess.unring.degibbs(dwi=dwi, entities=entities, **input_kwargs)
-            b0, pe_dir, pe_data = preprocess.dwi.get_phenc_data(
-                dwi=dwi, idx=idx, entities=entities, **input_kwargs
-            )
 
             dir_outs["dwi"].append(dwi or input_kwargs["input_data"]["dwi"]["nii"])
             dir_outs["bval"].append(input_kwargs["input_data"]["dwi"]["bval"])
             dir_outs["bvec"].append(input_kwargs["input_data"]["dwi"]["bvec"])
-            dir_outs["b0"].append(b0)
-            dir_outs["pe_data"].append(pe_data)
-            dir_outs["pe_dir"].append(pe_dir)
+
+            if not (
+                cfg["participant.preprocess.topup.skip"]
+                and cfg["participant.preprocess.eddy.skip"]
+            ):
+                b0, pe_dir, pe_data = preprocess.dwi.get_phenc_data(
+                    dwi=dwi, idx=idx, entities=entities, **input_kwargs
+                )
+                dir_outs["b0"].append(b0)
+                dir_outs["pe_data"].append(pe_data)
+                dir_outs["pe_dir"].append(pe_dir)
 
         match cfg["participant.preprocess.undistort.method"]:
             case "fsl":
@@ -87,14 +92,15 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
                     topup = None
                     eddy_mask = None
 
-                dwi, bval, bvec = preprocess.eddy.run_eddy(
-                    phenc=phenc,
-                    indices=indices,
-                    topup=topup,
-                    mask=eddy_mask,
-                    dir_outs=dir_outs,
-                    **input_kwargs,
-                )
+                if not cfg["participant.preprocess.eddy.skip"]:
+                    dwi, bval, bvec = preprocess.eddy.run_eddy(
+                        phenc=phenc,
+                        indices=indices,
+                        topup=topup,
+                        mask=eddy_mask,
+                        dir_outs=dir_outs,
+                        **input_kwargs,
+                    )
             case "fieldmap":
                 # Mimic input_data dict for preprocessing
                 fmap_data = {
@@ -120,20 +126,25 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
                 fmap = preprocess.unring.degibbs(
                     dwi=fmap, entities=entities, cfg=cfg, logger=logger
                 )
-                b0, pe_dir, pe_data = preprocess.dwi.get_phenc_data(
-                    dwi=fmap,
-                    idx=len(dir_outs["dwi"]),
-                    entities=entities,
-                    input_data=fmap_data,
-                    cfg=cfg,
-                    logger=logger,
-                )
                 dir_outs["dwi"].append(fmap or fmap_data["dwi"]["nii"])
                 dir_outs["bval"].append(fmap_data["dwi"]["bval"])
                 dir_outs["bvec"].append(fmap_data["dwi"]["bvec"])
-                dir_outs["b0"].append(b0)
-                dir_outs["pe_data"].append(pe_data)
-                dir_outs["pe_dir"].append(pe_dir)
+
+                if not (
+                    cfg["participant.preprocess.topup.skip"]
+                    and cfg["participant.preprocess.eddy.skip"]
+                ):
+                    b0, pe_dir, pe_data = preprocess.dwi.get_phenc_data(
+                        dwi=fmap,
+                        idx=len(dir_outs["dwi"]),
+                        entities=entities,
+                        input_data=fmap_data,
+                        cfg=cfg,
+                        logger=logger,
+                    )
+                    dir_outs["b0"].append(b0)
+                    dir_outs["pe_data"].append(pe_data)
+                    dir_outs["pe_dir"].append(pe_dir)
 
                 if len(set(dir_outs["pe_dir"])) < 2:
                     logger.info("Less than 2 phase-encode directions...skipping topup")
@@ -151,26 +162,35 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
                     topup = None
                     eddy_mask = None
 
-                dwi, bval, bvec = preprocess.eddy.run_eddy(
-                    phenc=phenc,
-                    indices=indices,
-                    topup=topup,
-                    mask=eddy_mask,
-                    dir_outs=dir_outs,
-                    **input_kwargs,
-                )
+                if not cfg["participant.preprocess.eddy.skip"]:
+                    dwi, bval, bvec = preprocess.eddy.run_eddy(
+                        phenc=phenc,
+                        indices=indices,
+                        topup=topup,
+                        mask=eddy_mask,
+                        dir_outs=dir_outs,
+                        **input_kwargs,
+                    )
             case "eddymotion":
-                dwi, bval, bvec = preprocess.eddymotion.eddymotion(
-                    dir_outs=dir_outs,
-                    **input_kwargs,
-                )
+                if not cfg["participant.preprocess.eddy.skip"]:
+                    dwi, bval, bvec = preprocess.eddymotion.eddymotion(
+                        dir_outs=dir_outs,
+                        **input_kwargs,
+                    )
             case _:
                 raise NotImplementedError(
                     "Selected distortion correction method not implemented"
                 )
 
+        # Ensure variables are bound
+        dwi = locals().get("dwi", input_kwargs["input_data"]["dwi"]["nii"])
+        bval = locals().get("bval", input_kwargs["input_data"]["dwi"]["bval"])
+        bvec = locals().get("bvec", input_kwargs["input_data"]["dwi"]["bvec"])
         dwi, mask = preprocess.biascorrect.biascorrect(
-            dwi=dwi, bval=bval, bvec=bvec, **input_kwargs
+            dwi=dwi,
+            bval=bval,
+            bvec=bvec,
+            **input_kwargs,
         )
 
         bval_fpath = cfg["output_dir"].joinpath(

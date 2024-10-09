@@ -308,6 +308,13 @@ def _add_preprocess_args(app_parser: BidsAppArgumentParser) -> None:
         (default: %(default)s)""",
     )
     preprocess_args.add_argument(
+        "--eddy-skip",
+        "--eddy_skip",
+        dest="participant.preprocess.eddy.skip",
+        action="store_true",
+        help="skip eddy correction step",
+    )
+    preprocess_args.add_argument(
         "--eddy-slm",
         "--eddy_slm",
         metavar="model",
