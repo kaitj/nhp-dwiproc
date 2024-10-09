@@ -230,3 +230,12 @@ def save(
 
         out_fpath.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(files, out_dir.joinpath(out_fpath))
+
+
+def rename(old_fpath: pl.Path, new_fname: str) -> pl.Path:
+    """Helper function to rename files."""
+    old_fpath = pl.Path(old_fpath)
+    new_path = old_fpath.parent / new_fname
+    old_fpath.rename(new_path)
+
+    return old_fpath
