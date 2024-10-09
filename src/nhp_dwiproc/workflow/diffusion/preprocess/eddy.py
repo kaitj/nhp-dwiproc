@@ -61,6 +61,20 @@ def run_eddy(
         data_is_shelled=cfg["participant.preprocess.eddy.shelled"],
     )
 
-    # TODO: save cnr maps, residuals
+    if cfg["participant.preprocess.eddy.cnr_maps"]:
+        cnr_fpath = utils.io.rename(
+            old_fpath=eddy.cnr_maps, new_fname=bids(suffix="cnrmap", ext=".nii.gz")
+        )
+        utils.io.save(
+            files=cnr_fpath, out_dir=cfg["output_dir"].joinpath(bids(directory=True))
+        )
+    if cfg["participant.preprocess.eddy.residuals"]:
+        residuals_fpath = utils.io.rename(
+            old_fpath=eddy.residuals, new_fname=bids(suffix="residuals", ext=".nii.gz")
+        )
+        utils.io.save(
+            files=residuals_fpath,
+            out_dir=cfg["output_dir"].joinpath(bids(directory=True)),
+        )
 
     return eddy.out, bval, eddy.rotated_bvecs
