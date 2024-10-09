@@ -22,15 +22,17 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
 
     # Filter b2t based on string query
     if cfg.get("participant.query"):
-        b2t = b2t.loc[b2t.flat.query(cfg.get("participant.query", "")).index]
+        b2t = b2t.loc[b2t.flat.query(cfg["participant.query"]).index]
+    if not isinstance(b2t, BIDSTable):
+        raise TypeError(f"Expected BIDSTable, but got {type(b2t).__name__}")
 
-    assert isinstance(b2t, BIDSTable)
     dwi_b2t = b2t
     if cfg.get("participant.query_dwi"):
         dwi_b2t = b2t.loc[b2t.flat.query(cfg["participant.query_dwi"]).index]
+    if not isinstance(dwi_b2t, BIDSTable):
+        raise TypeError(f"Expected BIDSTable, but got {type(dwi_b2t).__name__}")
 
     # Loop through remaining subjects after query
-    assert isinstance(dwi_b2t, BIDSTable)
     groupby_keys = utils.io.valid_groupby(b2t=dwi_b2t, keys=["sub", "ses", "run"])
     for group_vals, group in tqdm(
         dwi_b2t.filter_multi(suffix="dwi", ext={"items": [".nii", ".nii.gz"]}).groupby(
@@ -126,7 +128,8 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
                 fmap = preprocess.unring.degibbs(
                     dwi=fmap, entities=entities, cfg=cfg, logger=logger
                 )
-                dir_outs["dwi"].append(fmap or fmap_data["dwi"]["nii"])
+                fmap = locals().get("fmap", fmap_data["dwi"]["nii"])
+                dir_outs["dwi"].append(fmap)
                 dir_outs["bval"].append(fmap_data["dwi"]["bval"])
                 dir_outs["bvec"].append(fmap_data["dwi"]["bvec"])
 
