@@ -46,6 +46,7 @@ def generate_conn_matrix(
             ),
             tck_weights_in=tck_weights,
             scale_length=length,
+            stat_edge="mean" if length else None,
             nthreads=cfg["opt.threads"],
         )
 
