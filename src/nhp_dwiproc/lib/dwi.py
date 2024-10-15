@@ -9,7 +9,7 @@ from niwrap import mrtrix
 
 from nhp_dwiproc.app import utils
 from nhp_dwiproc.lib import metadata
-from nhp_dwiproc.lib.utils import gen_hash
+from nhp_dwiproc.lib.utils import gen_hash, load_nifti
 
 
 def get_phenc_info(
@@ -64,7 +64,7 @@ def normalize(
     img: str | pl.Path, input_group: dict[str, Any], cfg: dict[str, Any], **kwargs
 ) -> pl.Path:
     """Normalize 4D image."""
-    nii = nib.loadsave.load(img)
+    nii = load_nifti(img)
     arr = np.array(nii.dataobj)
 
     ref_mean = np.mean(arr[..., 0])
