@@ -14,7 +14,8 @@ dependencies = [
   "styxdocker>=0.1.0",
   "styxsingularity>=0.1.0",
   "styxgraph",
-  "eddymotion>=0.1.15"
+  "eddymotion>=0.1.15",
+  "nifti"
 ]
 keywords = [
   "nhp",
@@ -53,6 +54,7 @@ dev-dependencies = [
 [tool.uv.sources]
 styxgraph = {git = "https://github.com/childmindresearch/styxgraph"}
 niwrap = {git = "https://github.com/kaitj/niwrap", subdirectory = "python"}
+nifti = {git = "https://github.com/childmindresearch/nifti"}
 
 [tool.hatch.build]
 source = ["src/"]
