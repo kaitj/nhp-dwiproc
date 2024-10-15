@@ -851,13 +851,14 @@ wheels = [
 
 [[package]]
 name = "nhp-dwiproc"
-version = "0.1.dev68+gbfbc138.d20241015"
+version = "0.1.dev70+g3cbd383.d20241015"
 source = { editable = "." }
 dependencies = [
     { name = "bids2table" },
     { name = "bidsapp-helper" },
     { name = "eddymotion" },
     { name = "nifti" },
+    { name = "nitransforms" },
     { name = "niwrap" },
     { name = "pyyaml" },
     { name = "styxdocker" },
@@ -880,6 +881,7 @@ requires-dist = [
     { name = "bidsapp-helper", specifier = ">=0.1.0" },
     { name = "eddymotion", specifier = ">=0.1.15" },
     { name = "nifti", git = "https://github.com/childmindresearch/nifti" },
+    { name = "nitransforms", specifier = "<24.0.2" },
     { name = "niwrap", git = "https://github.com/kaitj/niwrap?subdirectory=python" },
     { name = "pyyaml", specifier = ">=6.0.2" },
     { name = "styxdocker", specifier = ">=0.1.0" },
@@ -988,7 +990,7 @@ wheels = [
 
 [[package]]
 name = "nitransforms"
-version = "24.0.2"
+version = "24.0.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "h5py" },
@@ -996,9 +998,9 @@ dependencies = [
     { name = "numpy" },
     { name = "scipy" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/4c/54/e2fc2529751fa2b07685c78b2ccae04b75ad130b7902490190c7b43d6468/nitransforms-24.0.2.tar.gz", hash = "sha256:ec2d07686989865001cc667dd20971f3ae529d5366b76c03966397ddb9e72572", size = 49623 }
+sdist = { url = "https://files.pythonhosted.org/packages/ae/c0/c419946ad279183c0e7145c81797261d24152071f8d5df92b5da0650e468/nitransforms-24.0.1.tar.gz", hash = "sha256:2aeb1d29a5162df5345c1cf17cb01d6422029c635a452990350e4d6381bc9a3f", size = 49585 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/a5/9b/0ec3b65271bfcd3df81afd5298b7e3576444f83743325c3423920e846a43/nitransforms-24.0.2-py3-none-any.whl", hash = "sha256:a5b96e284e33ff6e775b4ca3835fbd2a4a201c0bf41ffa4622878c97dbb2964d", size = 49235 },
+    { url = "https://files.pythonhosted.org/packages/15/22/11090aea301cc68e85772f535e4b36fa9ecc05e717fe6b6b51d48f4f59d3/nitransforms-24.0.1-py3-none-any.whl", hash = "sha256:07899c2452f7a18c4013e0f2e3702eb4d44cb770e6366baccd1cdf1802e9a095", size = 49227 },
 ]
 
 [[package]]

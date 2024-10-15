@@ -15,13 +15,10 @@ dependencies = [
   "styxsingularity>=0.1.0",
   "styxgraph",
   "eddymotion>=0.1.15",
-  "nifti"
+  "nifti",
+  "nitransforms<24.0.2"  # Pin version to fix import error
 ]
-keywords = [
-  "nhp",
-  "diffusion mri",
-  "processing"
-]
+keywords = ["nhp", "diffusion mri", "processing"]
 classifiers = [
   "Development Status :: 3 - Alpha",
   "Intended Audience :: Science/Research",
