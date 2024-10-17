@@ -3,7 +3,7 @@
 > [!NOTE]
 >
 > - This template configuration contains all available options. For use, not all configurations need to be provided
->   (see example on [configuration](./main.md) page)
+>   (see example on [configuration](./) page)
 > - It is recommended to use separate configuration files for different analysis levels to avoid unexpected query
 > results with relevant configuration options
 

@@ -41,7 +41,7 @@ These optional arguments can be used for all analysis level stages:
 
 </br>
 > [!IMPORTANT]
-> Please refer to the [Analysis levels](./analysis_levels/main.md) page for specific details regarding each processing
+> Please refer to the [Analysis levels](./analysis_levels/) page for specific details regarding each processing
 > stage, including associated optional arguments.
 
 ### Query example

@@ -21,7 +21,7 @@ uv pip install -e .
 
 </br>
 
-Install external dependencies or make use of `styx`'s container runners (see [Runners](../runners/main.md) for details).
+Install external dependencies or make use of `styx`'s container runners (see [Runners](../runners/) for details).
 
 You can then run `nhp-dwiproc` with the following command:
 
