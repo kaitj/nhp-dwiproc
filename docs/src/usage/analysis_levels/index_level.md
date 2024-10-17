@@ -1,4 +1,4 @@
-# Index level
+# Index
 
 `index` level processing is a simple workflow intended to index the input directory for
 `bids2table`.
