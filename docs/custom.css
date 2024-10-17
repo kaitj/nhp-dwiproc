@@ -1,0 +1,15 @@
+:root {
+    --content-max-width: 70%;
+}
+
+table {
+    min-width: 100%;
+}
+
+th:first-child, td:first-child {
+    width: 20%;
+}
+
+th:not-first-child, td:not-first-child {
+    width: 40%;
+}
