@@ -17,6 +17,7 @@
     - [StyxDocker](./runners/styxdocker.md)
     - [StyxSingularity](./runners/styxsingularity.md)
   - [Advanced](./usage/advanced/README.md)
+    - [Anatomically constrained tractography](./usage/advanced/act.md)
 
 # Miscellaneous
 - [Contributing](./contributing/README.md)
