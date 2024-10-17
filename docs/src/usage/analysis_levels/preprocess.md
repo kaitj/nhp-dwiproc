@@ -91,8 +91,8 @@ The last step prior to registration is a B1 field inhomogeneity correction.
 
 ### Registration
 
-For downstream analysis, the final stage of the preprocessing performs a **rigid
-(6 degrees-of-freedom)** alignment with the anatomical T1w using `Greedy`.
+For downstream analysis, the final stage of the preprocessing performs a --rigid
+(6 degrees-of-freedom)-- alignment with the anatomical T1w using `Greedy`.
 
 | Argument                        | Config Key                               | Description                                                                                    |
 |:--------------------------------|:-----------------------------------------|:-----------------------------------------------------------------------------------------------|

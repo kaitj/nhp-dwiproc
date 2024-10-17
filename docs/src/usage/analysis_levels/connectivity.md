@@ -4,6 +4,7 @@
 information about the connectivity between pairs of regions from a parcellation.
 
 ## Level-specific optional arguments
+
 | Argument | Config Key | Description |
 | :- | :- | :- |
 | `--atlas <atlas>` | `participant.connectivity.atlas` | volumetric atlas name (assumed to be processed) for connectivity matrix |

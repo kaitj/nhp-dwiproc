@@ -1,7 +1,9 @@
 # Summary
+
 [Introduction](./README.md)
 
 # User Guide
+
 - [Installation](./installation/README.md)
 - [Usage](./usage/README.md)
   - [CLI](./usage/cli.md)
@@ -20,6 +22,7 @@
     - [Anatomically constrained tractography](./usage/advanced/act.md)
 
 # Miscellaneous
+
 - [Contributing](./contributing/README.md)
 - [References]()
 - [Version](./version/README.md)

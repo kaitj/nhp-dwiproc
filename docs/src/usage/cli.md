@@ -19,14 +19,16 @@ nhp_dwiproc bids_dir output_dir analysis_level [options]
 > the CLI unless otherwise noted. Each `.` represents a nested level in the config (see configuration for details).
 
 ## Global options
+
 These optional arguments can be used for all analysis level stages:
+
 | Argument | Config Key | Description |
 | :- | :- | :- |
 | `--help` | | prints help message |
 | `--config <config_path>` | | path to application configuration file |
 | `--runner <runner>` | `opt.runner` | workflow runner to use (one of `None`, `Docker`, `Singularity`, `Apptainer`) - default: `None`|
 | `--working-dir <directory>` | `opt.working_dir` | working directory to temporarily write files to - default: `./styx_tmp` |
-| `--container-config <config> ` | `opt.containers` | path to YAML config file mapping containers to local paths for Singularity/Apptainer |
+| `--container-config <config>` | `opt.containers` | path to YAML config file mapping containers to local paths for Singularity/Apptainer |
 | `--seed-num <num>` | `opt.seed_num` | fixed seed to use for reproducible results - default: `99` |
 | `--threads <threads>` | `opt.threads` | number of threads to use - default: `1` |
 | `--keep-tmp` | `opt.keep_tmp` | flag to keep all intermediate files |
@@ -60,8 +62,9 @@ The participant-query will identify all participants with matching BIDS entities
  `sub-001_ses-YY_run-1_dwi.nii.gz` as a result of the combined query.
 
 > [!TIP]
-> * While the CLI provides an easy way to update arguments to the workflow on-the-go, it can be tedious repeatedly call
+>
+> - While the CLI provides an easy way to update arguments to the workflow on-the-go, it can be tedious repeatedly call
 > a long command. It is recommended to use the `--config` argument to pass a configuration file with all desired
 > optional argument values. For details see the [configuration](../configuration/config.md) page.
-> * Underscores (`_`) and dashes (`-`), except for the leading `--`, can be used interchangeably in all arguments
+> - Underscores (`_`) and dashes (`-`), except for the leading `--`, can be used interchangeably in all arguments
 > (including analysis-level specific ones)
