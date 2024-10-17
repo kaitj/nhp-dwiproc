@@ -7,10 +7,18 @@ from bidsapp_helper.parser import BidsAppArgumentParser
 
 def add_preprocess_args(app_parser: BidsAppArgumentParser) -> None:
     """Preprocessing analysis-level arguments."""
+    add_funcs = (
+        _add_metadata,
+        _add_denoise,
+        _add_unring,
+        _add_eddymotion,
+        _add_topup,
+        _add_eddy,
+        _add_biascorrect,
+        _add_register,
+    )
+
     arg_group = app_parser.add_argument_group("preprocessing analysis-level options")
-    _add_metadata(arg_group)
-    _add_denoise(arg_group)
-    _add_unring(arg_group)
     arg_group.add_argument(
         "--undistort-method",
         "--undistort_method",
@@ -21,11 +29,8 @@ def add_preprocess_args(app_parser: BidsAppArgumentParser) -> None:
         choices=["fsl", "fieldmap", "eddymotion"],
         help="distortion correct method (one of [%(choices)s]; default: %(default)s)",
     )
-    _add_eddymotion(arg_group)
-    _add_topup(arg_group)
-    _add_eddy(arg_group)
-    _add_biascorrect(arg_group)
-    _add_register(arg_group)
+    for add_func in add_funcs:
+        add_func(arg_group)
 
 
 def _add_metadata(arg_group: _ArgumentGroup) -> None:
