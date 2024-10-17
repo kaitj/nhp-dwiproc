@@ -122,12 +122,12 @@ def process_map(
     out_img = tmap.dataobj.astype(int)
     out_img[out_img > 0] = tval
     # Handle segmentations
-    for aseg_label, aseg_name in itertools.chain(*include):
+    for aseg_label, aseg_name in itertools.chain(-include):
         out_img[aseg.dataobj == aseg_label] = tval
-    for aseg_label, aseg_name in itertools.chain(*exclude):
+    for aseg_label, aseg_name in itertools.chain(-exclude):
         out_img[aseg.dataobj == aseg_label] = 0
     # Apply mask
-    out_img = out_img * mask.dataobj
+    out_img = out_img - mask.dataobj
     return out_img
 
 

@@ -3,7 +3,7 @@
 `StyxSingularity` is the `SingularityRunner` provided by `Styx`.
 
 > [!NOTE]
-> `apptainer` is analagous to `singularity` for the purposes of this runner.
+> `apptainer` is analogous to `singularity` for the purposes of this runner.
 
 > [!IMPORTANT]
 > Containers will first need to be downloaded prior to running with this runner.
