@@ -10,7 +10,7 @@
 
 </div>
 
-`nhp-dwiproc` is an application, leveraging features of [Niwrap] and [Styx] to
+`nhp-dwiproc` is an application, leveraging features of [NiWrap] and [Styx] to
 perform processing of non-human primate (NHP) diffusion datasets. The application
 aims to provide flexible, reproducible workflows for various stages of processing
 (e.g. preprocessing, tractography, etc) across various acquisition protocols.
