@@ -5,8 +5,8 @@
 ![Python3](https://img.shields.io/badge/python->=3.11-blue.svg)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 ![stability-stable](https://img.shields.io/badge/stability-experimental-orange.svg)
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/HumanBrainED/nhp-dwiproc/blob/main/LICENSE)
-<!-- [![Documentation](https://img.shields.io/badge/documentation-8CA1AF?logo=readthedocs&logoColor=fff)](#) -->
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/kaitj/nhp-dwiproc/blob/main/LICENSE)
+[![Documentation](https://img.shields.io/badge/documentation-8CA1AF?logo=readthedocs&logoColor=fff)](#)
 
 </div>
 
@@ -42,7 +42,7 @@ You can install `nhp-dwiproc` using `pip`:
 pip install git+https://github.com/HumanBrainED/nhp-dwiproc
 ```
 
-<!-- For additional details, please consult the [documentation]. -->
+For additional details, please consult the [documentation].
 
 ## Usage
 
@@ -58,10 +58,10 @@ To see all arguments, run:
 nhp_dwiproc --help
 ```
 
-<!-- ## Documentation
+## Documentation
 
 For detailed application information, including advanced usage, please visit our
-[documentation] -->
+[documentation]
 
 ## Contributing
 
@@ -71,16 +71,18 @@ Contributions to `nhp-dwiproc` are welcome! Please refer to [Contributions] page
 
 `nhp-dwiproc` is distributed under the MIT license. See the [LICENSE] file for details.
 
-<!-- ## Support
+## Support
 
-If you encounter any issues or have questions, pleasee open an issue on the
-[issue tracker] -->
+If you encounter any issues or have questions, please open an issue on the
+[issue tracker]
 
 <!-- Links -->
-[Contributions]: https://github.com/HumanBrainED/nhp-dwiproc/blob/main/CONTRIBUTING.md
-[LICENSE]: https://github.com/HumanBrainED/nhp-dwiproc/blob/main/LICENSE
+[Contributions]: https://github.com/kaitj/nhp-dwiproc/blob/main/CONTRIBUTING.md
+[LICENSE]: https://github.com/kaitj/nhp-dwiproc/blob/main/LICENSE
 [Niwrap]: https://github.com/childmindresearch/niwrap
 [Styx]:https://github.com/childmindresearch/styx
+[documentation]: #
+[issue tracker]: https://github.com/kaitj/nhp-dwiproc/issues
 <!-- Software dependency links -->
 [Python]: https://www.python.org/
 [ANTs]:   https://github.com/ANTsX/ANTs
