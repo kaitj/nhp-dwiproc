@@ -6,7 +6,7 @@
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 ![stability-stable](https://img.shields.io/badge/stability-experimental-orange.svg)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/kaitj/nhp-dwiproc/blob/main/LICENSE)
-[![Documentation](https://img.shields.io/badge/documentation-8CA1AF?logo=readthedocs&logoColor=fff)](#)
+[![Documentation](https://img.shields.io/badge/documentation-8CA1AF?logo=readthedocs&logoColor=fff)](https://kaitj.github.io/nhp-dwiproc)
 
 </div>
 
@@ -81,7 +81,7 @@ If you encounter any issues or have questions, please open an issue on the
 [LICENSE]: https://github.com/kaitj/nhp-dwiproc/blob/main/LICENSE
 [Niwrap]: https://github.com/childmindresearch/niwrap
 [Styx]:https://github.com/childmindresearch/styx
-[documentation]: #
+[documentation]: https://kaitj.github.io/nhp-dwiproc
 [issue tracker]: https://github.com/kaitj/nhp-dwiproc/issues
 <!-- Software dependency links -->
 [Python]: https://www.python.org/
