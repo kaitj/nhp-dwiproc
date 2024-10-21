@@ -73,12 +73,16 @@ participant:
 
   # Tractography level
   tractography:
+    method: wm
     single_shell: false
     shells:
     lmax:
     steps:
     cutoff: 0.10
     streamlines: 10_000
+    act:
+      backtrack: false
+      nocrop_gmwmi: false
 
   # Connectivity level
   connectivity:

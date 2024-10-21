@@ -89,7 +89,7 @@ def _add_act(arg_group: _ArgumentGroup) -> None:
         "--nocrop-gmwmi",
         "--nocrop_gmwmi",
         dest="participant.tractography.act.gmwmi",
-        action="store_false",
+        action="store_true",
         help="""do not crop streamline end points as they cross GM-WM interface
         (default: %(default)s)""",
     )
