@@ -22,3 +22,10 @@ generation.
 > fiber orientation distribution maps.
 > - Diffusion tensor fitting is performed two stages, fitting to the log-signal first using
 > weight least squares (WLS) and additional iteration of WLS fitting
+
+### Anatomically constrained tractography optional arguments
+
+| Argument | Config Key | Description |
+| :- | :- | :- |
+| `--backtrack` | `participant.tractography.act.backtrack` | allow tracks to be truncated and re-tracked due to poor structural termination during ACT |
+| `--nocrop-gmwmi` | `participant.tractography.act.gmwmi` | do not crop streamline end points as they cross GM-WM interface (default: `False`) |
