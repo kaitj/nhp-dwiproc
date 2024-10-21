@@ -195,7 +195,7 @@ def save(
                 f"Unable to find relevant file path components for {fpath}"
             )
 
-        out_fpath = out_dir.joinpath(*file.parts[sub_idx:])
+        out_fpath = out_dir.joinpath(*fpath.parts[sub_idx:])
         out_fpath.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(fpath, out_fpath)
 
