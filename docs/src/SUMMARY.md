@@ -1,23 +1,28 @@
 # Summary
-[Introduction](../../README.md)
+
+[Introduction](./README.md)
 
 # User Guide
-- [Installation](./installation/main.md)
-- [Usage](./usage/usage.md)
+
+- [Installation](./installation/README.md)
+- [Usage](./usage/README.md)
   - [CLI](./usage/cli.md)
-  - [Configuration](./usage/configuration/main.md)
+  - [Configuration](./usage/configuration/README.md)
     - [Template](./usage/configuration/template.md)
   - [Analysis levels](./usage/analysis_levels/main.md)
-    - [Index](./usage/analysis_levels/index.md)
+    - [Index](./usage/analysis_levels/index_level.md)
     - [Preprocess](./usage/analysis_levels/preprocess.md)
     - [Tractography](./usage/analysis_levels/tractography.md)
     - [Connectivity](./usage/analysis_levels/connectivity.md)
-  - [Runners](./runners/main.md)
+  - [Runners](./runners/README.md)
     - [StyxLocal](./runners/styxlocal.md)
     - [StyxDocker](./runners/styxdocker.md)
     - [StyxSingularity](./runners/styxsingularity.md)
+  - [Advanced](./usage/advanced/README.md)
+    - [Anatomically constrained tractography](./usage/advanced/act.md)
 
 # Miscellaneous
-- [Contributing](./contributing/main.md)
+
+- [Contributing](./contributing/README.md)
 - [References]()
-- [Version](./version/main.md)
+- [Version](./version/README.md)

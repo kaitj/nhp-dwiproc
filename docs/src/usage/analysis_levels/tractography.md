@@ -6,6 +6,7 @@ using both DTI and FOD models, to generate quantitative maps and to use in tract
 generation.
 
 ## Level-specific optional arguments
+
 | Argument | Config Key | Description |
 | :- | :- | :- |
 | `--single-shell` | `participant.tractography.single_shell` | flag to process single-shell data |
@@ -17,7 +18,14 @@ generation.
 
 </br>
 > [!NOTE]
-> * If using `--single-shell`, the `ss3t_csd_beta1` algorithm from `Mrtrix3Tissue` is used to estimate
+> - If using `--single-shell`, the `ss3t_csd_beta1` algorithm from `Mrtrix3Tissue` is used to estimate
 > fiber orientation distribution maps.
-> * Diffusion tensor fitting is performed two stages, fitting to the log-signal first using
+> - Diffusion tensor fitting is performed two stages, fitting to the log-signal first using
 > weight least squares (WLS) and additional iteration of WLS fitting
+
+### Anatomically constrained tractography optional arguments
+
+| Argument | Config Key | Description |
+| :- | :- | :- |
+| `--backtrack` | `participant.tractography.act.backtrack` | allow tracks to be truncated and re-tracked due to poor structural termination during ACT |
+| `--nocrop-gmwmi` | `participant.tractography.act.gmwmi` | do not crop streamline end points as they cross GM-WM interface (default: `False`) |

@@ -12,7 +12,7 @@ neuroimaging tools like `ANTs`, `mrtrix`, `c3d`, and others listed in the [intro
 Clone the repository and install the python dependencies using `uv`:
 
 ```bash
-git clone https://github.com/HumanBrainED/nhp-dwiproc nhp-dwiproc
+git clone https://github.com/kaitj/nhp-dwiproc nhp-dwiproc
 cd nhp-dwiproc
 uv venv --python python3.11 nhp-dwiproc-venv
 source activate nhp-dwiproc-venv/bin/activate
@@ -21,7 +21,7 @@ uv pip install -e .
 
 </br>
 
-Install external dependencies or make use of `styx`'s container runners (see [Runners](../runners/main.md) for details).
+Install external dependencies or make use of `styx`'s container runners (see [Runners](../runners/) for details).
 
 You can then run `nhp-dwiproc` with the following command:
 
@@ -34,10 +34,10 @@ uv run nhp_dwiproc
 `nhp-dwiproc` uses `pre-commit`, as well as a Github action workflow to check for and address formatting issues.
 These use the following:
 
-* `ruff` - formatting and linting
-* `mypy` - type checking
-* `language-formatters-pre-commit-hooks` - pretty format YAML and TOML files
-* `pre-commit-hooks` - fix string casing, format JSON files
+- `ruff` - formatting and linting
+- `mypy` - type checking
+- `language-formatters-pre-commit-hooks` - pretty format YAML and TOML files
+- `pre-commit-hooks` - fix string casing, format JSON files
 
 To install the `pre-commit` configuration, run the following:
 
@@ -50,7 +50,7 @@ uv run pre-commit install
 To contribute a change to the code base, checkout a new branch from the main branch and then make your changes.
 
 ```bash
-git checkout -b feature/your-feature-naame main
+git checkout -b feature/your-feature-name main
 ```
 
 ## Pull requests
@@ -68,13 +68,13 @@ pull request message.
 
 ### Guidelines
 
-* Write clear and concise commit messages.
-* Test your changes thoroughly before submitting a pull request
-* If the pull request adds functionality, the documentation should also be updated.
+- Write clear and concise commit messages.
+- Test your changes thoroughly before submitting a pull request
+- If the pull request adds functionality, the documentation should also be updated.
 
 > [!IMPORTANT]
-> Contributed code will be **licensed under the same [license](LICENSE) as the rest of
-> the repository**. If you did not write the code yourself, you must ensure the existing
+> Contributed code will be --licensed under the same [license](LICENSE) as the rest of
+> the repository--. If you did not write the code yourself, you must ensure the existing
 > license is compatible and include the license information in the contributed files,
 > or obtain permission from the original author to relicense the contributed code.
 
