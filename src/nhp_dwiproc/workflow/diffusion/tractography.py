@@ -36,7 +36,7 @@ def _tckgen(
             {
                 "act": tt_map,
                 "backtrack": cfg["participant.tractography.act.backtrack"],
-                "crop_at_gmwmi": cfg["participant.tractography.act.gmwmi"],
+                "crop_at_gmwmi": not cfg["participant.tractography.act.nocrop_gmwmi"],
             }
         )
 
