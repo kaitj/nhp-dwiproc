@@ -11,6 +11,7 @@ def add_tractography_args(app_parser: BidsAppArgumentParser) -> None:
         "tractography analysis-level options",
     )
     _add_general(arg_group)
+    _add_act(arg_group)
 
 
 def _add_general(arg_group: _ArgumentGroup) -> None:
@@ -72,4 +73,23 @@ def _add_general(arg_group: _ArgumentGroup) -> None:
         type=int,
         default=10_000,
         help="number of streamlines to select (default %(default)d)",
+    )
+
+
+def _add_act(arg_group: _ArgumentGroup) -> None:
+    """ACT-specific tractography arguments."""
+    arg_group.add_argument(
+        "--backtrack",
+        dest="participant.tractography.act.backtrack",
+        action="store_true",
+        help="""allow tracks to be truncated and re-tracked if poor structural
+        termination encountered during ACT (default: %(default)s)""",
+    )
+    arg_group.add_argument(
+        "--nocrop-gmwmi",
+        "--nocrop_gmwmi",
+        dest="participant.tractography.act.gmwmi",
+        action="store_false",
+        help="""do not crop streamline end points as they cross GM-WM interface
+        (default: %(default)s)""",
     )

@@ -12,11 +12,7 @@ from styxdefs import OutputPathType
 
 def check_index_path(cfg: dict[str, Any]) -> pl.Path:
     """Helper to check for index path."""
-    return (
-        index_fpath
-        if (index_fpath := cfg.get("opt.index_path"))
-        else cfg["bids_dir"] / "index.b2t"
-    )
+    return cfg.get("opt.index_path", cfg["bids_dir"] / "index.b2t")
 
 
 def load_b2t(cfg: dict[str, Any], logger: logging.Logger) -> BIDSTable:
@@ -25,22 +21,22 @@ def load_b2t(cfg: dict[str, Any], logger: logging.Logger) -> BIDSTable:
 
     if index_path.exists():
         logger.info("Existing bids2table found")
-        if overwrite := cfg["index.overwrite"]:
+        overwrite = cfg.get("index.overwrite", False)
+        if overwrite:
             logger.info("Overwriting existing table")
-        b2t = bids2table(
-            root=cfg["bids_dir"],
-            index_path=index_path,
-            workers=cfg["opt.threads"],
-            overwrite=overwrite,
-        )
     else:
-        logger.info("Indexing bids dataset...")
-        b2t = bids2table(
-            root=cfg["bids_dir"], persistent=False, workers=cfg["opt.threads"]
-        )
+        logger.info("Indexing bids dataset")
+        overwrite = False
         logger.warning(
             "Index created, but not saved - please run 'index' level analysis to save"
         )
+
+    b2t = bids2table(
+        root=cfg["bids_dir"],
+        index_path=index_path if index_path.exists() else None,
+        workers=cfg.get("opt.threads", 1),
+        overwrite=overwrite,
+    )
 
     # Flatten entities s.t. extra_ents can be filtered
     extra_entities = pd.json_normalize(b2t["ent__extra_entities"]).set_index(b2t.index)
@@ -62,30 +58,32 @@ def get_inputs(
     """Helper to grab relevant inputs for workflow."""
 
     def _get_file_path(
-        entities: dict[str, Any] = {},
-        queries: list[str] = [],
+        entities: dict[str, Any] | None = None,
+        queries: list[str] | None = None,
         metadata: bool = False,
         row: pd.Series = row,
         b2t: BIDSTable = b2t,
     ) -> pl.Path:
         """Internal function to grab file path from b2t."""
-        if len(entities) > 0 and (len(queries) > 0):
-            raise ValueError("Provide only one of 'entities' or 'query'")
-        elif len(queries) > 0:
-            query = " & ".join(q for q in queries if q is not None)
+        if entities and queries:
+            raise ValueError("Proivde only one of 'entities' or 'queries'")
+
+        if queries:
+            query = " & ".join(queries)
             data = b2t.loc[b2t.flat.query(query).index].flat
         else:
             entities_dict = row.dropna().to_dict()
-            entities_dict.update(entities)
-            # Remove any None entities from filtering
-            entities_dict = {k: v for k, v in entities_dict.items() if v is not None}
-            data = b2t.filter_multi(**entities_dict).flat
+            entities_dict.update(entities or {})
+            data = b2t.filter_multi(
+                **{k: v for k, v in entities_dict.items() if v is not None}
+            ).flat
 
         return data.json.iloc[0] if metadata else pl.Path(data.file_path.iloc[0])
 
     sub_ses_query = " & ".join(
         [f"{key} == '{value}'" for key, value in row[["sub", "ses"]].to_dict().items()]
     )
+    nii_ext_query = "ext=='.nii' or ext=='.nii.gz'"
 
     # Base inputs
     wf_inputs: dict[str, Any] = {
@@ -107,71 +105,43 @@ def get_inputs(
     # Additional inputs to update / grab based on analysis level
     if cfg["analysis_level"] == "preprocess":
         if cfg.get("participant.query_mask"):
-            wf_inputs["dwi"].update(
+            wf_inputs["dwi"]["mask"] = _get_file_path(
+                queries=[sub_ses_query, cfg["participant.query_mask"]]
+            )
+
+        if cfg["participant.preprocess.undistort.method"] == "fieldmap":
+            fmap_queries: list[str] = [sub_ses_query, cfg["participant.query_fmap"]]
+            fmap_entities = {"datatype": "fmap", "suffix": "epi"}
+            wf_inputs["fmap"] = (
                 {
-                    "mask": _get_file_path(
-                        queries=[sub_ses_query, cfg["participant.query_mask"]]
-                    )
+                    "nii": _get_file_path(queries=fmap_queries + [nii_ext_query]),
+                    "bval": _get_file_path(queries=fmap_queries + ["ext=='.bval'"]),
+                    "bvec": _get_file_path(queries=fmap_queries + ["ext=='.bvec'"]),
+                    "json": _get_file_path(queries=fmap_queries + [], metadata=True),
+                }
+                if cfg.get("participant.query_fmap")
+                else {
+                    "nii": _get_file_path(entities=fmap_entities),
+                    "bval": _get_file_path(entities={**fmap_entities, "ext": ".bval"}),
+                    "bvec": _get_file_path(entities={**fmap_entities, "ext": ".bvec"}),
+                    "json": _get_file_path(entities=fmap_entities, metadata=True),
                 }
             )
-        if cfg["participant.preprocess.undistort.method"] == "fieldmap":
-            if cfg.get("participant.query_fmap") is not None:
-                fmap_queries: list[str] = [sub_ses_query, cfg["participant.query_fmap"]]
-                wf_inputs.update(
-                    {
-                        "fmap": {
-                            "nii": _get_file_path(
-                                queries=(fmap_queries + ["ext=='.nii.gz'"])
-                            ),
-                            "bval": _get_file_path(
-                                queries=(fmap_queries + ["ext=='.bval'"])
-                            ),
-                            "bvec": _get_file_path(
-                                queries=(fmap_queries + ["ext=='.bvec'"])
-                            ),
-                            "json": _get_file_path(
-                                queries=(fmap_queries + ["ext=='.nii.gz'"]),
-                                metadata=True,
-                            ),
-                        }
-                    }
-                )
-            else:
-                wf_inputs.update(
-                    {
-                        "fmap": {
-                            "nii": _get_file_path(
-                                entities={"datatype": "fmap", "suffix": "epi"}
-                            ),
-                            "bval": _get_file_path(
-                                entities={
-                                    "datatype": "fmap",
-                                    "suffix": "epi",
-                                    "ext": ".bval",
-                                }
-                            ),
-                            "bvec": _get_file_path(
-                                entities={
-                                    "datatype": "fmap",
-                                    "suffix": "epi",
-                                    "ext": ".bvec",
-                                }
-                            ),
-                            "json": _get_file_path(
-                                entities={
-                                    "datatype": "fmap",
-                                    "suffix": "epi",
-                                    "ext": ".bvec",
-                                },
-                                metadata=True,
-                            ),
-                        }
-                    }
-                )
     else:
-        wf_inputs["dwi"].update({"mask": _get_file_path(entities={"suffix": "mask"})})
+        wf_inputs["dwi"]["mask"] = _get_file_path(entities={"suffix": "mask"})
 
-    if cfg["analysis_level"] == "connectivity":
+    # Expect single 5tt image
+    if cfg["analysis_level"] == "tractography":
+        wf_inputs["dwi"]["5tt"] = _get_file_path(
+            entities={
+                "desc": "5tt",
+                "suffix": "dseg",
+                "ext": {"items": [".nii", ".nii.gz"]},
+            }
+        )
+
+    # Set desc to 'None' to reset entity search
+    elif cfg["analysis_level"] == "connectivity":
         wf_inputs["dwi"].update(
             {
                 "atlas": _get_file_path(
@@ -179,6 +149,7 @@ def get_inputs(
                         "desc": None,
                         "seg": cfg.get("participant.connectivity.atlas", ""),
                         "suffix": "dseg",
+                        "ext": {"items": [".nii", ".nii.gz"]},
                     }
                 ),
                 "tractography": {
@@ -211,31 +182,31 @@ def save(
     files: OutputPathType | list[OutputPathType],
     out_dir: pl.Path,
 ) -> None:
-    """Helper function to save file to disk."""
+    """Helper function to save file(s) to disk."""
+
+    def _save_file(fpath: pl.Path) -> None:
+        """Internal function to save file."""
+        try:
+            sub_idx = next(
+                idx for idx, part in enumerate(fpath.parts) if "sub-" in part
+            )
+        except StopIteration:
+            raise ValueError(
+                f"Unable to find relevant file path components for {fpath}"
+            )
+
+        out_fpath = out_dir.joinpath(*fpath.parts[sub_idx:])
+        out_fpath.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(fpath, out_fpath)
+
     # Recursively call save for each file in list
     if isinstance(files, list):
         for file in files:
-            save(file, out_dir=out_dir)
+            _save_file(pl.Path(file))
     else:
-        # Find relevant BIDs components of file path
-        out_fpath = None
-        for idx, fpath_part in enumerate(parts := files.parts):
-            if "sub-" in fpath_part:
-                out_fpath = out_dir.joinpath(*parts[idx:])
-                break
-        else:
-            raise ValueError(
-                "Unable to find relevant file path components to save file."
-            )
-
-        out_fpath.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(files, out_dir.joinpath(out_fpath))
+        _save_file(pl.Path(files))
 
 
 def rename(old_fpath: pl.Path, new_fname: str) -> pl.Path:
     """Helper function to rename files."""
-    old_fpath = pl.Path(old_fpath)
-    new_path = old_fpath.parent / new_fname
-    old_fpath.rename(new_path)
-
-    return old_fpath
+    return old_fpath.with_name(new_fname)
