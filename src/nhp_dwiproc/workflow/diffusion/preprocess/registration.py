@@ -1,4 +1,7 @@
-"""Preprocessing steps associated with registering to subject's T1w."""
+"""Preprocessing steps associated with registering to subject's T1w.
+
+- transforms saved in `anat` folder (similar to fmriprep)
+"""
 
 import pathlib as pl
 from functools import partial
@@ -55,7 +58,7 @@ def register(
             fixed=input_data["t1w"]["nii"], moving=b0.output
         ),
         output=bids(
-            datatype="xfm",
+            datatype="anat",
             from_="dwi",
             to="T1w",
             method="ras",
@@ -101,7 +104,7 @@ def register(
     ras_to_itk = c3d.c3d_affine_tool(
         transform_file=transforms["ras"],
         out_itk_transform=bids(
-            datatype="xfm",
+            datatype="anat",
             from_="dwi",
             to="T1w",
             method="itk",
