@@ -128,7 +128,11 @@ def get_inputs(
                 }
             )
     else:
-        wf_inputs["dwi"]["mask"] = _get_file_path(entities={"suffix": "mask"})
+        wf_inputs["dwi"]["mask"] = (
+            _get_file_path(queries=[sub_ses_query, cfg["participant.query_mask"]])
+            if cfg.get("participant/query_mask")
+            else _get_file_path(entities={"datatype": "anat", "suffix": "mask"})
+        )
 
     # Expect single 5tt image
     if cfg["analysis_level"] == "tractography":
