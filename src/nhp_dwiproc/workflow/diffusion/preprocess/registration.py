@@ -55,6 +55,7 @@ def register(
             fixed=input_data["t1w"]["nii"], moving=b0.output
         ),
         output=bids(
+            datatype="xfm",
             from_="dwi",
             to="T1w",
             method="ras",
@@ -100,6 +101,7 @@ def register(
     ras_to_itk = c3d.c3d_affine_tool(
         transform_file=transforms["ras"],
         out_itk_transform=bids(
+            datatype="xfm",
             from_="dwi",
             to="T1w",
             method="itk",
