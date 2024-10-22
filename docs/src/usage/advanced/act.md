@@ -22,7 +22,8 @@ image is already available.
 > - Image should be specific to the participant being processed
 
 Below is an example script used to generate a tissue segmentation image from
-GM and WM masks, plus `Freesurfer` segmentations.
+GM and WM masks, plus `Freesurfer` segmentations. This script performs
+similarly to calling Mrtrix3's `5ttgen freesufer`.
 
 ```python
 {{#include pysrc/act.py}}
