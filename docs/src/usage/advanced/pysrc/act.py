@@ -84,7 +84,6 @@ def load_nifti(fpath: str | Path) -> nib.Nifti1Image:
 
 def process_map(
     tmap: nib.Nifti1Image,
-    tval: int,
     aseg: nib.Nifti1Image,
     mask: nib.Nifti1Image,
     include: list[list[tuple[int, str]]],
@@ -93,10 +92,10 @@ def process_map(
     """Generate tissue maps."""
     # Load in GM tissue and use as a base for tissue map
     out_img = tmap.dataobj.astype(int)
-    out_img[out_img > 0] = tval
+    out_img[out_img > 0] = 1
     # Handle segmentations
     for aseg_label, aseg_name in itertools.chain(*include):
-        out_img[aseg.dataobj == aseg_label] = tval
+        out_img[aseg.dataobj == aseg_label] = 1
     for aseg_label, aseg_name in itertools.chain(*exclude):
         out_img[aseg.dataobj == aseg_label] = 0
     # Apply mask
@@ -122,7 +121,6 @@ if __name__ == "__main__":
     map_cfgs: list[dict[str, Any]] = [
         {
             "tmap": gm,
-            "tval": 1,
             "include": [GM_ASEGS],
             "exclude": [
                 SGM_ASEGS,
@@ -134,13 +132,11 @@ if __name__ == "__main__":
         },
         {
             "tmap": nib.Nifti1Image(dataobj=np.zeros(gm.shape), affine=gm.affine),
-            "tval": 2,
             "include": [SGM_ASEGS],
             "exclude": [GM_ASEGS, WM_ASEGS, CSF_ASEGS, PATH_ASEGS, BRAIN_STEM_ASEG],
         },
         {
             "tmap": wm,
-            "tval": 3,
             "include": [WM_ASEGS],
             "exclude": [
                 GM_ASEGS,
@@ -152,13 +148,11 @@ if __name__ == "__main__":
         },
         {
             "tmap": csf,
-            "tval": 4,
             "include": [CSF_ASEGS],
             "exclude": [GM_ASEGS, SGM_ASEGS, WM_ASEGS, PATH_ASEGS, BRAIN_STEM_ASEG],
         },
         {
             "tmap": nib.Nifti1Image(dataobj=np.zeros(gm.shape), affine=gm.affine),
-            "tval": 5,
             "include": [PATH_ASEGS],
             "exclude": [SGM_ASEGS, WM_ASEGS, CSF_ASEGS, BRAIN_STEM_ASEG],
         },
@@ -166,7 +160,6 @@ if __name__ == "__main__":
     tmaps = [
         process_map(
             tmap=cfg["tmap"],
-            tval=cfg["tval"],
             aseg=aseg,
             mask=mask,
             include=cfg["include"],
@@ -178,5 +171,12 @@ if __name__ == "__main__":
     # Create 5tt image from tmaps
     tt_map = np.stack(tmaps, axis=3)
     tt_img = nib.Nifti1Image(dataobj=tt_map, affine=gm.affine)
-    tt_fpath = f"sub-{participant}/ses-{session}/dwi/sub-{participant}_ses-{session}_run-{run}_res-orig_method-aseg_desc-5tt_dseg.nii.gz"
-    nib.save(tt_img, OUTPUT_DIR / tt_fpath)
+    tt_fpath = (
+        f"sub-{participant}/"
+        f"ses-{session}/"
+        "anat/"
+        f"sub-{participant}_ses-{session}_run-{run}_res-orig_method-aseg_desc-5tt_dseg.nii.gz"
+    )
+    out_fpath = OUTPUT_DIR / tt_fpath
+    out_fpath.mkdir(parents=True, exist_ok=True)
+    nib.save(tt_img, out_fpath)
