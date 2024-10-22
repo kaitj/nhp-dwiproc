@@ -134,6 +134,7 @@ def get_inputs(
     if cfg["analysis_level"] == "tractography":
         wf_inputs["dwi"]["5tt"] = _get_file_path(
             entities={
+                "datatype": "anat",
                 "desc": "5tt",
                 "suffix": "dseg",
                 "ext": {"items": [".nii", ".nii.gz"]},
