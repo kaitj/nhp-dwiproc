@@ -147,6 +147,7 @@ def get_inputs(
             {
                 "atlas": _get_file_path(
                     entities={
+                        "datatype": "anat",
                         "desc": None,
                         "seg": cfg.get("participant.connectivity.atlas", ""),
                         "suffix": "dseg",
