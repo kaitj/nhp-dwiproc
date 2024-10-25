@@ -38,7 +38,7 @@ You will need the following pre-requisites:
 
 You can install `nhp-dwiproc` using `pip`:
 
-```shell
+```sh
 pip install git+https://github.com/HumanBrainED/nhp-dwiproc
 ```
 
@@ -48,24 +48,25 @@ For additional details, please consult the [documentation].
 
 To get started, try using the boilerplate command:
 
-```shell
+```sh
 nhp_dwiproc <bids_directory> <output_directory> <processing_stage>
 ```
 
 To see all arguments, run:
 
-```shell
+```sh
 nhp_dwiproc --help
 ```
 
 ## Documentation
 
 For detailed application information, including advanced usage, please visit our
-[documentation]
+[documentation].
 
 ## Contributing
 
-Contributions to `nhp-dwiproc` are welcome! Please refer to [Contributions] page for information on how to contribute, report issues, or submit pull requests.
+Contributions to `nhp-dwiproc` are welcome! Please refer to [Contributions] page for
+information on how to contribute, report issues, or submit pull requests.
 
 ## License
 

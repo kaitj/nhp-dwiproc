@@ -1,8 +1,9 @@
 # Contributing to nhp-dwiproc
 
-Pull requests are always welcome, and we appreciate any help you give. Note that a code of
-conduct applies to all spaces managed by the `nhp-dwiproc` project, including issues and
-pull requests. Please see the [Code of Conduct](CODE_OF_CONDUCT.md) for details.
+Pull requests are always welcome, and we appreciate any help you give. Note that a code
+of conduct applies to all spaces managed by the `nhp-dwiproc` project, including
+issues and pull requests. Please see the [Code of Conduct](CODE_OF_CONDUCT.md) for
+details.
 
 ## Contributing to code
 
@@ -13,7 +14,7 @@ Python package dependencies are managed by [uv](https://docs.astral.sh/uv/).
 1. Clone the repository to your local machine:
 
    ```bash
-   git clone https://github.com/HumanBrainED/nhp-dwiproc
+   git clone https://github.com/kaitj/nhp-dwiproc
    ```
 
 1. Create a new environment to install the library with dependencies, for example
