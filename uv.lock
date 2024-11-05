@@ -871,7 +871,7 @@ wheels = [
 
 [[package]]
 name = "nhp-dwiproc"
-version = "0.1.dev79+g7e87fd1.d20241105"
+version = "0.1.dev80+g1cd6f44.d20241105"
 source = { editable = "." }
 dependencies = [
     { name = "bids2table" },
@@ -902,7 +902,7 @@ requires-dist = [
     { name = "eddymotion", specifier = ">=0.1.15" },
     { name = "nifti", git = "https://github.com/childmindresearch/nifti" },
     { name = "nitransforms", specifier = ">=24.0.0,<24.0.3" },
-    { name = "niwrap", specifier = ">=0.2.0" },
+    { name = "niwrap", specifier = ">=0.3.1" },
     { name = "pyyaml", specifier = ">=6.0.2" },
     { name = "styxdocker", specifier = ">=0.2.0" },
     { name = "styxgraph", git = "https://github.com/childmindresearch/styxgraph" },
@@ -1027,14 +1027,14 @@ wheels = [
 
 [[package]]
 name = "niwrap"
-version = "0.2.1"
+version = "0.3.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "styxdefs" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/9b/e0/125559536843baaca2f1a378951395d2359ebefaa05e0e94a04b65d62eb0/niwrap-0.2.1.tar.gz", hash = "sha256:e25fc2cc3ca189462ceb66213b8f83cbf4958f80ae0ab0c51932006976a9bada", size = 929742 }
+sdist = { url = "https://files.pythonhosted.org/packages/9c/8d/00df63720cd9a1a0f9bb6e2a2c513edf639679498098160de435d7cbd32e/niwrap-0.3.1.tar.gz", hash = "sha256:ce32f8d9f00af7ba79d0595c1825b00d72f46909e7db987860339d9bcb51b4c1", size = 1306164 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/4d/03/1cf336517b31a7c9b0336d9a3cbc9db5710187450b2fab8fdef4da880b72/niwrap-0.2.1-py3-none-any.whl", hash = "sha256:38553a0a3e7a2915c8a1b41341c6192524cb142f4f9723eba04adb355053309c", size = 1969312 },
+    { url = "https://files.pythonhosted.org/packages/7d/62/dbf0588964f7326e242054d6ab724f32e682730f13af6a0c12a00aa56264/niwrap-0.3.1-py3-none-any.whl", hash = "sha256:c41ad6aa081560d686afb995f329cb008e5cf6db6a150a9aabab6748edfa04c1", size = 2860900 },
 ]
 
 [[package]]
