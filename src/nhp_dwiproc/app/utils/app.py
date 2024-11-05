@@ -38,8 +38,7 @@ def initialize(cfg: dict[str, Any]) -> tuple[logging.Logger, Runner]:
                 See https://github.com/HumanBrainED/nhp-dwiproc/blob/main/src/nhp_dwiproc/app/resources/containers.yaml
                 for an example."""
                 )
-            with open(cfg["opt.containers"], "r") as container_config:
-                images = yaml.safe_load(container_config)
+            images = yaml.safe_load(cfg["opt.containers"].read_text())
             runner = SingularityRunner(images=images)
         case _:
             runner = LocalRunner()
