@@ -43,7 +43,6 @@ def compute_fods(
         ext=".txt",
         **input_group,
     )
-
     mrconvert = mrtrix.mrconvert(
         input_=input_data["dwi"]["nii"],
         output=input_data["dwi"]["nii"].name.replace(".nii.gz", ".mif"),

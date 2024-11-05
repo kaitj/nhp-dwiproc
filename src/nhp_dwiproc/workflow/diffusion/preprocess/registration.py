@@ -142,25 +142,25 @@ def apply_transform(
     """Apply transform to dwi volume."""
     logger.info("Applying transformations to DWI")
     bids = partial(utils.bids_name, datatype="dwi", ext=".nii.gz", **input_group)
-    xfm_dwi = ants.apply_transforms(
+    xfm_dwi = ants.ants_apply_transforms(
         dimensionality=3,
         input_image_type=3,
         input_image=dwi,
         reference_image=ref_b0,
-        transform=[ants.ApplyTransformsTransformFileName(transforms["itk"])],
-        interpolation=ants.ApplyTransformsLinear(),
-        output=ants.ApplyTransformsWarpedOutput(
+        transform=[ants.AntsApplyTransformsTransformFileName(transforms["itk"])],
+        interpolation=ants.AntsApplyTransformsLinear(),
+        output=ants.AntsApplyTransformsWarpedOutput(
             bids(space="T1w", res="dwi", desc="preproc", suffix="dwi")
         ),
     )
-    xfm_mask = ants.apply_transforms(
+    xfm_mask = ants.ants_apply_transforms(
         dimensionality=3,
         input_image_type=0,
         input_image=input_data["dwi"].get("mask") or mask,
         reference_image=ref_b0,
-        transform=[ants.ApplyTransformsTransformFileName(transforms["itk"])],
-        interpolation=ants.ApplyTransformsNearestNeighbor(),
-        output=ants.ApplyTransformsWarpedOutput(
+        transform=[ants.AntsApplyTransformsTransformFileName(transforms["itk"])],
+        interpolation=ants.AntsApplyTransformsNearestNeighbor(),
+        output=ants.AntsApplyTransformsWarpedOutput(
             bids(space="T1w", res="dwi", desc="preproc", suffix="mask")
         ),
     )

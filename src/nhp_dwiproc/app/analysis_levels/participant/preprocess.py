@@ -227,7 +227,8 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
 
         # Create JSON sidecar
         json_fpath = pl.Path(str(bval_fpath).replace(".bval", ".json"))
-        with open(json_fpath, "w") as metadata:
-            json.dump(input_kwargs["input_data"]["dwi"]["json"], metadata, indent=2)
+        json_fpath.write_text(
+            json.dumps(input_kwargs["input_data"]["dwi"]["json"], indent=2)
+        )
 
         logger.info(f"Completed processing for {uid}")

@@ -9,7 +9,7 @@ requires-python = ">=3.11"
 dependencies = [
   "bidsapp-helper>=0.1.0",
   "bids2table>=0.1.0",
-  "niwrap>=0.2.0",
+  "niwrap>=0.3.1",
   "pyyaml>=6.0.2",
   "styxdocker>=0.2.0",
   "styxsingularity>=0.2.0",
@@ -17,7 +17,7 @@ dependencies = [
   "eddymotion>=0.1.15",
   "nifti",
   # (Temporary) pinned versions of packages to fix errors
-  "nitransforms>=24.0.0,<24.0.3"
+  "nitransforms>=24.0.2"
 ]
 keywords = ["nhp", "diffusion mri", "processing"]
 classifiers = [
@@ -43,10 +43,10 @@ build-backend = "hatchling.build"
 [tool.uv]
 dev-dependencies = [
   "pytest>=8.3.2",
-  "mypy>=1.11.1",
+  "mypy>=1.13.0",
   "pre-commit>=3.8.0",
-  "pytest-cov>=5.0.0",
-  "ruff>=0.6.1"
+  "pytest-cov>=6.0.0",
+  "ruff>=0.7.2"
 ]
 
 [tool.uv.sources]
