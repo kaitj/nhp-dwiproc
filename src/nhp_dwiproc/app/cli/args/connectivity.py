@@ -24,3 +24,55 @@ def add_connectivity_args(app_parser: BidsAppArgumentParser) -> None:
         default=2,
         help="distance (in mm) to map to nearest parcel (default: %(default).2f)",
     )
+    connectivity_args.add_argument(
+        "--vox-mm",
+        "--vox_mm",
+        metvar="voxel_size",
+        dest="participant.connectivity.vox_mm",
+        type=float,
+        nargs="*",
+        default=None,
+        help="""isotropic voxel size (in mm) or space-separated listed of voxel sizes to
+        map tracts to""",
+    )
+    connectivity_args.add_argument(
+        "--surf-query",
+        "--surf_query",
+        metavar="query",
+        dest="participant.connectivity.query_surf",
+        type=str,
+        default=None,
+        help="""string query for bids entities associated with surfaces to perform
+        ribbon constrained mapping of streamlines to (subject & session is assumed);
+        surface type (e.g. white, pial, etc.) will be automatically identified""",
+    )
+    connectivity_args.add_argument(
+        "--include-query",
+        "--include_query",
+        metavar="query",
+        dest="participant.connectivity.query_include",
+        type=str,
+        default=None,
+        help="""string query for bids entities associated with inclusion ROI(s)
+        (subject & session is assumed)""",
+    )
+    connectivity_args.add_argument(
+        "--exclude-query",
+        "--exclude_query",
+        metavar="query",
+        dest="participant.connectivity.query_exclude",
+        type=str,
+        default=None,
+        help="""string query for bids entities associated with exclusion ROI(s)
+        (subject & session is assumed)""",
+    )
+    connectivity_args.add_argument(
+        "--truncate-query",
+        "--truncate_query",
+        metavar="query",
+        dest="participant.connectivity.query_truncate",
+        type=str,
+        default=None,
+        help="""string query for bids entities associated with ROI(s) in which
+        streamlines should be truncated if entered (subject & session is assumed)""",
+    )

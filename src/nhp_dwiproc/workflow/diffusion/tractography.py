@@ -1,4 +1,4 @@
-"""Tractography generation."""
+"""Tractography-related operations."""
 
 from functools import partial
 from logging import Logger
