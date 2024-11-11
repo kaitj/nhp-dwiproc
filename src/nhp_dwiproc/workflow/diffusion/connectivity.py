@@ -117,6 +117,10 @@ def extract_tract(
     if not input_data["anat"]["surfs"].get("inflated"):
         logger.warning("Inflated surface not found; not mapping end points")
     else:
+        assert (
+            len(input_data["anat"]["surfs"][surf_type]) == 1
+            for surf_type in ["white", "pial", "inflated"]
+        ), "More than 1 surface for each type found"
         tdi_ends = mrtrix.tckmap(
             tracks=tckedit.tracks_out,
             tck_weights_in=tckedit.tck_weights_out,
@@ -128,13 +132,12 @@ def extract_tract(
         )
         surf_ends = workbench.volume_to_surface_mapping(
             volume=tdi_ends.output,
-            surface=input_data["anat"]["surfs"]["inflated"],
+            surface=input_data["anat"]["surfs"]["inflated"][0],
             metric_out=bids(hemi=hemi, label=label, suffix="conn", ext=".shape.gii"),
             ribbon_constrained=(
                 workbench.VolumeToSurfaceMappingRibbonConstrained(
-                    inner_surf=input_data["anat"]["surfs"]["white"],
-                    outer_surf=input_data["anat"]["surfs"]["pial"],
-                    roi_out="PLACEHOLDER_NAME.shape.gii",  # Not needed / to be removed
+                    inner_surf=input_data["anat"]["surfs"]["white"][0],
+                    outer_surf=input_data["anat"]["surfs"]["pial"][0],
                 )
             ),
         )

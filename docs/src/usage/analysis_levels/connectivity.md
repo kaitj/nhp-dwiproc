@@ -22,10 +22,8 @@ an associated surface can be found, end points of the tract are mapped to the su
 | Argument | Config Key | Description |
 | :- | :- | :- |
 | `--vox-mm` | `participant.connectivity.vox_mm` | isotropic voxel size (in mm) or space-separated listed of voxel sizes to map tracts to |
+| `--tract-query` | `participant.connectivity.query_tract` | string query for bids entities associated with tract (subject & session is assumed); associated ROIs should be part of dataset descriptions that contain 'include', 'exclude', 'stop' keywords for respective ROIs. |
 | `--surf-query` | `participant.connectivity.query_surf` | string query for bids entities associated with surfaces to perform ribbon constrained mapping of streamlines to (subject & session is assumed); surface type (e.g. white, pial, etc.) will be automatically identified |
-| `--include-query` | `participant.connectivity.query_include` | string query for bids entities associated with inclusion ROI(s) (subject & session is assumed) |
-| `--exclude-query` | `participant.connectivity.query_exclude` | string query for bids entities associated with exclusion ROI(s) (subject & session is assumed) |
-| `--truncate-query` | `participant.connectivity.query_truncate` | string query for bids entities associated with ROI(s) in which streamlines should be truncated if entered (subject & session is assumed) |
 
 > [!NOTE]
 > Either atlas or ROIs should be provided. The workflow will throw an error if both

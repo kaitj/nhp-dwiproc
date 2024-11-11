@@ -36,6 +36,17 @@ def add_connectivity_args(app_parser: BidsAppArgumentParser) -> None:
         map tracts to""",
     )
     connectivity_args.add_argument(
+        "--tract-query",
+        "--tract_query",
+        metavar="query",
+        dest="participant.connectivity.query_tract",
+        type=str,
+        default=None,
+        help="""string query for bids entities associated with tract (subject & session
+        is assumed);  associated ROIs should be part of dataset descriptions that
+        contain 'include', 'exclude', 'stop' keywords for respective ROIs.""",
+    )
+    connectivity_args.add_argument(
         "--surf-query",
         "--surf_query",
         metavar="query",
@@ -45,15 +56,4 @@ def add_connectivity_args(app_parser: BidsAppArgumentParser) -> None:
         help="""string query for bids entities associated with surfaces to perform
         ribbon constrained mapping of streamlines to (subject & session is assumed);
         surface type (e.g. white, pial, etc.) will be automatically identified""",
-    )
-    connectivity_args.add_argument(
-        "--tract-query",
-        "--tract_query",
-        metavar="query",
-        dest="participant.connectivity.query_tract",
-        type=str,
-        default=None,
-        help="""string query for bids entities associated with tract (subject & session
-        is assumed); associated ROIs should be part of dataset with
-        'include', 'exclude', 'stop' descriptions for respective ROIs.""",
     )
