@@ -27,7 +27,7 @@ def add_connectivity_args(app_parser: BidsAppArgumentParser) -> None:
     connectivity_args.add_argument(
         "--vox-mm",
         "--vox_mm",
-        metvar="voxel_size",
+        metavar="voxel_size",
         dest="participant.connectivity.vox_mm",
         type=float,
         nargs="*",
@@ -47,32 +47,13 @@ def add_connectivity_args(app_parser: BidsAppArgumentParser) -> None:
         surface type (e.g. white, pial, etc.) will be automatically identified""",
     )
     connectivity_args.add_argument(
-        "--include-query",
-        "--include_query",
+        "--tract-query",
+        "--tract_query",
         metavar="query",
-        dest="participant.connectivity.query_include",
+        dest="participant.connectivity.query_tract",
         type=str,
         default=None,
-        help="""string query for bids entities associated with inclusion ROI(s)
-        (subject & session is assumed)""",
-    )
-    connectivity_args.add_argument(
-        "--exclude-query",
-        "--exclude_query",
-        metavar="query",
-        dest="participant.connectivity.query_exclude",
-        type=str,
-        default=None,
-        help="""string query for bids entities associated with exclusion ROI(s)
-        (subject & session is assumed)""",
-    )
-    connectivity_args.add_argument(
-        "--truncate-query",
-        "--truncate_query",
-        metavar="query",
-        dest="participant.connectivity.query_truncate",
-        type=str,
-        default=None,
-        help="""string query for bids entities associated with ROI(s) in which
-        streamlines should be truncated if entered (subject & session is assumed)""",
+        help="""string query for bids entities associated with tract (subject & session
+        is assumed); associated ROIs should be part of dataset with
+        'include', 'exclude', 'stop' descriptions for respective ROIs.""",
     )

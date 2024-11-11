@@ -3,7 +3,7 @@
 import logging
 import pathlib as pl
 import shutil
-from typing import Any, overload
+from typing import Any
 
 import pandas as pd
 from bids2table import BIDSTable, bids2table
@@ -82,14 +82,6 @@ def get_inputs(
             return None
         return data.json.iloc[0] if metadata else pl.Path(data.file_path.iloc[0])
 
-    @overload
-    def _get_surf_roi_paths(
-        queries: list[str], b2t: BIDSTable = b2t
-    ) -> list[pl.Path]: ...
-
-    @overload
-    def _get_surf_roi_paths(queries: None, b2t: BIDSTable = b2t) -> None: ...
-
     def _get_surf_roi_paths(
         queries: list[str] | None = None,
         b2t: BIDSTable = b2t,
@@ -98,9 +90,7 @@ def get_inputs(
         if not queries or len(queries) == 0:
             return None
         query = " & ".join(queries)
-        return [
-            pl.Path(b2t.flat.file_path.iloc[idx]) for idx in b2t.flat.query(query).index
-        ]
+        return list(map(pl.Path, b2t.flat.query(query).file_path))
 
     sub_ses_query = " & ".join(
         [f"{key} == '{value}'" for key, value in row[["sub", "ses"]].to_dict().items()]
@@ -204,32 +194,39 @@ def get_inputs(
                 },
             }
         )
-        if not cfg.get("participant.connectivity.atlas"):
-            query_include = cfg.get("participant.connectivity.query_include", None)
-            query_exclude = cfg.get("participant.connectivity.query_exclude", None)
-            query_truncate = cfg.get("participant.connectivity.query_truncate", None)
+        if not cfg.get("participant.connectivity.atlas", None) and (
+            tract_query := cfg.get("participant.connectivity.query_tract")
+        ):
             wf_inputs["anat"] = {
                 "rois": {
                     "inclusion": _get_surf_roi_paths(
-                        queries=[sub_ses_query, query_include]
-                    )
-                    if query_include
-                    else None,
+                        queries=[
+                            sub_ses_query,
+                            tract_query,
+                            "(desc.str.contains('include') | desc.str.contains('seed'))",
+                        ]
+                    ),
                     "exclusion": _get_surf_roi_paths(
-                        queries=[sub_ses_query, query_exclude]
-                    )
-                    if query_exclude
-                    else None,
-                    "mask": _get_surf_roi_paths(queries=[sub_ses_query, query_truncate])
-                    if query_truncate
-                    else None,
+                        queries=[
+                            sub_ses_query,
+                            tract_query,
+                            "desc.str.contains('exclude')",
+                        ]
+                    ),
+                    "stop": _get_surf_roi_paths(
+                        queries=[
+                            sub_ses_query,
+                            tract_query,
+                            "desc.str.contains('truncate')",
+                        ]
+                    ),
                 },
                 "surfs": {
                     surf_type: _get_surf_roi_paths(
                         queries=[
                             sub_ses_query,
                             cfg.get("participant.connectivity.query_surf", None),
-                            f"suffix=={surf_type}",
+                            f"suffix=='{surf_type}'",
                         ]
                     )
                     if cfg.get("participant.connectivity.query_surf")

@@ -37,9 +37,7 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
         b2t=dwi_b2t, keys=["sub", "ses", "run", "space"]
     )
     for group_vals, group in tqdm(
-        dwi_b2t.filter_multi(suffix="dwi", ext={"items": [".nii", ".nii.gz"]}).groupby(
-            groupby_keys
-        )
+        dwi_b2t.filter_multi(suffix="tractography", ext=".tck").groupby(groupby_keys)
     ):
         for _, row in group.ent.iterrows():
             input_kwargs: dict[str, Any] = {
@@ -61,6 +59,8 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
             )
             if cfg.get("participant.connectivity.atlas"):
                 connectivity.generate_conn_matrix(**input_kwargs)
-            else:
+            elif cfg.get("participant.connectivity.query_tract"):
                 connectivity.extract_tract(**input_kwargs)
+            else:
+                raise ValueError("No valid inputs provided for connectivity workflow")
             logger.info(f"Completed processing for {uid}")

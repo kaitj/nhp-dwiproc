@@ -70,9 +70,9 @@ def extract_tract(
     ]
     truncate_rois = [
         mrtrix.TckeditMask(spec=mrtrix.TckeditVariousFile_2(fpath))
-        for fpath in input_data["anat"]["rois"]["mask"]
+        for fpath in input_data["anat"]["rois"]["stop"]
     ]
-    rois = [incl_rois, excl_rois, truncate_rois]
+    rois = [*incl_rois, *excl_rois, *truncate_rois]
     if len(rois) == 0:
         raise ValueError("No ROIs were provided")
 
@@ -83,7 +83,7 @@ def extract_tract(
         **input_group,
     )
 
-    tract_entities = BIDSEntities.from_path(rois[0])
+    tract_entities = BIDSEntities.from_path(rois[0].spec.obj)
     label = tract_entities.label
     hemi = tract_entities.hemi
     tckedit = mrtrix.tckedit(
@@ -104,7 +104,7 @@ def extract_tract(
         tracks=tckedit.tracks_out,
         tck_weights_in=tckedit.tck_weights_out,
         vox=cfg.get("participant.connectivity.vox_mm"),
-        template=rois[0],
+        template=rois[0].spec.obj,
         output=bids(hemi=hemi, label=label, suffix="tdi", ext=".nii.gz"),
         nthreads=cfg["opt.threads"],
     )
@@ -121,7 +121,7 @@ def extract_tract(
             tracks=tckedit.tracks_out,
             tck_weights_in=tckedit.tck_weights_out,
             vox=cfg.get("participant.connectivity.vox_mm"),
-            template=rois[0],
+            template=rois[0].spec.obj,
             ends_only=True,
             output=bids(hemi=hemi, label=label, suffix="tdi", ext=".nii.gz"),
             nthreads=cfg["opt.threads"],
