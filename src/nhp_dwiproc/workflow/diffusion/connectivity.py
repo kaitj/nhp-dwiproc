@@ -4,7 +4,8 @@ from functools import partial
 from logging import Logger
 from typing import Any
 
-from niwrap import mrtrix
+from bids2table import BIDSEntities
+from niwrap import mrtrix, workbench
 
 from nhp_dwiproc.app import utils
 
@@ -53,5 +54,99 @@ def generate_conn_matrix(
         # Save outputs
         utils.io.save(
             files=tck2connectome[meas].connectome_out,
+            out_dir=cfg["output_dir"].joinpath(bids(directory=True)),
+        )
+
+
+def extract_tract(
+    input_data: dict[str, Any],
+    input_group: dict[str, Any],
+    cfg: dict[str, Any],
+    logger: Logger,
+    **kwargs,
+) -> None:
+    """Extract individual tract."""
+    # Organize ROIs and get tract label
+    incl_rois = [
+        mrtrix.TckeditInclude(spec=mrtrix.TckeditVariousFile(fpath))
+        for fpath in input_data["anat"]["rois"]["inclusion"]
+    ]
+    excl_rois = [
+        mrtrix.TckeditExclude(spec=mrtrix.TckeditVariousFile_(fpath))
+        for fpath in input_data["anat"]["rois"]["exclusion"]
+    ]
+    truncate_rois = [
+        mrtrix.TckeditMask(spec=mrtrix.TckeditVariousFile_2(fpath))
+        for fpath in input_data["anat"]["rois"]["mask"]
+    ]
+    rois = [incl_rois, excl_rois, truncate_rois]
+    if len(rois) == 0:
+        raise ValueError("No ROIs were provided")
+
+    logger.info("Extracting tract")
+    bids = partial(
+        utils.bids_name,
+        datatype="dwi",
+        **input_group,
+    )
+
+    tract_entities = BIDSEntities.from_path(rois[0])
+    label = tract_entities.label
+    hemi = tract_entities.hemi
+    tckedit = mrtrix.tckedit(
+        tracks_in=[input_data["dwi"]["tractography"]["tck"]],
+        tracks_out=bids(
+            hemi=hemi, label=label, method="iFOD2", suffix="tractograhy", ext=".tck"
+        ),
+        include=incl_rois,
+        exclude=excl_rois,
+        mask=truncate_rois,
+        tck_weights_in=input_data["dwi"]["tractography"]["weights"],
+        tck_weights_out=bids(
+            hemi=hemi, label=label, method="SIFT2", suffix="tckWeights", ext=".txt"
+        ),
+        nthreads=cfg["opt.threads"],
+    )
+    tdi = mrtrix.tckmap(
+        tracks=tckedit.tracks_out,
+        tck_weights_in=tckedit.tck_weights_out,
+        vox=cfg.get("participant.connectivity.vox_mm"),
+        template=rois[0],
+        output=bids(hemi=hemi, label=label, suffix="tdi", ext=".nii.gz"),
+        nthreads=cfg["opt.threads"],
+    )
+
+    utils.io.save(
+        files=tdi.output, out_dir=cfg["output_dir"].joinpath(bids(directory=True))
+    )
+
+    # Map to surface
+    if not input_data["anat"]["surfs"].get("inflated"):
+        logger.warning("Inflated surface not found; not mapping end points")
+    else:
+        tdi_ends = mrtrix.tckmap(
+            tracks=tckedit.tracks_out,
+            tck_weights_in=tckedit.tck_weights_out,
+            vox=cfg.get("participant.connectivity.vox_mm"),
+            template=rois[0],
+            ends_only=True,
+            output=bids(hemi=hemi, label=label, suffix="tdi", ext=".nii.gz"),
+            nthreads=cfg["opt.threads"],
+        )
+        surf_ends = workbench.volume_to_surface_mapping(
+            volume=tdi_ends.output,
+            surface=input_data["anat"]["surfs"]["inflated"],
+            metric_out=bids(hemi=hemi, label=label, suffix="conn", ext=".shape.gii"),
+            ribbon_constrained=(
+                workbench.VolumeToSurfaceMappingRibbonConstrained(
+                    inner_surf=input_data["anat"]["surfs"]["white"],
+                    outer_surf=input_data["anat"]["surfs"]["pial"],
+                    roi_out="PLACEHOLDER_NAME.shape.gii",  # Not needed / to be removed
+                )
+            ),
+        )
+
+        utils.io.save(
+            files=surf_ends.metric_out,
             out_dir=cfg["output_dir"].joinpath(bids(directory=True)),
         )

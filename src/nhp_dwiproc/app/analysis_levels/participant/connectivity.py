@@ -13,6 +13,13 @@ from nhp_dwiproc.workflow.diffusion import connectivity
 def run(cfg: dict[str, Any], logger: Logger) -> None:
     """Runner for connectivity analysis-level."""
     logger.info("Connectivity analysis-level")
+    if cfg.get("participant.connectivity.atlas") and (
+        cfg.get("participant.connectivity.query_surf")
+        or cfg.get("participant.connectivity.query_include")
+        or cfg.get("participant.connectivity.query_exclude")
+        or cfg.get("participant.connectivity.query_truncate")
+    ):
+        raise ValueError("Only one of atlas or ROIs should be provided")
     b2t = utils.io.load_b2t(cfg=cfg, logger=logger)
 
     # Filter b2t based on string query
@@ -52,5 +59,8 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
             logger.info(
                 f"Processing {(uid := utils.bids_name(**input_kwargs['input_group']))}"
             )
-            connectivity.generate_conn_matrix(**input_kwargs)
+            if cfg.get("participant.connectivity.atlas"):
+                connectivity.generate_conn_matrix(**input_kwargs)
+            else:
+                connectivity.extract_tract(**input_kwargs)
             logger.info(f"Completed processing for {uid}")
