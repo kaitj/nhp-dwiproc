@@ -34,17 +34,10 @@ def generate_conn_matrix(
             tracks_in=input_data["dwi"]["tractography"]["tck"],
             nodes_in=input_data["dwi"]["atlas"],
             connectome_out=bids(
-                meas=meas,
-                desc="probabilisticTracking",
-                suffix="relmap",
-                ext=".csv",
+                meas=meas, desc="probabilisticTracking", suffix="relmap", ext=".csv"
             ),
             assignment_radial_search=cfg["participant.connectivity.radius"],
-            out_assignments=bids(
-                desc="assignment",
-                suffix="tractography",
-                ext=".txt",
-            ),
+            out_assignments=bids(desc="assignment", suffix="tractography", ext=".txt"),
             tck_weights_in=tck_weights,
             scale_length=length,
             stat_edge="mean" if length else None,

@@ -103,11 +103,7 @@ def concat_bv(
     """Concatenate .bval and .bvec files."""
     out_dir = cfg["opt.working_dir"] / f"{gen_hash()}_concat-bv"
     bids = partial(
-        utils.bids_name,
-        datatype="dwi",
-        desc="concat",
-        suffix="dwi",
-        **input_group,
+        utils.bids_name, datatype="dwi", desc="concat", suffix="dwi", **input_group
     )
     out_dir.mkdir(parents=True, exist_ok=False)
     out_files = out_dir / bids(ext=".bval"), out_dir / bids(ext=".bvec")
