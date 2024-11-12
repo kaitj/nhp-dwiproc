@@ -1,4 +1,4 @@
-"""Tractography generation."""
+"""Tractography-related operations."""
 
 from functools import partial
 from logging import Logger
@@ -54,27 +54,16 @@ def generate_tractography(
     """Generate subject tractography."""
     logger.info("Generating tractography")
     wm_fod = fod.input_output[0].output
-    bids = partial(
-        utils.bids_name,
-        datatype="dwi",
-        **input_group,
-    )
+    bids = partial(utils.bids_name, datatype="dwi", **input_group)
     tckgen = _tckgen(
-        wm_fod=wm_fod,
-        tt_map=input_data["dwi"].get("5tt", None),
-        bids=bids,
-        cfg=cfg,
+        wm_fod=wm_fod, tt_map=input_data["dwi"].get("5tt", None), bids=bids, cfg=cfg
     )
 
     logger.info("Computing per-streamline multipliers")
     tcksift = mrtrix.tcksift2(
         in_tracks=tckgen.tracks,
         in_fod=wm_fod,
-        out_weights=bids(
-            method="SIFT2",
-            suffix="tckWeights",
-            ext=".txt",
-        ),
+        out_weights=bids(method="SIFT2", suffix="tckWeights", ext=".txt"),
         nthreads=cfg["opt.threads"],
     )
 
@@ -84,11 +73,7 @@ def generate_tractography(
             tracks=tckgen.tracks,
             tck_weights_in=weights,
             template=wm_fod,
-            output=bids(
-                meas=meas,
-                suffix="tdi",
-                ext=".nii.gz",
-            ),
+            output=bids(meas=meas, suffix="tdi", ext=".nii.gz"),
             nthreads=cfg["opt.threads"],
         )
 

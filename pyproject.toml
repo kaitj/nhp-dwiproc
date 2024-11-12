@@ -9,7 +9,7 @@ requires-python = ">=3.11"
 dependencies = [
   "bidsapp-helper>=0.1.0",
   "bids2table>=0.1.0",
-  "niwrap>=0.3.1",
+  "niwrap>=0.3.2",
   "pyyaml>=6.0.2",
   "styxdocker>=0.2.0",
   "styxsingularity>=0.2.0",

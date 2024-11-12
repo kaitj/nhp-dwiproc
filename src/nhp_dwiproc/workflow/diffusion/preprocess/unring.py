@@ -18,11 +18,7 @@ def degibbs(
     **kwargs,
 ) -> OutputPathType:
     """Minimize Gibbs ringing."""
-    bids = partial(
-        utils.bids_name,
-        datatype="dwi",
-        **entities,
-    )
+    bids = partial(utils.bids_name, datatype="dwi", **entities)
     if cfg["participant.preprocess.unring.skip"]:
         return OutputPathType(dwi)
 
@@ -30,11 +26,7 @@ def degibbs(
 
     degibbs = mrtrix.mrdegibbs(
         in_=dwi,
-        out=bids(
-            desc="unring",
-            suffix="dwi",
-            ext=".nii.gz",
-        ),
+        out=bids(desc="unring", suffix="dwi", ext=".nii.gz"),
         axes=cfg.get("participant.preprocess.unring.axes"),
         nshifts=cfg["participant.preprocess.unring.nshifts"],
         min_w=cfg["participant.preprocess.unring.minW"],

@@ -32,11 +32,7 @@ def denoise(
 
     denoise = mrtrix.dwidenoise(
         dwi=input_data["dwi"]["nii"],
-        out=bids(
-            desc="denoise",
-            suffix="dwi",
-            ext=".nii.gz",
-        ),
+        out=bids(desc="denoise", suffix="dwi", ext=".nii.gz"),
         estimator=cfg["participant.preprocess.denoise.estimator"],
         noise=bids(
             algorithm=cfg["participant.preprocess.denoise.estimator"],

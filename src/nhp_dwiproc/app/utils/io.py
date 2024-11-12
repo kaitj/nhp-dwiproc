@@ -63,7 +63,7 @@ def get_inputs(
         metadata: bool = False,
         row: pd.Series = row,
         b2t: BIDSTable = b2t,
-    ) -> pl.Path:
+    ) -> pl.Path | None:
         """Internal function to grab file path from b2t."""
         if entities and queries:
             raise ValueError("Proivde only one of 'entities' or 'queries'")
@@ -78,7 +78,19 @@ def get_inputs(
                 **{k: v for k, v in entities_dict.items() if v is not None}
             ).flat
 
+        if data.empty:
+            return None
         return data.json.iloc[0] if metadata else pl.Path(data.file_path.iloc[0])
+
+    def _get_surf_roi_paths(
+        queries: list[str] | None = None,
+        b2t: BIDSTable = b2t,
+    ) -> list[pl.Path] | None:
+        """Internal function to help grab ROI paths."""
+        if not queries or len(queries) == 0:
+            return None
+        query = " & ".join(queries)
+        return list(map(pl.Path, b2t.flat.query(query).file_path))
 
     sub_ses_query = " & ".join(
         [f"{key} == '{value}'" for key, value in row[["sub", "ses"]].to_dict().items()]
@@ -130,7 +142,7 @@ def get_inputs(
     else:
         wf_inputs["dwi"]["mask"] = (
             _get_file_path(queries=[sub_ses_query, cfg["participant.query_mask"]])
-            if cfg.get("participant/query_mask")
+            if cfg.get("participant.query_mask")
             else _get_file_path(entities={"datatype": "anat", "suffix": "mask"})
         )
 
@@ -157,7 +169,9 @@ def get_inputs(
                         "suffix": "dseg",
                         "ext": {"items": [".nii", ".nii.gz"]},
                     }
-                ),
+                )
+                if cfg.get("participant.connectivity.atlas")
+                else None,
                 "tractography": {
                     "tck": _get_file_path(
                         entities={
@@ -180,6 +194,46 @@ def get_inputs(
                 },
             }
         )
+        if not cfg.get("participant.connectivity.atlas", None) and (
+            tract_query := cfg.get("participant.connectivity.query_tract")
+        ):
+            wf_inputs["anat"] = {
+                "rois": {
+                    "inclusion": _get_surf_roi_paths(
+                        queries=[
+                            sub_ses_query,
+                            tract_query,
+                            "desc.str.contains('include|seed|target')",
+                        ]
+                    ),
+                    "exclusion": _get_surf_roi_paths(
+                        queries=[
+                            sub_ses_query,
+                            tract_query,
+                            "desc.str.contains('exclude')",
+                        ]
+                    ),
+                    "stop": _get_surf_roi_paths(
+                        queries=[
+                            sub_ses_query,
+                            tract_query,
+                            "desc.str.contains('truncate')",
+                        ]
+                    ),
+                },
+                "surfs": {
+                    surf_type: _get_surf_roi_paths(
+                        queries=[
+                            sub_ses_query,
+                            cfg.get("participant.connectivity.query_surf", None),
+                            f"suffix=='{surf_type}'",
+                        ]
+                    )
+                    if cfg.get("participant.connectivity.query_surf")
+                    else None
+                    for surf_type in ["pial", "white", "inflated"]
+                },
+            }
 
     return wf_inputs
 

@@ -37,10 +37,7 @@ def register(
         bzero=True,
         nthreads=cfg["opt.threads"],
         config=[
-            mrtrix.DwiextractConfig(
-                "BZeroThreshold",
-                str(cfg["participant.b0_thresh"]),
-            )
+            mrtrix.DwiextractConfig("BZeroThreshold", str(cfg["participant.b0_thresh"]))
         ],
     )
 
