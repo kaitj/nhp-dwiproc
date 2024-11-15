@@ -121,17 +121,8 @@ def extract_tract(
             len(input_data["anat"]["surfs"][surf_type]) == 1
             for surf_type in ["white", "pial", "inflated"]
         ), "More than 1 surface for each type found"
-        tdi_ends = mrtrix.tckmap(
-            tracks=tckedit.tracks_out,
-            tck_weights_in=tckedit.tck_weights_out,
-            vox=cfg.get("participant.connectivity.vox_mm"),
-            template=rois[0].spec.obj,
-            ends_only=True,
-            output=bids(hemi=hemi, label=label, suffix="tdi", ext=".nii.gz"),
-            nthreads=cfg["opt.threads"],
-        )
-        surf_ends = workbench.volume_to_surface_mapping(
-            volume=tdi_ends.output,
+        surf = workbench.volume_to_surface_mapping(
+            volume=tdi.output,
             surface=input_data["anat"]["surfs"]["inflated"][0],
             metric_out=bids(hemi=hemi, label=label, suffix="conn", ext=".shape.gii"),
             ribbon_constrained=(
@@ -143,6 +134,6 @@ def extract_tract(
         )
 
         utils.io.save(
-            files=surf_ends.metric_out,
+            files=surf.metric_out,
             out_dir=cfg["output_dir"].joinpath(bids(directory=True)),
         )

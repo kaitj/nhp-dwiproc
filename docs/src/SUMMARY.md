@@ -20,6 +20,7 @@
     - [StyxSingularity](./runners/styxsingularity.md)
   - [Advanced](./usage/advanced/README.md)
     - [Anatomically constrained tractography](./usage/advanced/act.md)
+    - [Surface mapping](./usage/advanced/tract.md)
 
 # Miscellaneous
 
