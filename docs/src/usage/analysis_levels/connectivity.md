@@ -14,10 +14,14 @@ identifiy individual tracts using regions of interest.
 
 If you wish to query individual tracts using inclusion / exclusion ROIs, you may also
 do so. By default, only a tract-density map is generated from these. Additionally, if
-an associated surface can be found, end points of the tract are mapped to the surfaces.
+an associated surface can be found, tracts passing through the cortical ribbon are
+mapped to the surface.
 
 > [!NOTE]
-> End points are only mapped if an inflated surface can be found!
+> - Tracts are only mapped if an inflated surface can be found!
+> - Non-lateralized tracts will need to be mapped twice, once for each hemisphere.
+
+
 
 | Argument | Config Key | Description |
 | :- | :- | :- |
@@ -29,4 +33,4 @@ an associated surface can be found, end points of the tract are mapped to the su
 > Either atlas or ROIs should be provided. The workflow will throw an error if both
 > are provided.
 
-<!-- TODO: add an example (can go under advanced) -->
+An surface mapping example can be found [here](../advanced/tract.md), under the advanced pages.
