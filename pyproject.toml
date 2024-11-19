@@ -17,7 +17,7 @@ dependencies = [
   "eddymotion>=0.1.15",
   "nifti",
   # (Temporary) pinned versions of packages to fix errors
-  "nitransforms>=24.0.2"
+  "nitransforms==24.0.1"
 ]
 keywords = ["nhp", "diffusion mri", "processing"]
 classifiers = [
