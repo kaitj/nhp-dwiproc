@@ -103,7 +103,7 @@ def extract_tract(
     tdi = mrtrix.tckmap(
         tracks=tckedit.tracks_out,
         tck_weights_in=tckedit.tck_weights_out,
-        vox=cfg.get("participant.connectivity.vox_mm"),
+        vox=[vox] if (vox := cfg.get("participant.connectivity.vox_mm")) else None,
         template=rois[0].spec.obj,
         output=bids(hemi=hemi, label=label, suffix="tdi", ext=".nii.gz"),
         nthreads=cfg["opt.threads"],
