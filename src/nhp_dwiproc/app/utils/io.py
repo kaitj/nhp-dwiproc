@@ -165,6 +165,7 @@ def get_inputs(
                     entities={
                         "datatype": "anat",
                         "desc": None,
+                        "method": None,
                         "seg": cfg.get("participant.connectivity.atlas", ""),
                         "suffix": "dseg",
                         "ext": {"items": [".nii", ".nii.gz"]},
