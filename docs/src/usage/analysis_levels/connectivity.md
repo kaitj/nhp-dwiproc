@@ -19,7 +19,8 @@ mapped to the surface.
 
 > [!NOTE]
 > - Tracts are only mapped if an inflated surface can be found!
-> - Non-lateralized tracts will need to be mapped twice, once for each hemisphere.
+> - Non-lateralized tracts need to manually mapped as there is no associated `hemi`
+> entity.
 
 
 
