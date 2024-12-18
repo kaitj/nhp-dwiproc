@@ -121,24 +121,43 @@ def get_inputs(
                 queries=[sub_ses_query, cfg["participant.query_mask"]]
             )
 
-        if cfg["participant.preprocess.undistort.method"] == "fieldmap":
-            fmap_queries: list[str] = [sub_ses_query, cfg["participant.query_fmap"]]
-            fmap_entities = {"datatype": "fmap", "suffix": "epi"}
-            wf_inputs["fmap"] = (
-                {
-                    "nii": _get_file_path(queries=fmap_queries + [nii_ext_query]),
-                    "bval": _get_file_path(queries=fmap_queries + ["ext=='.bval'"]),
-                    "bvec": _get_file_path(queries=fmap_queries + ["ext=='.bvec'"]),
-                    "json": _get_file_path(queries=fmap_queries + [], metadata=True),
-                }
-                if cfg.get("participant.query_fmap")
-                else {
-                    "nii": _get_file_path(entities=fmap_entities),
-                    "bval": _get_file_path(entities={**fmap_entities, "ext": ".bval"}),
-                    "bvec": _get_file_path(entities={**fmap_entities, "ext": ".bvec"}),
-                    "json": _get_file_path(entities=fmap_entities, metadata=True),
-                }
-            )
+        match cfg["participant.preprocess.undistort.method"]:
+            case "fieldmap":
+                fmap_queries: list[str] = [sub_ses_query, cfg["participant.query_fmap"]]
+                fmap_entities = {"datatype": "fmap", "suffix": "epi"}
+                wf_inputs["fmap"] = (
+                    {
+                        "nii": _get_file_path(queries=fmap_queries + [nii_ext_query]),
+                        "bval": _get_file_path(queries=fmap_queries + ["ext=='.bval'"]),
+                        "bvec": _get_file_path(queries=fmap_queries + ["ext=='.bvec'"]),
+                        "json": _get_file_path(queries=fmap_queries, metadata=True),
+                    }
+                    if cfg.get("participant.query_fmap")
+                    else {
+                        "nii": _get_file_path(entities=fmap_entities),
+                        "bval": _get_file_path(
+                            entities={**fmap_entities, "ext": ".bval"}
+                        ),
+                        "bvec": _get_file_path(
+                            entities={**fmap_entities, "ext": ".bvec"}
+                        ),
+                        "json": _get_file_path(entities=fmap_entities, metadata=True),
+                    }
+                )
+            case "fugue":
+                fmap_queries = [sub_ses_query, cfg["participant.query_fmap"]]  # type: ignore[no-redef]
+                fmap_entities = {"datatype": "fmap", "suffix": "fieldmap"}
+                wf_inputs["fmap"] = (
+                    {
+                        "nii": _get_file_path(queries=fmap_queries + [nii_ext_query]),
+                        "json": _get_file_path(queries=fmap_queries, metadata=True),
+                    }
+                    if cfg.get("participant.query_fmap")
+                    else {
+                        "nii": _get_file_path(entities=fmap_entities),
+                        "json": _get_file_path(entities=fmap_entities, metadata=True),
+                    }
+                )
     else:
         wf_inputs["dwi"]["mask"] = (
             _get_file_path(queries=[sub_ses_query, cfg["participant.query_mask"]])

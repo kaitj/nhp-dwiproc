@@ -174,6 +174,25 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
                         dir_outs=dir_outs,
                         **input_kwargs,
                     )
+            case "fugue":
+                (
+                    fugue,
+                    eddy_mask,
+                ) = preprocess.fugue.run_fugue(
+                    dir_outs=dir_outs,
+                    **input_kwargs,
+                )
+
+                if not cfg["participant.preprocess.eddy.skip"]:
+                    dir_outs["dwi"][0] = fugue.unwarped_file_outfile
+                    dwi, bval, bvec = preprocess.eddy.run_eddy(
+                        phenc=None,
+                        indices=None,
+                        topup=None,
+                        mask=eddy_mask,
+                        dir_outs=dir_outs,
+                        **input_kwargs,
+                    )
             case "eddymotion":
                 if not cfg["participant.preprocess.eddy.skip"]:
                     dwi, bval, bvec = preprocess.eddymotion.eddymotion(
