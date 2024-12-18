@@ -79,7 +79,7 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
                 dir_outs["pe_dir"].append(pe_dir)
 
         match cfg["participant.preprocess.undistort.method"]:
-            case "fsl":
+            case "topup":
                 if len(set(dir_outs["pe_dir"])) < 2:
                     logger.info("Less than 2 phase-encode directions...skipping topup")
                     cfg["participant.preprocess.topup.skip"] = True

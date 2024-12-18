@@ -25,8 +25,8 @@ def add_preprocess_args(app_parser: BidsAppArgumentParser) -> None:
         metavar="method",
         dest="participant.preprocess.undistort.method",
         type=str,
-        default="fsl",
-        choices=["fsl", "fieldmap", "eddymotion"],
+        default="topup",
+        choices=["topup", "fieldmap", "eddymotion"],
         help="distortion correct method (one of [%(choices)s]; default: %(default)s)",
     )
     for add_func in add_funcs:

@@ -51,14 +51,14 @@ Minimization of Gibbs ringing artifacts based on local subvoxel-shifts is perfor
 
 The next stage (and usually the most time-consuming) is the distortion correction stage (susceptibility + eddy current). The current implementations include:
 
-- `fsl` (`topup` + `eddy`)
+- `topup` (`topup` + `eddy`)
 
 | Argument                      | Config Key                                | Description                                                                           |
 |:------------------------------|:------------------------------------------|:--------------------------------------------------------------------------------------|
-| `--undistort-method <method>` | `participant.preprocess.undistort.method` | distortion correction method; one of `fsl`, `fieldmap`, `eddymotion` - default: `fsl` |
+| `--undistort-method <method>` | `participant.preprocess.undistort.method` | distortion correction method; one of `topup`, `fieldmap`, `eddymotion` - default: `topup` |
 | `--eddy-skip`                 | `participant.preprocess.eddy.skip`        | flag to skip eddy correction stage                                                    |
 
-_`fieldmap` uses the `fsl` method, but uses the opposite phase-encoding field map from the
+_`fieldmap` uses the `topup` method, but uses the opposite phase-encoding field map from the
 `fmap` bids directory instead for `topup._
 
 #### FSL
