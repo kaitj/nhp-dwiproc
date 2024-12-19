@@ -175,10 +175,7 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
                         **input_kwargs,
                     )
             case "fugue":
-                (
-                    fugue,
-                    eddy_mask,
-                ) = preprocess.fugue.run_fugue(
+                fugue, eddy_mask = preprocess.fugue.run_fugue(
                     dir_outs=dir_outs,
                     **input_kwargs,
                 )

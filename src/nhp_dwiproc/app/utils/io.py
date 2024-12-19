@@ -95,7 +95,7 @@ def get_inputs(
     sub_ses_query = " & ".join(
         [f"{key} == '{value}'" for key, value in row[["sub", "ses"]].to_dict().items()]
     )
-    nii_ext_query = "ext=='.nii' or ext=='.nii.gz'"
+    nii_ext_query = "(ext == '.nii' or ext == '.nii.gz')"
 
     # Base inputs
     wf_inputs: dict[str, Any] = {

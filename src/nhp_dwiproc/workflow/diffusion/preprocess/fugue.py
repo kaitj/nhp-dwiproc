@@ -24,7 +24,7 @@ def run_fugue(
 ) -> tuple[fsl.FugueOutputs, OutputPathType]:
     """Perform FSL's FUGUE."""
     bids = partial(
-        utils.bids_name, datatype="dwi", desc="topup", ext=".nii.gz", **input_group
+        utils.bids_name, datatype="dwi", desc="fugue", ext=".nii.gz", **input_group
     )
     logger.info("Running FSL's fugue")
 
@@ -32,7 +32,7 @@ def run_fugue(
 
     fugue = fsl.fugue(
         in_file=dir_outs["dwi"][0],
-        unwarped_file=bids(desc="fugue"),
+        unwarped_file=bids(),
         fmap_in_file=input_data["fmap"]["nii"],
         dwell_time=metadata.echo_spacing(
             dwi_json=input_data["dwi"]["json"], cfg=cfg, logger=logger, **kwargs
