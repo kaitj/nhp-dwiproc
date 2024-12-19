@@ -37,7 +37,7 @@ def get_phenc_info(
     img = nib.loadsave.load(input_data["dwi"]["nii"])
     img_size = np.array(img.header.get_data_shape())
     num_phase_encodes = img_size[np.where(np.abs(pe_vec) > 0)]
-    pe_line = np.hstack([pe_vec, np.array(eff_echo * num_phase_encodes)])
+    pe_line = np.hstack([pe_vec, np.array(eff_echo * (num_phase_encodes - 1))])
     pe_data = np.array([pe_line])
 
     return pe_dir, pe_data
