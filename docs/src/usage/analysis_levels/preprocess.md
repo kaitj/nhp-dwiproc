@@ -15,13 +15,12 @@ options.
 
 ### Metadata
 
-Metadata (in the form of JSON sidecars) will be read for certain stages. If unavailable, these
-parameters can be passed in via the command-line or configuration file:
+If provide via command-line or configuration, metadata values will be used in the workflow. Otherwise, data will be assumed from appropriate keys in the JSON sidecar files:
 
 | Argument                    | Config Key                                     | Description                                                                                                                                                        |
 |:----------------------------|:-----------------------------------------------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `--pe-dirs [direction ...]` | `participant.preprocess.metadata.pe_dirs`      | set phase encoding direction for dwi acquisition (space-separated for multiple acquisitions), overwriting value provided in metadata (JSON) file - default: `None` |
-| `--echo-spacing <spacing>`  | `participant.preprocess.metadata.echo_spacing` | estimated echo spacing to use for all dwi acquisitions, value in metadata (JSON) file will take priority - default: `0.0001`                                       |
+| `--echo-spacing <spacing>`  | `participant.preprocess.metadata.echo_spacing` | estimated echo spacing to use for all dwi acquisitions, value in metadata (JSON) file will take priority - default: `None`                                       |
 
 ### Denoise
 

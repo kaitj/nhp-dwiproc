@@ -53,9 +53,9 @@ def _add_metadata(arg_group: _ArgumentGroup) -> None:
         metavar="spacing",
         dest="participant.preprocess.metadata.echo_spacing",
         type=float,
-        default=0.0001,
+        default=None,
         help="""estimated echo spacing to use for all dwi acquisitions, value in
-        metadata (JSON) file will take priority (default: %(default).4f)""",
+        metadata (JSON) file will take priority""",
     )
 
 
