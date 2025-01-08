@@ -72,6 +72,12 @@ _`fieldmap` uses the `topup` method, but uses the opposite phase-encoding field 
 | `--eddy-residuals`        | `participant.preprocess.eddy.residuals` | flag to generate 4d residual volume                                                                                                                                            |
 | `--eddy-data-is-shelled`  | `participant.preprocess.eddy.shelled`   | flag to skip eddy checking that data is shelled                                                                                                                                |
 
+> [!NOTE]
+> FSL's eddy expects the readout time (echo spacing * (number of phase encodes - 1)) to
+> be within 0.01 and 0.2. If outside of this range, the readout time will be doubled or
+> halved accordingly with a warning message. To avoid this, one can also manually
+> provide an echo spacing value.
+
 #### Eddaymotion
 
 | Argument             | Config Key                                | Description                                                  |
@@ -83,7 +89,7 @@ _`fieldmap` uses the `topup` method, but uses the opposite phase-encoding field 
 > [!NOTE]
 > `FUGUE` is included as an option to perform distortion correction
 > on legacy datasets acquired with a single phase-encode direction and
-> a fieldmap.
+> a fieldmap. Original / provided echo-spacing value will be used in this step.
 
 | Argument             | Config Key                                | Description                                                  |
 |:---------------------|:------------------------------------------|:-------------------------------------------------------------|

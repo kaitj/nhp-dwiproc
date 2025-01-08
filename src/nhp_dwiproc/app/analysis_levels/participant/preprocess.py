@@ -72,7 +72,12 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
                 and cfg["participant.preprocess.eddy.skip"]
             ):
                 b0, pe_dir, pe_data = preprocess.dwi.get_phenc_data(
-                    dwi=dwi, idx=idx, entities=entities, **input_kwargs
+                    dwi=dwi,
+                    idx=idx,
+                    entities=entities,
+                    input_data=input_kwargs["input_data"],
+                    cfg=cfg,
+                    logger=logger,
                 )
                 dir_outs["b0"].append(b0)
                 dir_outs["pe_data"].append(pe_data)
