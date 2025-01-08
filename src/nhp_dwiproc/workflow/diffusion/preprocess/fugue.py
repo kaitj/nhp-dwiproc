@@ -13,7 +13,7 @@ from styxdefs import InputPathType, OutputPathType
 from nhp_dwiproc.app import utils
 from nhp_dwiproc.lib import metadata
 
-WARP_DIR = {"i": "x-", "i-": "x", "j": "y-", "j-": "y", "k": "z-", "k-": "k"}
+WARP_DIR = {"i": "x", "i-": "x-", "j": "y", "j-": "y-", "k": "z", "k-": "z-"}
 
 
 def run_fugue(

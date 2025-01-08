@@ -78,6 +78,17 @@ _`fieldmap` uses the `topup` method, but uses the opposite phase-encoding field 
 |:---------------------|:------------------------------------------|:-------------------------------------------------------------|
 | `--eddymotion-iters` | `participant.preprocess.eddymotion.iters` | number of iterations to repeat for eddymotion - default: `2` |
 
+#### Fugue
+
+> [!NOTE]
+> `FUGUE` is included as an option to perform distortion correction
+> on legacy datasets acquired with a single phase-encode direction and
+> a fieldmap.
+
+| Argument             | Config Key                                | Description                                                  |
+|:---------------------|:------------------------------------------|:-------------------------------------------------------------|
+| `--fugue-smooth` | `participant.preprocess.fugue.smooth` | 3D gaussian smoothing sigma (in mm) to be applied for FUGUE - default: `None` |
+
 ### Biascorrection
 
 The last step prior to registration is a B1 field inhomogeneity correction.
