@@ -175,21 +175,24 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
                         **input_kwargs,
                     )
             case "fugue":
-                fugue, eddy_mask = preprocess.fugue.run_fugue(
-                    dir_outs=dir_outs,
-                    **input_kwargs,
-                )
-
+                # For legacy datasets (single phase-encode + fieldmap)
+                dwi = None
                 if not cfg["participant.preprocess.eddy.skip"]:
-                    dir_outs["dwi"][0] = fugue.unwarped_file_outfile
                     dwi, bval, bvec = preprocess.eddy.run_eddy(
                         phenc=None,
                         indices=None,
                         topup=None,
-                        mask=eddy_mask,
+                        mask=None,
                         dir_outs=dir_outs,
                         **input_kwargs,
                     )
+
+                dwi = preprocess.fugue.run_fugue(
+                    dwi=dwi or dir_outs["dwi"][0],
+                    pe_dir=dir_outs["pe_dir"][0],
+                    dir_outs=dir_outs,
+                    **input_kwargs,
+                )
             case "eddymotion":
                 if not cfg["participant.preprocess.eddy.skip"]:
                     dwi, bval, bvec = preprocess.eddymotion.eddymotion(
