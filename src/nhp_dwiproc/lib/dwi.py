@@ -194,7 +194,7 @@ def grad_check(
             bvals=bval,
         ),
         export_grad_fsl=mrtrix.DwigradcheckExportGradFsl(
-            bvecs_path=bvec.name,
+            bvecs_path=bval.with_suffix(".bvec").name,
             bvals_path=bval.name,  # replacing file if necessary
         ),
         nthreads=cfg["opt.threads"],
@@ -202,5 +202,5 @@ def grad_check(
 
     utils.io.save(
         files=bvec_check.export_grad_fsl_.bvecs_path,
-        out_dir=bvec.parent,
+        out_dir=bval.parent,
     )

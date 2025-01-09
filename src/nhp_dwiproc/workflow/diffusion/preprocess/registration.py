@@ -173,7 +173,6 @@ def apply_transform(
         files=[
             xfm_dwi.output.output_image_outfile,
             xfm_mask.output.output_image_outfile,
-            xfm_bvec,
         ],
         out_dir=cfg["output_dir"].joinpath(bids(directory=True)),
     )
