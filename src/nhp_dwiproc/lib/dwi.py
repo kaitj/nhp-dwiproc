@@ -1,6 +1,7 @@
 """Helper functions for generating diffusion related files for workflow."""
 
 import pathlib as pl
+from logging import Logger
 from typing import Any
 
 import nibabel as nib
@@ -15,13 +16,16 @@ from nhp_dwiproc.lib.utils import gen_hash, load_nifti
 def get_phenc_info(
     idx: int,
     input_data: dict[str, Any],
+    logger: Logger,
     **kwargs,
 ) -> tuple[str, np.ndarray]:
     """Generate phase encode information file."""
     # Gather relevant metadata
-    eff_echo = metadata.echo_spacing(dwi_json=input_data["dwi"]["json"], **kwargs)
+    eff_echo = metadata.echo_spacing(
+        dwi_json=input_data["dwi"]["json"], logger=logger, **kwargs
+    )
     pe_dir = metadata.phase_encode_dir(
-        idx=idx, dwi_json=input_data["dwi"]["json"], **kwargs
+        idx=idx, dwi_json=input_data["dwi"]["json"], logger=logger, **kwargs
     )
     # Determine corresponding phase-encoding vector, set accordingly
     possible_vecs = {
@@ -37,7 +41,18 @@ def get_phenc_info(
     img = nib.loadsave.load(input_data["dwi"]["nii"])
     img_size = np.array(img.header.get_data_shape())
     num_phase_encodes = img_size[np.where(np.abs(pe_vec) > 0)]
-    pe_line = np.hstack([pe_vec, np.array(eff_echo * num_phase_encodes)])
+    ro_time = eff_echo * (num_phase_encodes - 1)
+    if ro_time > 0.2:
+        logger.warning(
+            "Read-out time greater than eddy expected 0.2 - using half of echo spacing"
+        )
+        ro_time /= 2
+    elif ro_time < 0.01:
+        logger.warning(
+            "Read-out time less than eddy expected 0.01 - using double of echo spacing"
+        )
+        ro_time *= 2
+    pe_line = np.hstack([pe_vec, np.array(ro_time)])
     pe_data = np.array([pe_line])
 
     return pe_dir, pe_data

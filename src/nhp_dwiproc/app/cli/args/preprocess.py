@@ -14,6 +14,7 @@ def add_preprocess_args(app_parser: BidsAppArgumentParser) -> None:
         _add_eddymotion,
         _add_topup,
         _add_eddy,
+        _add_fugue,
         _add_biascorrect,
         _add_register,
     )
@@ -25,8 +26,8 @@ def add_preprocess_args(app_parser: BidsAppArgumentParser) -> None:
         metavar="method",
         dest="participant.preprocess.undistort.method",
         type=str,
-        default="fsl",
-        choices=["fsl", "fieldmap", "eddymotion"],
+        default="topup",
+        choices=["topup", "fieldmap", "fugue", "eddymotion"],
         help="distortion correct method (one of [%(choices)s]; default: %(default)s)",
     )
     for add_func in add_funcs:
@@ -53,9 +54,9 @@ def _add_metadata(arg_group: _ArgumentGroup) -> None:
         metavar="spacing",
         dest="participant.preprocess.metadata.echo_spacing",
         type=float,
-        default=0.0001,
+        default=None,
         help="""estimated echo spacing to use for all dwi acquisitions, value in
-        metadata (JSON) file will take priority (default: %(default).4f)""",
+        metadata (JSON) file will take priority""",
     )
 
 
@@ -230,6 +231,19 @@ def _add_eddy(arg_group: _ArgumentGroup) -> None:
         dest="participant.preprocess.eddy.shelled",
         action="store_true",
         help="skip eddy checking that data is shelled",
+    )
+
+
+def _add_fugue(arg_group: _ArgumentGroup) -> None:
+    """Fugue associated arguments."""
+    arg_group.add_argument(
+        "--fugue-smooth",
+        "--fugue_smooth",
+        metavar="sigma",
+        dest="participant.preprocess.fugue.smooth",
+        type=float,
+        default=None,
+        help="3D gaussian smoothing sigma (in mm) to be applied for FUGUE",
     )
 
 

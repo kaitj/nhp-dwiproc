@@ -16,8 +16,7 @@ def phase_encode_dir(
             logger.warning("Assuming 'PhaseEncodingDirection' from 'PhaseEncodingAxis'")
             dwi_json["PhaseEncodingDirection"] = dwi_json["PhaseEncodingAxis"]
         else:
-            logger.error("'PhaseEncodingDirection' not found and cannot be assumed")
-            exit(1)
+            raise ValueError("'PhaseEncodingDirection' not found and cannot be assumed")
 
     return dwi_json["PhaseEncodingDirection"]
 
@@ -25,17 +24,17 @@ def phase_encode_dir(
 def echo_spacing(
     dwi_json: dict[str, Any], cfg: dict[str, Any], logger: Logger, **kwargs
 ) -> float:
-    """Check echo spacing - set if required."""
-    if "EffectiveEchoSpacing" not in dwi_json:
+    """Check echo spacing - set if provided."""
+    if echo_spacing := cfg["participant.preprocess.metadata.echo_spacing"]:
+        logger.info("Using provided echo spacing")
+        dwi_json["EffectiveEchoSpacing"] = float(echo_spacing)
+    elif "EffectiveEchoSpacing" not in dwi_json:
         if "EstimatedEffectiveEchoSpacing" in dwi_json:
             logger.warning(
                 "Assuming 'EffectiveEchoSpacing' from 'EstimatedEffectiveEchoSpacing'"
             )
             dwi_json["EffectiveEchoSpacing"] = dwi_json["EstimatedEffectiveEchoSpacing"]
         else:
-            logger.warning("Using default / provided echo spacing.")
-            dwi_json["EffectiveEchoSpacing"] = float(
-                cfg["participant.preprocess.metadata.echo_spacing"]
-            )
+            raise ValueError("Unable to assume 'EffectiveEchoSpacing'")
 
     return dwi_json["EffectiveEchoSpacing"]

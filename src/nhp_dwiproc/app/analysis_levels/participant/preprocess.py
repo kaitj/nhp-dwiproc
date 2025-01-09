@@ -72,14 +72,19 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
                 and cfg["participant.preprocess.eddy.skip"]
             ):
                 b0, pe_dir, pe_data = preprocess.dwi.get_phenc_data(
-                    dwi=dwi, idx=idx, entities=entities, **input_kwargs
+                    dwi=dwi,
+                    idx=idx,
+                    entities=entities,
+                    input_data=input_kwargs["input_data"],
+                    cfg=cfg,
+                    logger=logger,
                 )
                 dir_outs["b0"].append(b0)
                 dir_outs["pe_data"].append(pe_data)
                 dir_outs["pe_dir"].append(pe_dir)
 
         match cfg["participant.preprocess.undistort.method"]:
-            case "fsl":
+            case "topup":
                 if len(set(dir_outs["pe_dir"])) < 2:
                     logger.info("Less than 2 phase-encode directions...skipping topup")
                     cfg["participant.preprocess.topup.skip"] = True
@@ -174,6 +179,25 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
                         dir_outs=dir_outs,
                         **input_kwargs,
                     )
+            case "fugue":
+                # For legacy datasets (single phase-encode + fieldmap)
+                dwi = None
+                if not cfg["participant.preprocess.eddy.skip"]:
+                    dwi, bval, bvec = preprocess.eddy.run_eddy(
+                        phenc=None,
+                        indices=None,
+                        topup=None,
+                        mask=None,
+                        dir_outs=dir_outs,
+                        **input_kwargs,
+                    )
+
+                dwi = preprocess.fugue.run_fugue(
+                    dwi=dwi or dir_outs["dwi"][0],
+                    pe_dir=dir_outs["pe_dir"][0],
+                    dir_outs=dir_outs,
+                    **input_kwargs,
+                )
             case "eddymotion":
                 if not cfg["participant.preprocess.eddy.skip"]:
                     dwi, bval, bvec = preprocess.eddymotion.eddymotion(

@@ -15,13 +15,12 @@ options.
 
 ### Metadata
 
-Metadata (in the form of JSON sidecars) will be read for certain stages. If unavailable, these
-parameters can be passed in via the command-line or configuration file:
+If provide via command-line or configuration, metadata values will be used in the workflow. Otherwise, data will be assumed from appropriate keys in the JSON sidecar files:
 
 | Argument                    | Config Key                                     | Description                                                                                                                                                        |
 |:----------------------------|:-----------------------------------------------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `--pe-dirs [direction ...]` | `participant.preprocess.metadata.pe_dirs`      | set phase encoding direction for dwi acquisition (space-separated for multiple acquisitions), overwriting value provided in metadata (JSON) file - default: `None` |
-| `--echo-spacing <spacing>`  | `participant.preprocess.metadata.echo_spacing` | estimated echo spacing to use for all dwi acquisitions, value in metadata (JSON) file will take priority - default: `0.0001`                                       |
+| `--echo-spacing <spacing>`  | `participant.preprocess.metadata.echo_spacing` | estimated echo spacing to use for all dwi acquisitions, value in metadata (JSON) file will take priority - default: `None`                                       |
 
 ### Denoise
 
@@ -51,14 +50,14 @@ Minimization of Gibbs ringing artifacts based on local subvoxel-shifts is perfor
 
 The next stage (and usually the most time-consuming) is the distortion correction stage (susceptibility + eddy current). The current implementations include:
 
-- `fsl` (`topup` + `eddy`)
+- `topup` (`topup` + `eddy`)
 
 | Argument                      | Config Key                                | Description                                                                           |
 |:------------------------------|:------------------------------------------|:--------------------------------------------------------------------------------------|
-| `--undistort-method <method>` | `participant.preprocess.undistort.method` | distortion correction method; one of `fsl`, `fieldmap`, `eddymotion` - default: `fsl` |
+| `--undistort-method <method>` | `participant.preprocess.undistort.method` | distortion correction method; one of `topup`, `fieldmap`, `eddymotion` - default: `topup` |
 | `--eddy-skip`                 | `participant.preprocess.eddy.skip`        | flag to skip eddy correction stage                                                    |
 
-_`fieldmap` uses the `fsl` method, but uses the opposite phase-encoding field map from the
+_`fieldmap` uses the `topup` method, but uses the opposite phase-encoding field map from the
 `fmap` bids directory instead for `topup._
 
 #### FSL
@@ -73,11 +72,28 @@ _`fieldmap` uses the `fsl` method, but uses the opposite phase-encoding field ma
 | `--eddy-residuals`        | `participant.preprocess.eddy.residuals` | flag to generate 4d residual volume                                                                                                                                            |
 | `--eddy-data-is-shelled`  | `participant.preprocess.eddy.shelled`   | flag to skip eddy checking that data is shelled                                                                                                                                |
 
+> [!NOTE]
+> FSL's eddy expects the readout time (echo spacing * (number of phase encodes - 1)) to
+> be within 0.01 and 0.2. If outside of this range, the readout time will be doubled or
+> halved accordingly with a warning message. To avoid this, one can also manually
+> provide an echo spacing value.
+
 #### Eddaymotion
 
 | Argument             | Config Key                                | Description                                                  |
 |:---------------------|:------------------------------------------|:-------------------------------------------------------------|
 | `--eddymotion-iters` | `participant.preprocess.eddymotion.iters` | number of iterations to repeat for eddymotion - default: `2` |
+
+#### Fugue
+
+> [!NOTE]
+> `FUGUE` is included as an option to perform distortion correction
+> on legacy datasets acquired with a single phase-encode direction and
+> a fieldmap. Original / provided echo-spacing value will be used in this step.
+
+| Argument             | Config Key                                | Description                                                  |
+|:---------------------|:------------------------------------------|:-------------------------------------------------------------|
+| `--fugue-smooth` | `participant.preprocess.fugue.smooth` | 3D gaussian smoothing sigma (in mm) to be applied for FUGUE - default: `None` |
 
 ### Biascorrection
 
