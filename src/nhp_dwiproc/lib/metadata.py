@@ -25,7 +25,7 @@ def echo_spacing(
     dwi_json: dict[str, Any], cfg: dict[str, Any], logger: Logger, **kwargs
 ) -> float:
     """Check echo spacing - set if provided."""
-    if echo_spacing := cfg["participant.preprocess.metadata.echo_spacing"]:
+    if echo_spacing := cfg.get("participant.preprocess.metadata.echo_spacing"):
         logger.info("Using provided echo spacing")
         dwi_json["EffectiveEchoSpacing"] = float(echo_spacing)
     elif "EffectiveEchoSpacing" not in dwi_json:
