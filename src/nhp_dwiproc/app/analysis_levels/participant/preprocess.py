@@ -250,7 +250,7 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
         dwi_lib.grad_check(nii=dwi, bvec=bvec, bval=bval_fpath, mask=mask, cfg=cfg)
 
         # Create JSON sidecar
-        json_fpath = pl.Path(str(bval_fpath).replace(".bval", ".json"))
+        json_fpath = bval_fpath.with_suffix(".json")
         json_fpath.write_text(
             json.dumps(input_kwargs["input_data"]["dwi"]["json"], indent=2)
         )
