@@ -4,7 +4,7 @@ import pathlib as pl
 from logging import Logger
 from typing import Any
 
-import nibabel as nib
+import nibabel.nifti1 as nib
 import numpy as np
 from niwrap import mrtrix
 
@@ -38,7 +38,7 @@ def get_phenc_info(
         pe_vec[np.where(pe_vec > 0)] = -1
 
     # Generate phase encoding data for use
-    img = nib.loadsave.load(input_data["dwi"]["nii"])
+    img = nib.load(input_data["dwi"]["nii"])
     img_size = np.array(img.header.get_data_shape())
     num_phase_encodes = img_size[np.where(np.abs(pe_vec) > 0)]
     ro_time = eff_echo * (num_phase_encodes - 1)
@@ -89,14 +89,14 @@ def normalize(
         if not np.isclose(slice_mean, 0.0):
             arr[..., idx] *= ref_mean / slice_mean
 
-    norm_nii = nib.nifti1.Nifti1Image(dataobj=arr, affine=nii.affine, header=nii.header)
+    norm_nii = nib.Nifti1Image(dataobj=arr, affine=nii.affine, header=nii.header)
 
     nii_fname = utils.bids_name(
         datatype="dwi", desc="normalized", suffix="b0", ext=".nii.gz", **input_group
     )
     nii_fpath = cfg["opt.working_dir"] / f"{gen_hash()}_normalize" / nii_fname
     nii_fpath.parent.mkdir(parents=True, exist_ok=False)
-    nib.loadsave.save(norm_nii, nii_fpath)
+    nib.save(norm_nii, nii_fpath)
 
     return nii_fpath
 
@@ -129,7 +129,7 @@ def get_eddy_indices(
     cfg: dict[str, Any],
 ) -> pl.Path:
     """Generate dwi index file for eddy."""
-    imsizes = [nib.loadsave.load(nii).header.get_data_shape() for nii in niis]
+    imsizes = [nib.load(nii).header.get_data_shape() for nii in niis]
 
     eddy_idxes = [
         idx if len(imsize) < 4 else [idx] * imsize[3]
@@ -199,6 +199,8 @@ def grad_check(
         ),
         nthreads=cfg["opt.threads"],
     )
+    if not bvec_check.export_grad_fsl_:
+        raise AttributeError("Unsuccessful export of diffusion gradients")
 
     utils.io.save(
         files=bvec_check.export_grad_fsl_.bvecs_path,

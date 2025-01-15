@@ -43,8 +43,11 @@ def run_fugue(
         dwell_time=metadata.echo_spacing(
             dwi_json=input_data["dwi"]["json"], cfg=cfg, logger=logger, **kwargs
         ),
-        unwarp_direction=WARP_DIR.get(pe_dir, None),
+        unwarp_direction=WARP_DIR.get(pe_dir, None),  # type: ignore
         smooth3d=cfg["participant.preprocess.fugue.smooth"],
     )
+
+    if not fugue.unwarped_file_outfile:
+        raise ValueError("Unable to generate undistorted file with FSL's FUGUE")
 
     return fugue.unwarped_file_outfile

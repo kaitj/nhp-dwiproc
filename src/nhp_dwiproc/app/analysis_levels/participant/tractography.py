@@ -13,20 +13,21 @@ from nhp_dwiproc.workflow.diffusion import reconst, tractography
 
 def run(cfg: dict[str, Any], logger: Logger) -> None:
     """Runner for tractography-level analysis."""
+    # Load BIDSTable, querying if necessary
     logger.info("Tractography analysis-level")
     b2t = utils.io.load_b2t(cfg=cfg, logger=logger)
-
-    # Filter b2t based on string query
     if cfg.get("participant.query"):
         b2t = b2t.loc[b2t.flat.query(cfg.get("participant.query", "")).index]
+    if not isinstance(b2t, BIDSTable):
+        raise TypeError(f"Loaded table of type {type(b2t)} instead of BIDSTable")
 
-    assert isinstance(b2t, BIDSTable)
     dwi_b2t = b2t
     if cfg.get("participant.query_dwi"):
         dwi_b2t = b2t.loc[b2t.flat.query(cfg["participant.query_dwi"]).index]
+    if not isinstance(dwi_b2t, BIDSTable):
+        raise TypeError(f"Queried table of type {type(dwi_b2t)} instead of BIDSTable")
 
     # Loop through remaining subjects after query
-    assert isinstance(dwi_b2t, BIDSTable)
     groupby_keys = utils.io.valid_groupby(
         b2t=dwi_b2t, keys=["sub", "ses", "run", "space"]
     )

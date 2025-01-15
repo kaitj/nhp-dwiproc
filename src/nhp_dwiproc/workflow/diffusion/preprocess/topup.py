@@ -38,6 +38,8 @@ def run_apply_topup(
         fout=bids(suffix="fmap"),
         nthr=cfg["opt.threads"],
     )
+    if not topup.iout:
+        raise ValueError("Unable to unwarp b0")
 
     # Generate crude mask for eddy
     mean_topup = mrtrix.mrmath(

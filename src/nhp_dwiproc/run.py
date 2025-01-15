@@ -31,7 +31,7 @@ def main() -> None:
 
     # Finish cleaning up workflow
     if not cfg["opt.keep_tmp"]:
-        shutil.rmtree(runner.base.data_dir)
+        shutil.rmtree(runner.base.data_dir)  # type: ignore
 
     # Print graph
     if cfg["opt.graph"]:
