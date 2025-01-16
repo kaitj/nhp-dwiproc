@@ -117,10 +117,9 @@ def extract_tract(
     if not input_data["anat"]["surfs"].get("inflated"):
         logger.warning("Inflated surface not found; not mapping end points")
     else:
-        assert (
-            len(input_data["anat"]["surfs"][surf_type]) == 1
-            for surf_type in ["white", "pial", "inflated"]
-        ), "More than 1 surface for each type found"
+        for surf_type in ["white", "pial", "inflated"]:
+            if len(input_data["anat"]["surfs"][surf_type]) > 1:
+                raise ValueError(f"More than 1 surface found for {surf_type}")
         surf = workbench.volume_to_surface_mapping(
             volume=tdi.output,
             surface=input_data["anat"]["surfs"]["inflated"][0],

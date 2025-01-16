@@ -9,7 +9,7 @@ from nhp_dwiproc.app.utils import APP_NAME
 
 
 def generate_descriptor(cfg: dict[str, Any], out_fname: str) -> None:
-    """Generator and save app descriptor."""
+    """Generate and save app descriptor."""
     descriptor = BidsAppDescriptor(
         app_name=(
             f"{APP_NAME} generated dataset - {cfg['analysis_level']} analysis-level"

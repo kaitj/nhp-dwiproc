@@ -1,6 +1,6 @@
 """Preprocessing steps associated with registering to subject's T1w.
 
-- transforms saved in `anat` folder (similar to fmriprep)
+NOTE: transforms saved in `anat` folder (similar to fmriprep)
 """
 
 import pathlib as pl
@@ -8,7 +8,7 @@ from functools import partial
 from logging import Logger
 from typing import Any
 
-import nibabel as nib
+import nibabel.nifti1 as nib
 from niwrap import ants, c3d, greedy, mrtrix
 from styxdefs import InputPathType, OutputPathType
 
@@ -74,19 +74,23 @@ def register(
         threads=cfg["opt.threads"],
     )
     transforms = {"ras": b0_to_t1.output_file}
+    if not transforms.get("ras"):
+        raise ValueError("No RAS transformation found")
     b0_resliced = greedy.greedy_(
         fixed_reslicing_image=input_data["t1w"]["nii"],
         reslice_moving_image=greedy.GreedyResliceMovingImage(
             moving=b0.output,
             output=bids(space="T1w", desc="avg", suffix="b0", ext=".nii.gz"),
         ),
-        reslice=[transforms["ras"]],
+        reslice=[transforms["ras"]],  # type: ignore
         dimensions=3,
         threads=cfg["opt.threads"],
     )
+    if not b0_resliced.reslice_moving_image:
+        raise ValueError("b0 image was unable to be resliced.")
 
     # Create reference in original resolution
-    im = nib.loadsave.load(b0.output)
+    im = nib.load(b0.output)
     res = "x".join([str(vox) for vox in im.header.get_zooms()]) + "mm"
     ref_b0 = c3d.c3d_(
         input_=[b0_resliced.reslice_moving_image.resliced_image],
@@ -116,7 +120,7 @@ def register(
         files=[
             pl.Path(b0_resliced.reslice_moving_image.resliced_image),
             (ref_b0 := pl.Path(ref_b0.root).joinpath(b0_fname)),
-            *transforms.values(),
+            *transforms.values(),  # type: ignore
         ],
         out_dir=cfg["output_dir"].joinpath(bids(directory=True)),
     )

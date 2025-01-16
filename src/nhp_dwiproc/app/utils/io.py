@@ -15,7 +15,7 @@ def check_index_path(cfg: dict[str, Any]) -> pl.Path:
     return cfg.get("opt.index_path", cfg["bids_dir"] / "index.b2t")
 
 
-def load_b2t(cfg: dict[str, Any], logger: logging.Logger) -> BIDSTable:
+def load_b2t(cfg: dict[str, Any], logger: logging.Logger) -> pd.DataFrame:
     """Handle loading of bids2table."""
     index_path = check_index_path(cfg=cfg)
 
@@ -39,7 +39,7 @@ def load_b2t(cfg: dict[str, Any], logger: logging.Logger) -> BIDSTable:
     )
 
     # Flatten entities s.t. extra_ents can be filtered
-    extra_entities = pd.json_normalize(b2t["ent__extra_entities"]).set_index(b2t.index)
+    extra_entities = pd.json_normalize(b2t["ent__extra_entities"]).set_index(b2t.index)  # type: ignore
     b2t = pd.concat([b2t, extra_entities.add_prefix("ent__")], axis=1)
 
     return b2t.drop(columns="ent__extra_entities")

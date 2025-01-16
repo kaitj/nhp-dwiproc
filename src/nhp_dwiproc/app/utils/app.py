@@ -46,7 +46,7 @@ def initialize(cfg: dict[str, Any]) -> tuple[logging.Logger, Runner]:
     # Redirect intermediate files if option selected
     if cfg["opt.keep_tmp"]:
         cfg["opt.working_dir"] = cfg["output_dir"].joinpath(
-            f'working/{datetime.now().isoformat(timespec="seconds").replace(":", "-")}'
+            f"working/{datetime.now().isoformat(timespec='seconds').replace(':', '-')}"
         )
     runner.data_dir = cfg["opt.working_dir"]
     runner.environ = {"MRTRIX_RNG_SEED": str(cfg["opt.seed_num"])}
@@ -64,9 +64,11 @@ def validate_cfg(cfg: dict[str, Any]) -> None:
     if cfg.get("participant.query"):
         query_keys = re.findall(r"\b(\w+)=", cfg["participant.query"])
         invalid_keys = [key for key in query_keys if key not in allowed_keys]
-        assert (
-            not invalid_keys
-        ), "Only 'sub', 'ses', 'run' accepted for participant query"
+        if len(invalid_keys) != 0:
+            raise ValueError(
+                "Only 'sub', 'ses', 'run' are valid participant query keys: "
+                f"{invalid_keys} found"
+            )
 
     match cfg["analysis_level"]:
         case "index":
@@ -77,9 +79,11 @@ def validate_cfg(cfg: dict[str, Any]) -> None:
             if pe_dirs := cfg.get("participant.preprocess.metadata.pe_dirs"):
                 if len(pe_dirs) > 2:
                     raise ValueError("More than 2 phase encode directions provided")
-                assert all(
-                    pe_dir in valid_dirs for pe_dir in pe_dirs
-                ), "Invalid PE direction provided"
+                for pe_dir in pe_dirs:
+                    if pe_dir not in valid_dirs:
+                        raise ValueError(
+                            f"Invalid phase-encode direction provided {pe_dir}"
+                        )
 
             # Validate TOPUP config
             topup_cfg = cfg.get("participant.preprocess.topup.config", "b02b0_macaque")

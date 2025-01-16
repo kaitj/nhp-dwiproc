@@ -81,23 +81,36 @@ def compute_fods(
     )
     if cfg["participant.tractography.single_shell"]:
         response_odf = _create_response_odf(
-            response=dwi2response.algorithm, bids=bids, single_shell=True
+            response=dwi2response.algorithm,  # type: ignore
+            bids=bids,
+            single_shell=True,
         )
+        if not any(
+            isinstance(response, mrtrix3tissue.Ss3tCsdBeta1ResponseOdf)
+            for response in response_odf
+        ):
+            raise TypeError("Response odf is not of type 'Ss3tCsdBeta1ResponseOdf'")
         odfs = mrtrix3tissue.ss3t_csd_beta1(
             dwi=mrconvert.output,
-            response_odf=response_odf,
+            response_odf=response_odf,  # type: ignore
             mask=input_data["dwi"]["mask"],
             nthreads=cfg["opt.threads"],
             config=[mrtrix3tissue.Ss3tCsdBeta1Config("BZeroThreshold", b0_thresh)],
         )
     else:
         response_odf = _create_response_odf(
-            response=dwi2response.algorithm, bids=bids, single_shell=False
+            response=dwi2response.algorithm,  # type: ignore
+            bids=bids,
+            single_shell=False,
         )
+        if not any(
+            isinstance(response, mrtrix.Dwi2fodResponseOdf) for response in response_odf
+        ):
+            raise TypeError("Response odf is not of type 'Dwi2fodResponseOdf'")
         odfs = mrtrix.dwi2fod(
             algorithm="msmt_csd",
             dwi=mrconvert.output,
-            response_odf=response_odf,
+            response_odf=response_odf,  # type: ignore
             mask=input_data["dwi"]["mask"],
             shells=cfg.get("participant.tractography.shells"),
             nthreads=cfg["opt.threads"],
@@ -171,7 +184,7 @@ def compute_dti(
 
     # Save relevant outputs
     utils.io.save(
-        files=[
+        files=[  # type: ignore
             tensor2metrics.adc,
             tensor2metrics.fa,
             tensor2metrics.ad,
