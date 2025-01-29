@@ -10,7 +10,7 @@ from typing import Any
 from niwrap import fsl
 from styxdefs import InputPathType, OutputPathType
 
-from nhp_dwiproc.app import utils
+import nhp_dwiproc.utils as utils
 from nhp_dwiproc.lib import metadata
 
 WARP_DIR = {"i": "x", "i-": "x-", "j": "y", "j-": "y-", "k": "z", "k-": "z-"}
@@ -27,7 +27,7 @@ def run_fugue(
 ) -> OutputPathType:
     """Perform FSL's FUGUE."""
     bids = partial(
-        utils.bids_name, datatype="dwi", desc="fugue", ext=".nii.gz", **input_group
+        utils.io.bids_name, datatype="dwi", desc="fugue", ext=".nii.gz", **input_group
     )
     logger.info("Running FSL's fugue")
 

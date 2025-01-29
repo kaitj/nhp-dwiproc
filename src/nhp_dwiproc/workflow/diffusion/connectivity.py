@@ -7,7 +7,7 @@ from typing import Any
 from bids2table import BIDSEntities
 from niwrap import mrtrix, workbench
 
-from nhp_dwiproc.app import utils
+import nhp_dwiproc.utils as utils
 
 
 def generate_conn_matrix(
@@ -20,7 +20,7 @@ def generate_conn_matrix(
     """Generate connectivity matrix."""
     logger.info("Generating connectivity matrices")
     bids = partial(
-        utils.bids_name,
+        utils.io.bids_name,
         datatype="dwi",
         **input_group,
     )
@@ -78,7 +78,7 @@ def extract_tract(
 
     logger.info("Extracting tract")
     bids = partial(
-        utils.bids_name,
+        utils.io.bids_name,
         datatype="dwi",
         **input_group,
     )

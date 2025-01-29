@@ -7,7 +7,7 @@ from typing import Any
 from niwrap import mrtrix
 from styxdefs import InputPathType, OutputPathType
 
-from nhp_dwiproc.app import utils
+import nhp_dwiproc.utils as utils
 
 
 def degibbs(
@@ -18,7 +18,7 @@ def degibbs(
     **kwargs,
 ) -> OutputPathType:
     """Minimize Gibbs ringing."""
-    bids = partial(utils.bids_name, datatype="dwi", **entities)
+    bids = partial(utils.io.bids_name, datatype="dwi", **entities)
     if cfg["participant.preprocess.unring.skip"]:
         return OutputPathType(dwi)
 

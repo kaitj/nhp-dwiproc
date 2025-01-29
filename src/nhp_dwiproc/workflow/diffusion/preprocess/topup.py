@@ -8,7 +8,7 @@ from typing import Any
 from niwrap import fsl, mrtrix
 from styxdefs import OutputPathType
 
-from nhp_dwiproc.app import utils
+import nhp_dwiproc.utils as utils
 from nhp_dwiproc.workflow.diffusion.preprocess.dwi import gen_topup_inputs
 
 
@@ -21,7 +21,7 @@ def run_apply_topup(
 ) -> tuple[pl.Path, list[str], fsl.TopupOutputs, OutputPathType]:
     """Perform FSL's topup."""
     bids = partial(
-        utils.bids_name, datatype="dwi", desc="topup", ext=".nii.gz", **input_group
+        utils.io.bids_name, datatype="dwi", desc="topup", ext=".nii.gz", **input_group
     )
     logger.info("Running FSL's topup")
 
@@ -36,7 +36,6 @@ def run_apply_topup(
         out=f"{bids(ext=None)}",
         iout=bids(suffix="b0s"),
         fout=bids(suffix="fmap"),
-        nthr=cfg["opt.threads"],
     )
     if not topup.iout:
         raise ValueError("Unable to unwarp b0")

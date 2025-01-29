@@ -6,7 +6,7 @@ from typing import Any
 
 from niwrap import mrtrix, mrtrix3tissue
 
-from nhp_dwiproc.app import utils
+import nhp_dwiproc.utils as utils
 
 
 def _create_response_odf(
@@ -36,7 +36,7 @@ def compute_fods(
     """Process subject for tractography."""
     logger.info("Computing response function")
     bids = partial(
-        utils.bids_name,
+        utils.io.bids_name,
         datatype="dwi",
         method="dhollander",
         suffix="response",
@@ -72,7 +72,7 @@ def compute_fods(
 
     logger.info("Computing fiber orientation distribution")
     bids = partial(
-        utils.bids_name,
+        utils.io.bids_name,
         datatype="dwi",
         model="csd",
         suffix="dwimap",
@@ -144,7 +144,7 @@ def compute_dti(
     """Process diffusion tensors."""
     logger.info("Performing tensor fitting")
     bids = partial(
-        utils.bids_name,
+        utils.io.bids_name,
         datatype="dwi",
         model="tensor",
         suffix="dwimap",
@@ -193,6 +193,6 @@ def compute_dti(
             tensor2metrics.vector,
         ],
         out_dir=cfg["output_dir"].joinpath(
-            utils.bids_name(directory=True, datatype="dwi", **input_group)
+            utils.io.bids_name(directory=True, datatype="dwi", **input_group)
         ),
     )

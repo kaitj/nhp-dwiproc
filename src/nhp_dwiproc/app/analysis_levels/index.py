@@ -5,7 +5,7 @@ from typing import Any
 
 from bids2table import bids2table
 
-from nhp_dwiproc.app import utils
+import nhp_dwiproc.utils as utils
 
 
 def run(cfg: dict[str, Any], logger: Logger) -> None:

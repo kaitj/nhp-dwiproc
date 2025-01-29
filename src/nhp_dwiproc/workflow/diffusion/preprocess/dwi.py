@@ -9,7 +9,7 @@ import numpy as np
 from niwrap import mrtrix
 from styxdefs import InputPathType, OutputPathType
 
-from nhp_dwiproc.app import utils
+import nhp_dwiproc.utils as utils
 from nhp_dwiproc.lib.dwi import (
     concat_dir_phenc_data,
     get_eddy_indices,
@@ -17,7 +17,6 @@ from nhp_dwiproc.lib.dwi import (
     get_phenc_info,
     normalize,
 )
-from nhp_dwiproc.lib.utils import gen_hash
 
 
 def get_phenc_data(
@@ -31,7 +30,7 @@ def get_phenc_data(
 ) -> tuple[OutputPathType, str, np.ndarray]:
     """Generate phase-encoding direction data for downstream steps."""
     logger.info("Getting phase-encoding information")
-    bids = partial(utils.bids_name, datatype="dwi", suffix="b0", **entities)
+    bids = partial(utils.io.bids_name, datatype="dwi", suffix="b0", **entities)
     dwi_b0 = mrtrix.dwiextract(
         input_=dwi,
         output=bids(ext=".mif"),
@@ -74,7 +73,7 @@ def gen_topup_inputs(
     dwi_b0 = mrtrix.mrcat(
         image1=dir_outs["b0"][0],
         image2=dir_outs["b0"][1:],
-        output=utils.bids_name(
+        output=utils.io.bids_name(
             datatype="dwi", suffix="b0", ext=".nii.gz", **input_group
         ),
         nthreads=cfg["opt.threads"],
@@ -101,9 +100,9 @@ def concat_bv(
     **kwargs,
 ) -> tuple[pl.Path, ...]:
     """Concatenate .bval and .bvec files."""
-    out_dir = cfg["opt.working_dir"] / f"{gen_hash()}_concat-bv"
+    out_dir = cfg["opt.working_dir"] / f"{utils.assets.gen_hash()}_concat-bv"
     bids = partial(
-        utils.bids_name, datatype="dwi", desc="concat", suffix="dwi", **input_group
+        utils.io.bids_name, datatype="dwi", desc="concat", suffix="dwi", **input_group
     )
     out_dir.mkdir(parents=True, exist_ok=False)
     out_files = out_dir / bids(ext=".bval"), out_dir / bids(ext=".bvec")
@@ -129,7 +128,7 @@ def gen_eddy_inputs(
         dwi = mrtrix.mrcat(
             image1=dir_outs["dwi"][0],
             image2=dir_outs["dwi"][1:],
-            output=utils.bids_name(
+            output=utils.io.bids_name(
                 datatype="dwi",
                 desc="concat",
                 suffix="dwi",

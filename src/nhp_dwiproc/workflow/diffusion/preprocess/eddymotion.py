@@ -9,8 +9,7 @@ import numpy as np
 from eddymotion.data import dmri
 from eddymotion.estimator import EddyMotionEstimator
 
-from nhp_dwiproc.app import utils
-from nhp_dwiproc.lib.utils import gen_hash
+import nhp_dwiproc.utils as utils
 
 
 def eddymotion(
@@ -22,7 +21,11 @@ def eddymotion(
 ) -> tuple[pl.Path, ...]:
     """Perform eddymotion."""
     bids = partial(
-        utils.bids_name, datatype="dwi", desc="eddymotion", ext=".nii.gz", **input_group
+        utils.io.bids_name,
+        datatype="dwi",
+        desc="eddymotion",
+        ext=".nii.gz",
+        **input_group,
     )
     logger.info("Running eddymotion")
 
@@ -31,7 +34,7 @@ def eddymotion(
     ):
         raise ValueError("Multiple diffusion-associated files found")
 
-    out_fpath = cfg["opt.working_dir"] / f"{gen_hash()}_eddymotion"
+    out_fpath = cfg["opt.working_dir"] / f"{utils.assets.gen_hash()}_eddymotion"
     out_fpath.mkdir(parents=True, exist_ok=True)
 
     dwi_data = dmri.load(
