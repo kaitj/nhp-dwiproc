@@ -28,7 +28,7 @@ def biascorrect(
         input_image=dwi,
         output_image=bids(desc="biascorrect", suffix="dwi"),
         algorithm="ants",
-        fslgrad=mrtrix.DwibiascorrectFslgrad(bvecs=bvec, bvals=bval),
+        fslgrad=mrtrix.dwibiascorrect_fslgrad_params(bvecs=bvec, bvals=bval),
         ants_b=f"{cfg['participant.preprocess.biascorrect.spacing']},3",
         ants_c=f"{cfg['participant.preprocess.biascorrect.iters']},0.0",
         ants_s=f"{cfg['participant.preprocess.biascorrect.shrink']}",
@@ -38,7 +38,7 @@ def biascorrect(
         input_image=biascorrect.output_image_file,
         output_image=bids(desc="preproc", suffix="dwi"),
         algorithm="ants",
-        fslgrad=mrtrix.DwibiascorrectFslgrad(bvecs=bvec, bvals=bval),
+        fslgrad=mrtrix.dwibiascorrect_fslgrad_params(bvecs=bvec, bvals=bval),
         ants_b=f"{cfg['participant.preprocess.biascorrect.spacing']},3",
         ants_c=f"{cfg['participant.preprocess.biascorrect.iters']},0.0",
         ants_s=f"{cfg['participant.preprocess.biascorrect.shrink']}",
@@ -48,7 +48,7 @@ def biascorrect(
     mask = mrtrix.dwi2mask(
         input_=biascorrect.output_image_file,
         output=bids(desc="biascorrect", suffix="mask"),
-        fslgrad=mrtrix.Dwi2maskFslgrad(bvecs=bvec, bvals=bval),
+        fslgrad=mrtrix.dwi2mask_fslgrad_params(bvecs=bvec, bvals=bval),
         nthreads=cfg["opt.threads"],
     )
 
