@@ -10,7 +10,7 @@ from typing import Any
 from bids2table import BIDSEntities, BIDSTable
 from tqdm import tqdm
 
-from nhp_dwiproc.app import utils
+import nhp_dwiproc.utils as utils
 from nhp_dwiproc.lib import dwi as dwi_lib
 from nhp_dwiproc.workflow.diffusion import preprocess
 
@@ -48,7 +48,7 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
         }
         # Outer loops processes the combined directions
         logger.info(
-            f"Processing {(uid := utils.bids_name(**input_kwargs['input_group']))}"
+            f"Processing {(uid := utils.io.bids_name(**input_kwargs['input_group']))}"
         )
 
         # Inner loop process per direction, save to list
@@ -221,7 +221,7 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
         )
 
         bval_fpath = cfg["output_dir"].joinpath(
-            utils.bids_name(
+            utils.io.bids_name(
                 return_path=True,
                 datatype="dwi",
                 space="T1w",

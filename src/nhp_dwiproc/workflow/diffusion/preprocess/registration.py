@@ -12,7 +12,7 @@ import nibabel.nifti1 as nib
 from niwrap import ants, c3d, greedy, mrtrix
 from styxdefs import InputPathType, OutputPathType
 
-from nhp_dwiproc.app import utils
+import nhp_dwiproc.utils as utils
 from nhp_dwiproc.lib.dwi import rotate_bvec
 
 
@@ -29,7 +29,7 @@ def register(
 ) -> tuple[pl.Path, dict[str, Any]]:
     """Rigidly register to T1w with original dwi resolution."""
     logger.info("Computing rigid transformation to structural T1w")
-    bids = partial(utils.bids_name, datatype="dwi", **input_group)
+    bids = partial(utils.io.bids_name, datatype="dwi", **input_group)
     b0 = mrtrix.dwiextract(
         input_=dwi,
         output=bids(suffix="b0", ext=".mif"),
@@ -142,7 +142,7 @@ def apply_transform(
 ) -> tuple[OutputPathType, OutputPathType, pl.Path]:
     """Apply transform to dwi volume."""
     logger.info("Applying transformations to DWI")
-    bids = partial(utils.bids_name, datatype="dwi", ext=".nii.gz", **input_group)
+    bids = partial(utils.io.bids_name, datatype="dwi", ext=".nii.gz", **input_group)
     xfm_dwi = ants.ants_apply_transforms(
         dimensionality=3,
         input_image_type=3,

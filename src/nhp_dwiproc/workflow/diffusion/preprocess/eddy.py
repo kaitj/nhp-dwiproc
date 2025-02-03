@@ -8,7 +8,7 @@ from typing import Any
 from niwrap import fsl, mrtrix
 from styxdefs import InputPathType, OutputPathType
 
-from nhp_dwiproc.app import utils
+import nhp_dwiproc.utils as utils
 from nhp_dwiproc.workflow.diffusion.preprocess.dwi import gen_eddy_inputs
 
 
@@ -24,7 +24,7 @@ def run_eddy(
     **kwargs,
 ) -> tuple[OutputPathType, pl.Path, OutputPathType]:
     """Perform FSL's eddy."""
-    bids = partial(utils.bids_name, datatype="dwi", ext=".nii.gz", **input_group)
+    bids = partial(utils.io.bids_name, datatype="dwi", ext=".nii.gz", **input_group)
     dwi, bval, bvec, phenc, index_fpath = gen_eddy_inputs(
         phenc=phenc,
         indices=indices,
@@ -44,7 +44,7 @@ def run_eddy(
         ).output
 
     logger.info("Running FSL's eddy")
-    bids = partial(utils.bids_name, datatype="dwi", desc="eddy", **input_group)
+    bids = partial(utils.io.bids_name, datatype="dwi", desc="eddy", **input_group)
     eddy = fsl.eddy(
         imain=dwi,
         mask=mask,

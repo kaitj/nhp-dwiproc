@@ -2,8 +2,8 @@
 
 from bidsapp_helper.parser import BidsAppArgumentParser
 
+from nhp_dwiproc import APP_NAME
 from nhp_dwiproc.app.cli import args
-from nhp_dwiproc.app.utils import APP_NAME
 
 
 def parser() -> BidsAppArgumentParser:

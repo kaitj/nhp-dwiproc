@@ -8,9 +8,8 @@ import nibabel.nifti1 as nib
 import numpy as np
 from niwrap import mrtrix
 
-from nhp_dwiproc.app import utils
+import nhp_dwiproc.utils as utils
 from nhp_dwiproc.lib import metadata
-from nhp_dwiproc.lib.utils import gen_hash, load_nifti
 
 
 def get_phenc_info(
@@ -65,10 +64,12 @@ def concat_dir_phenc_data(
     **kwargs,
 ) -> pl.Path:
     """Concatenate opposite phase encoding directions."""
-    phenc_fname = utils.bids_name(
+    phenc_fname = utils.io.bids_name(
         datatype="dwi", desc="concat", suffix="phenc", ext=".txt", **input_group
     )
-    phenc_fpath = cfg["opt.working_dir"] / f"{gen_hash()}_concat-phenc" / phenc_fname
+    phenc_fpath = (
+        cfg["opt.working_dir"] / f"{utils.assets.gen_hash()}_concat-phenc" / phenc_fname
+    )
     phenc_fpath.parent.mkdir(parents=True, exist_ok=False)
     np.savetxt(phenc_fpath, np.vstack(pe_data), fmt="%.5f")
 
@@ -79,7 +80,7 @@ def normalize(
     img: str | pl.Path, input_group: dict[str, Any], cfg: dict[str, Any], **kwargs
 ) -> pl.Path:
     """Normalize 4D image."""
-    nii = load_nifti(img)
+    nii = utils.assets.load_nifti(img)
     arr = np.array(nii.dataobj)
 
     ref_mean = np.mean(arr[..., 0])
@@ -91,10 +92,12 @@ def normalize(
 
     norm_nii = nib.Nifti1Image(dataobj=arr, affine=nii.affine, header=nii.header)
 
-    nii_fname = utils.bids_name(
+    nii_fname = utils.io.bids_name(
         datatype="dwi", desc="normalized", suffix="b0", ext=".nii.gz", **input_group
     )
-    nii_fpath = cfg["opt.working_dir"] / f"{gen_hash()}_normalize" / nii_fname
+    nii_fpath = (
+        cfg["opt.working_dir"] / f"{utils.assets.gen_hash()}_normalize" / nii_fname
+    )
     nii_fpath.parent.mkdir(parents=True, exist_ok=False)
     nib.save(norm_nii, nii_fpath)
 
@@ -136,8 +139,8 @@ def get_eddy_indices(
         for idx, imsize in zip(indices or ["1"] * len(imsizes), imsizes)
     ]
 
-    out_dir = cfg["opt.working_dir"] / f"{gen_hash()}_eddy-indices"
-    out_fname = utils.bids_name(
+    out_dir = cfg["opt.working_dir"] / f"{utils.assets.gen_hash()}_eddy-indices"
+    out_fname = utils.io.bids_name(
         datatype="dwi", desc="eddy", suffix="indices", ext=".txt", **input_group
     )
     out_fpath = out_dir / out_fname
@@ -159,8 +162,8 @@ def rotate_bvec(
     transformation_mat = np.loadtxt(transformation)
     rotated_bvec = np.dot(transformation_mat[:3, :3], bvec)
 
-    out_dir = cfg["opt.working_dir"] / f"{gen_hash()}_rotate-bvec"
-    out_fname = utils.bids_name(
+    out_dir = cfg["opt.working_dir"] / f"{utils.assets.gen_hash()}_rotate-bvec"
+    out_fname = utils.io.bids_name(
         datatype="dwi",
         space="T1w",
         res="dwi",

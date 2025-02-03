@@ -8,7 +8,7 @@ import numpy as np
 from niwrap import mrtrix
 from styxdefs import OutputPathType
 
-from nhp_dwiproc.app import utils
+import nhp_dwiproc.utils as utils
 
 
 def denoise(
@@ -28,7 +28,7 @@ def denoise(
         return input_data["dwi"]["nii"]
 
     logger.info("Performing denoising")
-    bids = partial(utils.bids_name, datatype="dwi", **entities)
+    bids = partial(utils.io.bids_name, datatype="dwi", **entities)
 
     denoise = mrtrix.dwidenoise(
         dwi=input_data["dwi"]["nii"],

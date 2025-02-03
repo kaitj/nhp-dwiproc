@@ -7,7 +7,7 @@ from typing import Any
 from niwrap import mrtrix
 from styxdefs import InputPathType
 
-from nhp_dwiproc.app import utils
+import nhp_dwiproc.utils as utils
 
 
 def _tckgen(
@@ -54,7 +54,7 @@ def generate_tractography(
     """Generate subject tractography."""
     logger.info("Generating tractography")
     wm_fod = fod.input_output[0].output
-    bids = partial(utils.bids_name, datatype="dwi", **input_group)
+    bids = partial(utils.io.bids_name, datatype="dwi", **input_group)
     tckgen = _tckgen(
         wm_fod=wm_fod, tt_map=input_data["dwi"].get("5tt", None), bids=bids, cfg=cfg
     )

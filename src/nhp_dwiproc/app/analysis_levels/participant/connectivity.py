@@ -6,7 +6,7 @@ from typing import Any
 from bids2table import BIDSTable
 from tqdm import tqdm
 
-from nhp_dwiproc.app import utils
+from nhp_dwiproc import utils
 from nhp_dwiproc.workflow.diffusion import connectivity
 
 
@@ -57,9 +57,8 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
             }
 
             # Perform processing
-            logger.info(
-                f"Processing {(uid := utils.bids_name(**input_kwargs['input_group']))}"
-            )
+            uid = utils.io.bids_name(**input_kwargs["input_group"])
+            logger.info(f"Processing {uid}")
             if cfg.get("participant.connectivity.atlas"):
                 connectivity.generate_conn_matrix(**input_kwargs)
             elif cfg.get("participant.connectivity.query_tract"):

@@ -8,7 +8,7 @@ from typing import Any
 from niwrap import mrtrix
 from styxdefs import InputPathType, OutputPathType
 
-from nhp_dwiproc.app import utils
+import nhp_dwiproc.utils as utils
 
 
 def biascorrect(
@@ -22,7 +22,7 @@ def biascorrect(
 ) -> tuple[OutputPathType, ...]:
     """Perform biascorrection steps."""
     logger.info("Performing biascorrection")
-    bids = partial(utils.bids_name, datatype="dwi", ext=".nii.gz", **input_group)
+    bids = partial(utils.io.bids_name, datatype="dwi", ext=".nii.gz", **input_group)
 
     biascorrect = mrtrix.dwibiascorrect(
         input_image=dwi,
