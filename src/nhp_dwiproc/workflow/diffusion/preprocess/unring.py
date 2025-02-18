@@ -31,7 +31,6 @@ def degibbs(
         nshifts=cfg["participant.preprocess.unring.nshifts"],
         min_w=cfg["participant.preprocess.unring.minW"],
         max_w=cfg["participant.preprocess.unring.maxW"],
-        nthreads=cfg["opt.threads"],
     )
 
     return degibbs.out

@@ -27,7 +27,6 @@ def _tckgen(
         "step": cfg.get("participant.tractography.steps"),
         "cutoff": cfg.get("participant.tractography.cutoff"),
         "select_": cfg.get("participant.tractography.streamlines"),
-        "nthreads": cfg.get("opt.threads"),
     }
 
     # ACT-specific params
@@ -64,7 +63,6 @@ def generate_tractography(
         in_tracks=tckgen.tracks,
         in_fod=wm_fod,
         out_weights=bids(method="SIFT2", suffix="tckWeights", ext=".txt"),
-        nthreads=cfg["opt.threads"],
     )
 
     tdi = {}
@@ -74,7 +72,6 @@ def generate_tractography(
             tck_weights_in=weights,
             template=wm_fod,
             output=bids(meas=meas, suffix="tdi", ext=".nii.gz"),
-            nthreads=cfg["opt.threads"],
         )
 
     # Save relevant outputs

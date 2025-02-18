@@ -184,7 +184,6 @@ def grad_check(
     bvec: pl.Path,
     bval: pl.Path,
     mask: pl.Path | None,
-    cfg: dict[str, Any],
     **kwargs,
 ) -> None:
     """Check and update orientation of diffusion gradient."""
@@ -192,20 +191,13 @@ def grad_check(
         input_image=nii,
         mask_image=mask,
         number=10_000,  # Small number to enable quick permutations,
-        fslgrad=mrtrix.DwigradcheckFslgrad(
-            bvecs=bvec,
-            bvals=bval,
-        ),
+        fslgrad=mrtrix.DwigradcheckFslgrad(bvecs=bvec, bvals=bval),
         export_grad_fsl=mrtrix.DwigradcheckExportGradFsl(
             bvecs_path=bval.with_suffix(".bvec").name,
             bvals_path=bval.name,  # replacing file if necessary
         ),
-        nthreads=cfg["opt.threads"],
     )
     if not bvec_check.export_grad_fsl_:
         raise AttributeError("Unsuccessful export of diffusion gradients")
 
-    utils.io.save(
-        files=bvec_check.export_grad_fsl_.bvecs_path,
-        out_dir=bval.parent,
-    )
+    utils.io.save(files=bvec_check.export_grad_fsl_.bvecs_path, out_dir=bval.parent)

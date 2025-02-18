@@ -35,7 +35,6 @@ def register(
         output=bids(suffix="b0", ext=".mif"),
         fslgrad=mrtrix.DwiextractFslgrad(bvecs=bvec, bvals=bval),
         bzero=True,
-        nthreads=cfg["opt.threads"],
         config=[
             mrtrix.DwiextractConfig("BZeroThreshold", str(cfg["participant.b0_thresh"]))
         ],
@@ -46,7 +45,6 @@ def register(
         output=bids(desc="avg", suffix="b0", ext=".nii.gz"),
         operation="mean",
         axis=3,
-        nthreads=cfg["opt.threads"],
     )
 
     # Perform registration

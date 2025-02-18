@@ -19,11 +19,7 @@ def generate_conn_matrix(
 ) -> None:
     """Generate connectivity matrix."""
     logger.info("Generating connectivity matrices")
-    bids = partial(
-        utils.io.bids_name,
-        datatype="dwi",
-        **input_group,
-    )
+    bids = partial(utils.io.bids_name, datatype="dwi", **input_group)
     tck2connectome = {}
     for meas, tck_weights, length in zip(
         ["afd", "count", "avgLength"],
@@ -41,7 +37,6 @@ def generate_conn_matrix(
             tck_weights_in=tck_weights,
             scale_length=length,
             stat_edge="mean" if length else None,
-            nthreads=cfg["opt.threads"],
         )
 
         # Save outputs
@@ -77,11 +72,7 @@ def extract_tract(
         raise ValueError("No ROIs were provided")
 
     logger.info("Extracting tract")
-    bids = partial(
-        utils.io.bids_name,
-        datatype="dwi",
-        **input_group,
-    )
+    bids = partial(utils.io.bids_name, datatype="dwi", **input_group)
 
     tract_entities = BIDSEntities.from_path(rois[0].spec.obj)
     label = tract_entities.label
@@ -98,7 +89,6 @@ def extract_tract(
         tck_weights_out=bids(
             hemi=hemi, label=label, method="SIFT2", suffix="tckWeights", ext=".txt"
         ),
-        nthreads=cfg["opt.threads"],
     )
     tdi = mrtrix.tckmap(
         tracks=tckedit.tracks_out,
@@ -106,7 +96,6 @@ def extract_tract(
         vox=[vox] if (vox := cfg.get("participant.connectivity.vox_mm")) else None,
         template=rois[0].spec.obj,
         output=bids(hemi=hemi, label=label, suffix="tdi", ext=".nii.gz"),
-        nthreads=cfg["opt.threads"],
     )
 
     utils.io.save(

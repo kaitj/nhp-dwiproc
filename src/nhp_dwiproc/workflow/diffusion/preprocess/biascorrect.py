@@ -32,7 +32,6 @@ def biascorrect(
         ants_b=f"{cfg['participant.preprocess.biascorrect.spacing']},3",
         ants_c=f"{cfg['participant.preprocess.biascorrect.iters']},0.0",
         ants_s=f"{cfg['participant.preprocess.biascorrect.shrink']}",
-        nthreads=cfg["opt.threads"],
     )
     biascorrect = mrtrix.dwibiascorrect(
         input_image=biascorrect.output_image_file,
@@ -42,14 +41,12 @@ def biascorrect(
         ants_b=f"{cfg['participant.preprocess.biascorrect.spacing']},3",
         ants_c=f"{cfg['participant.preprocess.biascorrect.iters']},0.0",
         ants_s=f"{cfg['participant.preprocess.biascorrect.shrink']}",
-        nthreads=cfg["opt.threads"],
     )
 
     mask = mrtrix.dwi2mask(
         input_=biascorrect.output_image_file,
         output=bids(desc="biascorrect", suffix="mask"),
         fslgrad=mrtrix.Dwi2maskFslgrad(bvecs=bvec, bvals=bval),
-        nthreads=cfg["opt.threads"],
     )
 
     utils.io.save(

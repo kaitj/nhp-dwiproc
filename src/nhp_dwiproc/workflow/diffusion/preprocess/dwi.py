@@ -36,10 +36,8 @@ def get_phenc_data(
         output=bids(ext=".mif"),
         bzero=True,
         fslgrad=mrtrix.DwiextractFslgrad(
-            bvals=input_data["dwi"]["bval"],
-            bvecs=input_data["dwi"]["bvec"],
+            bvals=input_data["dwi"]["bval"], bvecs=input_data["dwi"]["bvec"]
         ),
-        nthreads=cfg["opt.threads"],
     )
 
     dwi_b0 = mrtrix.mrconvert(
@@ -47,7 +45,6 @@ def get_phenc_data(
         output=bids(ext=".nii.gz"),
         coord=[mrtrix.MrconvertCoord(3, [0])],
         axes=[0, 1, 2],
-        nthreads=cfg["opt.threads"],
     )
 
     pe_dir, pe_data = get_phenc_info(
@@ -56,11 +53,7 @@ def get_phenc_data(
         cfg=cfg,
         logger=logger,
     )
-    return (
-        dwi_b0.output,
-        pe_dir,
-        pe_data,
-    )
+    return dwi_b0.output, pe_dir, pe_data
 
 
 def gen_topup_inputs(
@@ -76,16 +69,13 @@ def gen_topup_inputs(
         output=utils.io.bids_name(
             datatype="dwi", suffix="b0", ext=".nii.gz", **input_group
         ),
-        nthreads=cfg["opt.threads"],
     )
     dwi_b0 = dwi_b0.output
     dwi_fpath = normalize(dwi_b0, input_group=input_group, cfg=cfg)
 
     # Get matching PE data to b0
     phenc_fpath = concat_dir_phenc_data(
-        pe_data=dir_outs["pe_data"],
-        input_group=input_group,
-        cfg=cfg,
+        pe_data=dir_outs["pe_data"], input_group=input_group, cfg=cfg
     )
     pe_indices = get_pe_indices(dir_outs["pe_dir"])
 
@@ -135,7 +125,6 @@ def gen_eddy_inputs(
                 ext=".nii.gz",
                 **input_group,
             ),
-            nthreads=cfg["opt.threads"],
         )
         dwi = dwi.output
     else:
@@ -153,9 +142,7 @@ def gen_eddy_inputs(
     # Generate phenc file if necessary
     if not phenc:
         phenc = concat_dir_phenc_data(
-            pe_data=[dir_outs["pe_data"][0]],
-            input_group=input_group,
-            cfg=cfg,
+            pe_data=[dir_outs["pe_data"][0]], input_group=input_group, cfg=cfg
         )
 
     # Generate index file

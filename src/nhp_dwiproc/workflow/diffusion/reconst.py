@@ -47,10 +47,8 @@ def compute_fods(
         input_=input_data["dwi"]["nii"],
         output=input_data["dwi"]["nii"].name.replace(".nii.gz", ".mif"),
         fslgrad=mrtrix.MrconvertFslgrad(
-            bvecs=input_data["dwi"]["bvec"],
-            bvals=input_data["dwi"]["bval"],
+            bvecs=input_data["dwi"]["bvec"], bvals=input_data["dwi"]["bval"]
         ),
-        nthreads=cfg["opt.threads"],
     )
     dwi2response = mrtrix.dwi2response(
         algorithm=mrtrix.Dwi2responseDhollander(
@@ -62,7 +60,6 @@ def compute_fods(
         mask=input_data["dwi"]["mask"],
         shells=cfg.get("participant.tractography.shells"),
         lmax=cfg.get("participant.tractography.lmax"),
-        nthreads=cfg["opt.threads"],
         config=[
             mrtrix.Dwi2responseConfig(
                 "BZeroThreshold", (b0_thresh := str(cfg["participant.b0_thresh"]))
@@ -94,7 +91,6 @@ def compute_fods(
             dwi=mrconvert.output,
             response_odf=response_odf,  # type: ignore
             mask=input_data["dwi"]["mask"],
-            nthreads=cfg["opt.threads"],
             config=[mrtrix3tissue.Ss3tCsdBeta1Config("BZeroThreshold", b0_thresh)],
         )
     else:
@@ -113,7 +109,6 @@ def compute_fods(
             response_odf=response_odf,  # type: ignore
             mask=input_data["dwi"]["mask"],
             shells=cfg.get("participant.tractography.shells"),
-            nthreads=cfg["opt.threads"],
             config=[mrtrix.Dwi2fodConfig("BZeroThreshold", b0_thresh)],
         )
 
@@ -126,9 +121,7 @@ def compute_fods(
         for tissue_odf in odfs.response_odf
     ]
     mtnormalise = mrtrix.mtnormalise(
-        input_output=normalize_odf,
-        mask=input_data["dwi"]["mask"],
-        nthreads=cfg["opt.threads"],
+        input_output=normalize_odf, mask=input_data["dwi"]["mask"]
     )
 
     return mtnormalise
@@ -155,11 +148,9 @@ def compute_dti(
         dwi=input_data["dwi"]["nii"],
         dt=bids(),
         fslgrad=mrtrix.Dwi2tensorFslgrad(
-            bvecs=input_data["dwi"]["bvec"],
-            bvals=input_data["dwi"]["bval"],
+            bvecs=input_data["dwi"]["bvec"], bvals=input_data["dwi"]["bval"]
         ),
         mask=input_data["dwi"]["mask"],
-        nthreads=cfg["opt.threads"],
         config=[
             mrtrix.Dwi2tensorConfig(
                 "BZeroThreshold", (b0_thresh := str(cfg["participant.b0_thresh"]))
@@ -178,7 +169,6 @@ def compute_dti(
         value=bids(param="S1"),
         vector=bids(param="V1"),
         num=[1],
-        nthreads=cfg["opt.threads"],
         config=[mrtrix.Tensor2metricConfig("BZeroThreshold", b0_thresh)],
     )
 
