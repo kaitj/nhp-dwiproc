@@ -8,12 +8,12 @@ from functools import partial
 from logging import Logger
 from typing import Any
 
-import nibabel.nifti1 as nib
 from niwrap import ants, c3d, greedy, mrtrix
 from styxdefs import InputPathType, OutputPathType
 
 import nhp_dwiproc.utils as utils
 from nhp_dwiproc.lib.dwi import rotate_bvec
+from nhp_dwiproc.utils.assets import load_nifti
 
 
 def register(
@@ -35,7 +35,6 @@ def register(
         output=bids(suffix="b0", ext=".mif"),
         fslgrad=mrtrix.DwiextractFslgrad(bvecs=bvec, bvals=bval),
         bzero=True,
-        nthreads=cfg["opt.threads"],
         config=[
             mrtrix.DwiextractConfig("BZeroThreshold", str(cfg["participant.b0_thresh"]))
         ],
@@ -46,7 +45,6 @@ def register(
         output=bids(desc="avg", suffix="b0", ext=".nii.gz"),
         operation="mean",
         axis=3,
-        nthreads=cfg["opt.threads"],
     )
 
     # Perform registration
@@ -90,7 +88,7 @@ def register(
         raise ValueError("b0 image was unable to be resliced.")
 
     # Create reference in original resolution
-    im = nib.load(b0.output)
+    im = load_nifti(b0.output)
     res = "x".join([str(vox) for vox in im.header.get_zooms()]) + "mm"
     ref_b0 = c3d.c3d_(
         input_=[b0_resliced.reslice_moving_image.resliced_image],

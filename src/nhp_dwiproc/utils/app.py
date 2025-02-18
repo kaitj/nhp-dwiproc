@@ -45,7 +45,10 @@ def initialize(cfg: dict[str, Any]) -> tuple[logging.Logger, Runner]:
         )
 
     runner.data_dir = cfg["opt.working_dir"]
-    runner.environ = {"MRTRIX_RNG_SEED": str(cfg["opt.seed_num"])}
+    runner.environ = {
+        "MRTRIX_NTHREADS": str(cfg.get("opt.threads")),
+        "MRTRIX_RNG_SEED": str(cfg.get("opt.seed_num")),
+    }
     set_global_runner(GraphRunner(runner))
 
     logger = logging.getLogger(runner.logger_name)

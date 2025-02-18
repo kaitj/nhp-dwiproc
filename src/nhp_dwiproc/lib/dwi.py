@@ -10,13 +10,11 @@ from niwrap import mrtrix
 
 import nhp_dwiproc.utils as utils
 from nhp_dwiproc.lib import metadata
+from nhp_dwiproc.utils.assets import load_nifti
 
 
 def get_phenc_info(
-    idx: int,
-    input_data: dict[str, Any],
-    logger: Logger,
-    **kwargs,
+    idx: int, input_data: dict[str, Any], logger: Logger, **kwargs
 ) -> tuple[str, np.ndarray]:
     """Generate phase encode information file."""
     # Gather relevant metadata
@@ -37,7 +35,7 @@ def get_phenc_info(
         pe_vec[np.where(pe_vec > 0)] = -1
 
     # Generate phase encoding data for use
-    img = nib.load(input_data["dwi"]["nii"])
+    img = load_nifti(input_data["dwi"]["nii"])
     img_size = np.array(img.header.get_data_shape())
     num_phase_encodes = img_size[np.where(np.abs(pe_vec) > 0)]
     ro_time = eff_echo * (num_phase_encodes - 1)
@@ -132,7 +130,7 @@ def get_eddy_indices(
     cfg: dict[str, Any],
 ) -> pl.Path:
     """Generate dwi index file for eddy."""
-    imsizes = [nib.load(nii).header.get_data_shape() for nii in niis]
+    imsizes = [load_nifti(nii).header.get_data_shape() for nii in niis]
 
     eddy_idxes = [
         idx if len(imsize) < 4 else [idx] * imsize[3]
@@ -184,7 +182,6 @@ def grad_check(
     bvec: pl.Path,
     bval: pl.Path,
     mask: pl.Path | None,
-    cfg: dict[str, Any],
     **kwargs,
 ) -> None:
     """Check and update orientation of diffusion gradient."""
@@ -192,20 +189,13 @@ def grad_check(
         input_image=nii,
         mask_image=mask,
         number=10_000,  # Small number to enable quick permutations,
-        fslgrad=mrtrix.DwigradcheckFslgrad(
-            bvecs=bvec,
-            bvals=bval,
-        ),
+        fslgrad=mrtrix.DwigradcheckFslgrad(bvecs=bvec, bvals=bval),
         export_grad_fsl=mrtrix.DwigradcheckExportGradFsl(
             bvecs_path=bval.with_suffix(".bvec").name,
             bvals_path=bval.name,  # replacing file if necessary
         ),
-        nthreads=cfg["opt.threads"],
     )
     if not bvec_check.export_grad_fsl_:
         raise AttributeError("Unsuccessful export of diffusion gradients")
 
-    utils.io.save(
-        files=bvec_check.export_grad_fsl_.bvecs_path,
-        out_dir=bval.parent,
-    )
+    utils.io.save(files=bvec_check.export_grad_fsl_.bvecs_path, out_dir=bval.parent)
