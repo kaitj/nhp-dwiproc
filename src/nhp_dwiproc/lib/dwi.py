@@ -10,6 +10,7 @@ from niwrap import mrtrix
 
 import nhp_dwiproc.utils as utils
 from nhp_dwiproc.lib import metadata
+from nhp_dwiproc.utils.assets import load_nifti
 
 
 def get_phenc_info(
@@ -37,7 +38,7 @@ def get_phenc_info(
         pe_vec[np.where(pe_vec > 0)] = -1
 
     # Generate phase encoding data for use
-    img = nib.load(input_data["dwi"]["nii"])
+    img = load_nifti(input_data["dwi"]["nii"])
     img_size = np.array(img.header.get_data_shape())
     num_phase_encodes = img_size[np.where(np.abs(pe_vec) > 0)]
     ro_time = eff_echo * (num_phase_encodes - 1)
@@ -132,7 +133,7 @@ def get_eddy_indices(
     cfg: dict[str, Any],
 ) -> pl.Path:
     """Generate dwi index file for eddy."""
-    imsizes = [nib.load(nii).header.get_data_shape() for nii in niis]
+    imsizes = [load_nifti(nii).header.get_data_shape() for nii in niis]
 
     eddy_idxes = [
         idx if len(imsize) < 4 else [idx] * imsize[3]
