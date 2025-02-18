@@ -53,7 +53,7 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
 
         # Inner loop process per direction, save to list
         dir_outs = defaultdict(list)
-        for idx, row in group.ent.iterrows():
+        for idx, (_, row) in enumerate(group.ent.iterrows()):
             input_kwargs["input_data"] = utils.io.get_inputs(
                 b2t=b2t,
                 row=row,

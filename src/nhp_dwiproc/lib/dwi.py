@@ -14,10 +14,7 @@ from nhp_dwiproc.utils.assets import load_nifti
 
 
 def get_phenc_info(
-    idx: int,
-    input_data: dict[str, Any],
-    logger: Logger,
-    **kwargs,
+    idx: int, input_data: dict[str, Any], logger: Logger, **kwargs
 ) -> tuple[str, np.ndarray]:
     """Generate phase encode information file."""
     # Gather relevant metadata
