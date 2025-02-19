@@ -38,9 +38,6 @@ def get_phenc_data(
         fslgrad=mrtrix.DwiextractFslgrad(
             bvals=input_data["dwi"]["bval"], bvecs=input_data["dwi"]["bvec"]
         ),
-        config=[
-            mrtrix.DwiextractConfig("BZeroThreshold", str(cfg["participant.b0_thresh"]))
-        ],
     )
 
     dwi_b0 = mrtrix.mrconvert(

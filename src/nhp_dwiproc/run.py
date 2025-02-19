@@ -16,6 +16,7 @@ def main() -> None:
 
     # Run workflow
     logger, runner = app.initialize(cfg=cfg)
+    app.generate_mrtrix_conf(cfg=cfg, runner=runner)
     match analysis_level := cfg["analysis_level"]:
         case "index":
             app.analysis_levels.index.run(cfg=cfg, logger=logger)

@@ -60,11 +60,6 @@ def compute_fods(
         mask=input_data["dwi"]["mask"],
         shells=cfg.get("participant.tractography.shells"),
         lmax=cfg.get("participant.tractography.lmax"),
-        config=[
-            mrtrix.Dwi2responseConfig(
-                "BZeroThreshold", (b0_thresh := str(cfg["participant.b0_thresh"]))
-            )
-        ],
     )
 
     logger.info("Computing fiber orientation distribution")
@@ -91,7 +86,6 @@ def compute_fods(
             dwi=mrconvert.output,
             response_odf=response_odf,  # type: ignore
             mask=input_data["dwi"]["mask"],
-            config=[mrtrix3tissue.Ss3tCsdBeta1Config("BZeroThreshold", b0_thresh)],
         )
     else:
         response_odf = _create_response_odf(
@@ -109,7 +103,6 @@ def compute_fods(
             response_odf=response_odf,  # type: ignore
             mask=input_data["dwi"]["mask"],
             shells=cfg.get("participant.tractography.shells"),
-            config=[mrtrix.Dwi2fodConfig("BZeroThreshold", b0_thresh)],
         )
 
     logger.info("Normalizing fiber orientation distributions")
@@ -151,11 +144,6 @@ def compute_dti(
             bvecs=input_data["dwi"]["bvec"], bvals=input_data["dwi"]["bval"]
         ),
         mask=input_data["dwi"]["mask"],
-        config=[
-            mrtrix.Dwi2tensorConfig(
-                "BZeroThreshold", (b0_thresh := str(cfg["participant.b0_thresh"]))
-            )
-        ],
     )
 
     logger.info("Generating tensor maps")
@@ -169,7 +157,6 @@ def compute_dti(
         value=bids(param="S1"),
         vector=bids(param="V1"),
         num=[1],
-        config=[mrtrix.Tensor2metricConfig("BZeroThreshold", b0_thresh)],
     )
 
     # Save relevant outputs
