@@ -46,6 +46,7 @@ def initialize(cfg: dict[str, Any]) -> tuple[logging.Logger, Runner]:
 
     runner.data_dir = cfg["opt.working_dir"]
     runner.environ = {
+        "MRTRIX_CONFIGFILE": runner.data_dir / ".mrtrix.conf",
         "MRTRIX_NTHREADS": str(cfg.get("opt.threads")),
         "MRTRIX_RNG_SEED": str(cfg.get("opt.seed_num")),
     }
@@ -54,6 +55,15 @@ def initialize(cfg: dict[str, Any]) -> tuple[logging.Logger, Runner]:
     logger = logging.getLogger(runner.logger_name)
     logger.info(f"Running {APP_NAME} v{ilm.version(APP_NAME)}")
     return logger, get_global_runner()
+
+
+def generate_mrtrix_conf(cfg: dict[str, Any], runner: Runner) -> None:
+    """Write temporary mrtrix configuration file."""
+    runner.base.data_dir.mkdir(parents=True, exist_ok=True)
+    cfg_path = runner.base.data_dir / ".mrtrix.conf"
+
+    with cfg_path.open("w") as f:
+        f.write(f"BZeroThreshold: {cfg['participant.b0_thresh']}")
 
 
 def validate_cfg(cfg: dict[str, Any]) -> None:
