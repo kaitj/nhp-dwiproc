@@ -33,11 +33,8 @@ def register(
     b0 = mrtrix.dwiextract(
         input_=dwi,
         output=bids(suffix="b0", ext=".mif"),
-        fslgrad=mrtrix.DwiextractFslgrad(bvecs=bvec, bvals=bval),
+        fslgrad=mrtrix.dwiextract_fslgrad_params(bvecs=bvec, bvals=bval),
         bzero=True,
-        config=[
-            mrtrix.DwiextractConfig("BZeroThreshold", str(cfg["participant.b0_thresh"]))
-        ],
     )
 
     b0 = mrtrix.mrmath(
@@ -49,7 +46,7 @@ def register(
 
     # Perform registration
     b0_to_t1 = greedy.greedy_(
-        input_images=greedy.GreedyInputImages(
+        input_images=greedy.greedy_input_images_params(
             fixed=input_data["t1w"]["nii"], moving=b0.output
         ),
         output=bids(
@@ -67,7 +64,9 @@ def register(
         fixed_mask=input_data["dwi"].get("mask"),
         moving_mask=mask,
         iterations=cfg["participant.preprocess.register.iters"],
-        metric=greedy.GreedyMetric(cfg["participant.preprocess.register.metric"]),
+        metric=greedy.greedy_metric_params(
+            cfg["participant.preprocess.register.metric"]
+        ),
         dimensions=3,
         threads=cfg["opt.threads"],
     )
@@ -76,7 +75,7 @@ def register(
         raise ValueError("No RAS transformation found")
     b0_resliced = greedy.greedy_(
         fixed_reslicing_image=input_data["t1w"]["nii"],
-        reslice_moving_image=greedy.GreedyResliceMovingImage(
+        reslice_moving_image=greedy.greedy_reslice_moving_image_params(
             moving=b0.output,
             output=bids(space="T1w", desc="avg", suffix="b0", ext=".nii.gz"),
         ),
@@ -92,7 +91,7 @@ def register(
     res = "x".join([str(vox) for vox in im.header.get_zooms()]) + "mm"
     ref_b0 = c3d.c3d_(
         input_=[b0_resliced.reslice_moving_image.resliced_image],
-        operations=[c3d.C3dResampleMm(res)],
+        operations=[c3d.c3d_resample_mm_params(res)],
         output=(
             b0_fname := bids(
                 space="T1w", res="dwi", desc="ref", suffix="b0", ext=".nii.gz"
@@ -146,9 +145,11 @@ def apply_transform(
         input_image_type=3,
         input_image=dwi,
         reference_image=ref_b0,
-        transform=[ants.AntsApplyTransformsTransformFileName(transforms["itk"])],
-        interpolation=ants.AntsApplyTransformsLinear(),
-        output=ants.AntsApplyTransformsWarpedOutput(
+        transform=[
+            ants.ants_apply_transforms_transform_file_name_params(transforms["itk"])
+        ],
+        interpolation=ants.ants_apply_transforms_linear_params(),
+        output=ants.ants_apply_transforms_warped_output_params(
             bids(space="T1w", res="dwi", desc="preproc", suffix="dwi")
         ),
     )
@@ -157,9 +158,11 @@ def apply_transform(
         input_image_type=0,
         input_image=input_data["dwi"].get("mask") or mask,
         reference_image=ref_b0,
-        transform=[ants.AntsApplyTransformsTransformFileName(transforms["itk"])],
-        interpolation=ants.AntsApplyTransformsNearestNeighbor(),
-        output=ants.AntsApplyTransformsWarpedOutput(
+        transform=[
+            ants.ants_apply_transforms_transform_file_name_params(transforms["itk"])
+        ],
+        interpolation=ants.ants_apply_transforms_nearest_neighbor_params(),
+        output=ants.ants_apply_transforms_warped_output_params(
             bids(space="T1w", res="dwi", desc="preproc", suffix="mask")
         ),
     )

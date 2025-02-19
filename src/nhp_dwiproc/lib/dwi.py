@@ -189,10 +189,10 @@ def grad_check(
         input_image=nii,
         mask_image=mask,
         number=10_000,  # Small number to enable quick permutations,
-        fslgrad=mrtrix.DwigradcheckFslgrad(bvecs=bvec, bvals=bval),
-        export_grad_fsl=mrtrix.DwigradcheckExportGradFsl(
+        fslgrad=mrtrix.dwigradcheck_fslgrad_params(bvecs=bvec, bvals=bval),
+        export_grad_fsl=mrtrix.dwigradcheck_export_grad_fsl_params(
             bvecs_path=bval.with_suffix(".bvec").name,
-            bvals_path=bval.name,  # replacing file if necessary
+            bvals_path=bval.name,
         ),
     )
     if not bvec_check.export_grad_fsl_:

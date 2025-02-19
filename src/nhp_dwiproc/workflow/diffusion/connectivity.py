@@ -56,15 +56,15 @@ def extract_tract(
     """Extract individual tract."""
     # Organize ROIs and get tract label
     incl_rois = [
-        mrtrix.TckeditInclude(spec=mrtrix.TckeditVariousFile(fpath))
+        mrtrix.tckedit_include_params(spec=mrtrix.tckedit_various_file_params(fpath))
         for fpath in input_data["anat"]["rois"]["inclusion"]
     ]
     excl_rois = [
-        mrtrix.TckeditExclude(spec=mrtrix.TckeditVariousFile_(fpath))
+        mrtrix.tckedit_exclude_params(spec=mrtrix.tckedit_various_file_1_params(fpath))
         for fpath in input_data["anat"]["rois"]["exclusion"]
     ]
     truncate_rois = [
-        mrtrix.TckeditMask(spec=mrtrix.TckeditVariousFile_2(fpath))
+        mrtrix.tckedit_mask_params(spec=mrtrix.tckedit_various_file_2_params(fpath))
         for fpath in input_data["anat"]["rois"]["stop"]
     ]
     rois = [*incl_rois, *excl_rois, *truncate_rois]
@@ -114,7 +114,7 @@ def extract_tract(
             surface=input_data["anat"]["surfs"]["inflated"][0],
             metric_out=bids(hemi=hemi, label=label, suffix="conn", ext=".shape.gii"),
             ribbon_constrained=(
-                workbench.VolumeToSurfaceMappingRibbonConstrained(
+                workbench.volume_to_surface_mapping_ribbon_constrained_params(
                     inner_surf=input_data["anat"]["surfs"]["white"][0],
                     outer_surf=input_data["anat"]["surfs"]["pial"][0],
                 )

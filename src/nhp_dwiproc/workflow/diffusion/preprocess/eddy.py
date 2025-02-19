@@ -39,7 +39,7 @@ def run_eddy(
         mask = mrtrix.dwi2mask(
             input_=dwi,
             output=bids(desc="preEddy", suffix="mask"),
-            fslgrad=mrtrix.Dwi2maskFslgrad(bvecs=bvec, bvals=bval),
+            fslgrad=mrtrix.dwi2mask_fslgrad_params(bvecs=bvec, bvals=bval),
         ).output
 
     logger.info("Running FSL's eddy")

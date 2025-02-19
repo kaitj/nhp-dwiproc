@@ -1,4 +1,4 @@
-"""Utilities for working with directly with dagster assets."""
+"""Utilities for working with directly with assets."""
 
 from pathlib import Path
 

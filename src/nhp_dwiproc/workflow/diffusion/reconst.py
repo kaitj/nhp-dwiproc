@@ -11,18 +11,27 @@ import nhp_dwiproc.utils as utils
 
 def _create_response_odf(
     response: mrtrix.Dwi2responseDhollanderOutputs, bids: partial, single_shell: bool
-) -> list[mrtrix.Dwi2fodResponseOdf | mrtrix3tissue.Ss3tCsdBeta1ResponseOdf]:
+) -> list[
+    mrtrix.Dwi2fodResponseOdfParameters
+    | mrtrix3tissue.Ss3tCsdBeta1ResponseOdfParameters
+]:
     """Helper to create ODFs."""
     if single_shell:
         return [
-            mrtrix3tissue.Ss3tCsdBeta1ResponseOdf(response.out_sfwm, bids(param="wm")),
-            mrtrix3tissue.Ss3tCsdBeta1ResponseOdf(response.out_gm, bids(param="gm")),
-            mrtrix3tissue.Ss3tCsdBeta1ResponseOdf(response.out_csf, bids(param="csf")),
+            mrtrix3tissue.ss3t_csd_beta1_response_odf_params(
+                response.out_sfwm, bids(param="wm")
+            ),
+            mrtrix3tissue.ss3t_csd_beta1_response_odf_params(
+                response.out_gm, bids(param="gm")
+            ),
+            mrtrix3tissue.ss3t_csd_beta1_response_odf_params(
+                response.out_csf, bids(param="csf")
+            ),
         ]
     return [
-        mrtrix.Dwi2fodResponseOdf(response.out_sfwm, bids(param="wm")),
-        mrtrix.Dwi2fodResponseOdf(response.out_gm, bids(param="gm")),
-        mrtrix.Dwi2fodResponseOdf(response.out_csf, bids(param="csf")),
+        mrtrix.dwi2fod_response_odf_params(response.out_sfwm, bids(param="wm")),
+        mrtrix.dwi2fod_response_odf_params(response.out_gm, bids(param="gm")),
+        mrtrix.dwi2fod_response_odf_params(response.out_csf, bids(param="csf")),
     ]
 
 
@@ -46,12 +55,12 @@ def compute_fods(
     mrconvert = mrtrix.mrconvert(
         input_=input_data["dwi"]["nii"],
         output=input_data["dwi"]["nii"].name.replace(".nii.gz", ".mif"),
-        fslgrad=mrtrix.MrconvertFslgrad(
+        fslgrad=mrtrix.mrconvert_fslgrad_params(
             bvecs=input_data["dwi"]["bvec"], bvals=input_data["dwi"]["bval"]
         ),
     )
     dwi2response = mrtrix.dwi2response(
-        algorithm=mrtrix.Dwi2responseDhollander(
+        algorithm=mrtrix.dwi2response_dhollander_params(
             input_=mrconvert.output,
             out_sfwm=bids(param="wm"),
             out_gm=bids(param="gm"),
@@ -78,13 +87,13 @@ def compute_fods(
             single_shell=True,
         )
         if not any(
-            isinstance(response, mrtrix3tissue.Ss3tCsdBeta1ResponseOdf)
+            isinstance(response, mrtrix3tissue.Ss3tCsdBeta1ResponseOdfOutputs)
             for response in response_odf
         ):
             raise TypeError("Response odf is not of type 'Ss3tCsdBeta1ResponseOdf'")
         odfs = mrtrix3tissue.ss3t_csd_beta1(
             dwi=mrconvert.output,
-            response_odf=response_odf,  # type: ignore
+            response_odf=response_odf,
             mask=input_data["dwi"]["mask"],
         )
     else:
@@ -94,20 +103,21 @@ def compute_fods(
             single_shell=False,
         )
         if not any(
-            isinstance(response, mrtrix.Dwi2fodResponseOdf) for response in response_odf
+            isinstance(response, mrtrix.Dwi2fodResponseOdfOutputs)
+            for response in response_odf
         ):
             raise TypeError("Response odf is not of type 'Dwi2fodResponseOdf'")
         odfs = mrtrix.dwi2fod(
             algorithm="msmt_csd",
             dwi=mrconvert.output,
-            response_odf=response_odf,  # type: ignore
+            response_odf=response_odf,
             mask=input_data["dwi"]["mask"],
             shells=cfg.get("participant.tractography.shells"),
         )
 
     logger.info("Normalizing fiber orientation distributions")
     normalize_odf = [
-        mrtrix.MtnormaliseInputOutput(
+        mrtrix.mtnormalise_input_output_params(
             tissue_odf.odf,
             tissue_odf.odf.name.replace("dwimap.mif", "desc-normalized_dwimap.mif"),
         )
@@ -140,7 +150,7 @@ def compute_dti(
     dwi2tensor = mrtrix.dwi2tensor(
         dwi=input_data["dwi"]["nii"],
         dt=bids(),
-        fslgrad=mrtrix.Dwi2tensorFslgrad(
+        fslgrad=mrtrix.dwi2tensor_fslgrad_params(
             bvecs=input_data["dwi"]["bvec"], bvals=input_data["dwi"]["bval"]
         ),
         mask=input_data["dwi"]["mask"],
