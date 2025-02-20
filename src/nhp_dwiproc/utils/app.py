@@ -8,15 +8,17 @@ from pathlib import Path
 from typing import Any
 
 import yaml
-from styxdefs import LocalRunner, Runner, get_global_runner, set_global_runner
+from styxdefs import LocalRunner, set_global_runner
 from styxdocker import DockerRunner
 from styxgraph import GraphRunner
 from styxsingularity import SingularityRunner
 
 from nhp_dwiproc import APP_LOCATION, APP_NAME
 
+StyxRunner = LocalRunner | DockerRunner | SingularityRunner
 
-def initialize(cfg: dict[str, Any]) -> tuple[logging.Logger, Runner]:
+
+def initialize(cfg: dict[str, Any]) -> tuple[logging.Logger, GraphRunner[StyxRunner]]:
     """Initialize runner and logging setup based on configuration."""
     # Ensure working directory exists
     if cfg["opt.working_dir"]:
@@ -50,14 +52,14 @@ def initialize(cfg: dict[str, Any]) -> tuple[logging.Logger, Runner]:
         "MRTRIX_NTHREADS": str(cfg.get("opt.threads")),
         "MRTRIX_RNG_SEED": str(cfg.get("opt.seed_num")),
     }
-    set_global_runner(GraphRunner(runner))
+    set_global_runner(runner := GraphRunner(runner))
 
-    logger = logging.getLogger(runner.logger_name)
+    logger = logging.getLogger(runner.base.logger_name)
     logger.info(f"Running {APP_NAME} v{ilm.version(APP_NAME)}")
-    return logger, get_global_runner()
+    return logger, runner
 
 
-def generate_mrtrix_conf(cfg: dict[str, Any], runner: Runner) -> None:
+def generate_mrtrix_conf(cfg: dict[str, Any], runner: GraphRunner[StyxRunner]) -> None:
     """Write temporary mrtrix configuration file."""
     runner.base.data_dir.mkdir(parents=True, exist_ok=True)
     cfg_path = runner.base.data_dir / ".mrtrix.conf"

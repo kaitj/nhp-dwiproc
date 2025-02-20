@@ -35,7 +35,7 @@ def get_phenc_data(
         input_=dwi,
         output=bids(ext=".mif"),
         bzero=True,
-        fslgrad=mrtrix.DwiextractFslgrad(
+        fslgrad=mrtrix.dwiextract_fslgrad_params(
             bvals=input_data["dwi"]["bval"], bvecs=input_data["dwi"]["bvec"]
         ),
     )
@@ -43,7 +43,7 @@ def get_phenc_data(
     dwi_b0 = mrtrix.mrconvert(
         input_=dwi_b0.output,
         output=bids(ext=".nii.gz"),
-        coord=[mrtrix.MrconvertCoord(3, [0])],
+        coord=[mrtrix.mrconvert_coord_params(3, [0])],
         axes=[0, 1, 2],
     )
 

@@ -220,7 +220,7 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
             **input_kwargs,
         )
 
-        bval_fpath = cfg["output_dir"].joinpath(
+        bval_fpath = cfg["output_dir"] / (
             utils.io.bids_name(
                 return_path=True,
                 datatype="dwi",

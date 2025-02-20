@@ -49,8 +49,7 @@ def denoise(
         if not denoise.noise:
             raise ValueError("Noise map was not generated")
         utils.io.save(
-            files=denoise.noise,
-            out_dir=cfg["output_dir"].joinpath(bids(directory=True)),
+            files=denoise.noise, out_dir=cfg["output_dir"] / bids(directory=True)
         )
 
     return denoise.out
