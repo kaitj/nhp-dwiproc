@@ -179,7 +179,6 @@ def compute_dti(
             tensor2metrics.value,
             tensor2metrics.vector,
         ],
-        out_dir=cfg["output_dir"].joinpath(
-            utils.io.bids_name(directory=True, datatype="dwi", **input_group)
-        ),
+        out_dir=cfg["output_dir"]
+        / (utils.io.bids_name(directory=True, datatype="dwi", **input_group)),
     )

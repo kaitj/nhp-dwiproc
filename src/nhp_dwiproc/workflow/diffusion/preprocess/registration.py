@@ -116,10 +116,10 @@ def register(
     utils.io.save(
         files=[
             pl.Path(b0_resliced.reslice_moving_image.resliced_image),
-            (ref_b0 := pl.Path(ref_b0.root).joinpath(b0_fname)),
+            (ref_b0 := (pl.Path(ref_b0.root) / b0_fname)),
             *transforms.values(),  # type: ignore
         ],
-        out_dir=cfg["output_dir"].joinpath(bids(directory=True)),
+        out_dir=cfg["output_dir"] / bids(directory=True),
     )
 
     return ref_b0, transforms
@@ -179,7 +179,7 @@ def apply_transform(
             xfm_dwi.output.output_image_outfile,
             xfm_mask.output.output_image_outfile,
         ],
-        out_dir=cfg["output_dir"].joinpath(bids(directory=True)),
+        out_dir=cfg["output_dir"] / bids(directory=True),
     )
 
     return (

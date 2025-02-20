@@ -51,7 +51,7 @@ def biascorrect(
 
     utils.io.save(
         files=biascorrect.output_image_file,
-        out_dir=cfg["output_dir"].joinpath(bids(directory=True)),
+        out_dir=cfg["output_dir"] / bids(directory=True),
     )
 
     return biascorrect.output_image_file, mask.output

@@ -42,7 +42,7 @@ def generate_conn_matrix(
         # Save outputs
         utils.io.save(
             files=tck2connectome[meas].connectome_out,
-            out_dir=cfg["output_dir"].joinpath(bids(directory=True)),
+            out_dir=cfg["output_dir"] / bids(directory=True),
         )
 
 
@@ -98,9 +98,7 @@ def extract_tract(
         output=bids(hemi=hemi, label=label, suffix="tdi", ext=".nii.gz"),
     )
 
-    utils.io.save(
-        files=tdi.output, out_dir=cfg["output_dir"].joinpath(bids(directory=True))
-    )
+    utils.io.save(files=tdi.output, out_dir=cfg["output_dir"] / bids(directory=True))
 
     # Map to surface
     if not input_data["anat"]["surfs"].get("inflated"):
@@ -122,6 +120,5 @@ def extract_tract(
         )
 
         utils.io.save(
-            files=surf.metric_out,
-            out_dir=cfg["output_dir"].joinpath(bids(directory=True)),
+            files=surf.metric_out, out_dir=cfg["output_dir"] / bids(directory=True)
         )

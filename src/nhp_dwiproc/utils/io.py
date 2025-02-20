@@ -270,7 +270,7 @@ def save(
         """Save individual file, preserving directory structure."""
         for part in fpath.parts:
             if part.startswith("sub-"):
-                out_fpath = out_dir.joinpath(*fpath.parts[fpath.parts.index(part) :])
+                out_fpath = out_dir / Path(*fpath.parts[fpath.parts.index(part) :])
                 out_fpath.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copy2(fpath, out_fpath)
                 return
