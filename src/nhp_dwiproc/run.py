@@ -37,7 +37,7 @@ def main() -> None:
     # Print graph
     if cfg["opt.graph"]:
         logger.info("Printing mermaid workflow graph")
-        logger.info(runner.node_graph_mermaid())  # type: ignore
+        logger.info(runner.generate_mermaid())  # type: ignore
 
 
 if __name__ == "__main__":
