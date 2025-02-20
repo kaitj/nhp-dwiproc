@@ -46,11 +46,11 @@ dev-dependencies = [
   "mypy>=1.15.0",
   "pre-commit>=4.1.0",
   "pytest-cov>=6.0.0",
-  "ruff>=0.9.6"
+  "ruff>=0.9.7"
 ]
 
 [tool.uv.sources]
-styxgraph = {git = "https://github.com/childmindresearch/styxgraph", rev = "ce9aa81"}
+styxgraph = {git = "https://github.com/childmindresearch/styxgraph", rev = "d392f43"}
 nifti = {git = "https://github.com/childmindresearch/nifti", rev = "acde447"}
 
 [tool.hatch.build]
