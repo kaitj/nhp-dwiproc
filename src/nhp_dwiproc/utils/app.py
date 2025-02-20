@@ -57,7 +57,7 @@ def initialize(cfg: dict[str, Any]) -> tuple[logging.Logger, Runner]:
     return logger, get_global_runner()
 
 
-def generate_mrtrix_conf(cfg: dict[str, Any], runner: Runner) -> None:
+def generate_mrtrix_conf(cfg: dict[str, Any], runner: GraphRunner) -> None:
     """Write temporary mrtrix configuration file."""
     runner.base.data_dir.mkdir(parents=True, exist_ok=True)
     cfg_path = runner.base.data_dir / ".mrtrix.conf"
