@@ -67,6 +67,17 @@ def generate_mrtrix_conf(cfg: dict[str, Any], runner: GraphRunner[StyxRunner]) -
     with cfg_path.open("w") as f:
         f.write(f"BZeroThreshold: {cfg['participant.b0_thresh']}")
 
+    match cfg["opt.runner"].lower():
+        case "docker":
+            runner.base.docker_extra_args = [
+                "--mount",
+                f"type=bind,source={cfg_path},target={cfg_path},readonly",
+            ]
+        case "singularity" | "apptainer":
+            runner.base.singularity_extra_args = ["--bind", f"{cfg_path}:{cfg_path}:ro"]
+        case _:
+            pass
+
 
 def validate_cfg(cfg: dict[str, Any]) -> None:
     """Validate configuration file."""
