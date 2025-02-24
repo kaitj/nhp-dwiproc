@@ -87,7 +87,7 @@ def compute_fods(
             single_shell=True,
         )
         if not any(
-            isinstance(response, mrtrix3tissue.Ss3tCsdBeta1ResponseOdfOutputs)
+            type(response) is mrtrix3tissue.Ss3tCsdBeta1ResponseOdfParameters
             for response in response_odf
         ):
             raise TypeError("Response odf is not of type 'Ss3tCsdBeta1ResponseOdf'")
@@ -103,7 +103,7 @@ def compute_fods(
             single_shell=False,
         )
         if not any(
-            isinstance(response, mrtrix.Dwi2fodResponseOdfOutputs)
+            type(response) is mrtrix.Dwi2fodResponseOdfParameters
             for response in response_odf
         ):
             raise TypeError("Response odf is not of type 'Dwi2fodResponseOdf'")
