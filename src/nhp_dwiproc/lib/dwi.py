@@ -178,11 +178,7 @@ def rotate_bvec(
 
 
 def grad_check(
-    nii: pl.Path,
-    bvec: pl.Path,
-    bval: pl.Path,
-    mask: pl.Path | None,
-    **kwargs,
+    nii: pl.Path, bvec: pl.Path, bval: pl.Path, mask: pl.Path | None
 ) -> None:
     """Check and update orientation of diffusion gradient."""
     bvec_check = mrtrix.dwigradcheck(

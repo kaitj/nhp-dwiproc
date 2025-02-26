@@ -1,64 +1,44 @@
 """Tractography-related operations."""
 
 from functools import partial
-from logging import Logger
-from typing import Any
+from pathlib import Path
 
 from niwrap import mrtrix
-from styxdefs import InputPathType
 
 import nhp_dwiproc.utils as utils
 
 
-def _tckgen(
-    wm_fod: InputPathType,
-    tt_map: InputPathType,
-    bids: partial[str],
-    cfg: dict[str, Any],
-    **kwargs,
-) -> mrtrix.TckgenOutputs:
-    """Generate tractography with selected method."""
-    # Common parameters
+def generate_tractography(
+    dwi_5tt: Path | None,
+    method: str,
+    fod: mrtrix.MtnormaliseOutputs,
+    steps: float,
+    cutoff: float,
+    streamlines: int,
+    backtrack: bool,
+    nocrop_gmwmi: bool,
+    bids: partial = partial(utils.io.bids_name, sub="subject"),
+    output_fpath: Path = Path.cwd(),
+) -> None:
+    """Generate subject tractography."""
     tckgen_params = {
-        "source": wm_fod,
+        "source": (wm_fod := fod.input_output[0].output),
         "tracks": bids(method="iFOD2", suffix="tractography", ext=".tck"),
         "algorithm": "iFOD2",
         "seed_dynamic": wm_fod,
-        "step": cfg.get("participant.tractography.steps"),
-        "cutoff": cfg.get("participant.tractography.cutoff"),
-        "select_": cfg.get("participant.tractography.streamlines"),
+        "step": steps,
+        "cutoff": cutoff,
+        "select_": streamlines,
     }
-
-    # ACT-specific params
-    if cfg["participant.tractography.method"] == "act":
+    if method == "act":
         tckgen_params.update(
             {
-                "act": tt_map,
-                "backtrack": cfg["participant.tractography.act.backtrack"],
-                "crop_at_gmwmi": not cfg["participant.tractography.act.nocrop_gmwmi"],
+                "act": dwi_5tt,
+                "backtrack": backtrack,
+                "crop_at_gmwmi": not nocrop_gmwmi,
             }
         )
-
-    return mrtrix.tckgen(**tckgen_params)
-
-
-def generate_tractography(
-    input_data: dict[str, Any],
-    input_group: dict[str, Any],
-    fod: mrtrix.MtnormaliseOutputs,
-    cfg: dict[str, Any],
-    logger: Logger,
-    **kwargs,
-) -> None:
-    """Generate subject tractography."""
-    logger.info("Generating tractography")
-    wm_fod = fod.input_output[0].output
-    bids = partial(utils.io.bids_name, datatype="dwi", **input_group)
-    tckgen = _tckgen(
-        wm_fod=wm_fod, tt_map=input_data["dwi"].get("5tt", None), bids=bids, cfg=cfg
-    )
-
-    logger.info("Computing per-streamline multipliers")
+    tckgen = mrtrix.tckgen(**tckgen_params)
     tcksift = mrtrix.tcksift2(
         in_tracks=tckgen.tracks,
         in_fod=wm_fod,
@@ -77,5 +57,5 @@ def generate_tractography(
     # Save relevant outputs
     utils.io.save(
         files=[tckgen.tracks, tcksift.out_weights, tdi["weighted"].output],
-        out_dir=cfg["output_dir"] / bids(directory=True),
+        out_dir=output_fpath,
     )
