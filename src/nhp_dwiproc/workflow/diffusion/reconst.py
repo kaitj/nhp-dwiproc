@@ -86,11 +86,6 @@ def compute_fods(
             bids=bids,
             single_shell=True,
         )
-        if not any(
-            type(response) is mrtrix3tissue.Ss3tCsdBeta1ResponseOdfParameters
-            for response in response_odf
-        ):
-            raise TypeError("Response odf is not of type 'Ss3tCsdBeta1ResponseOdf'")
         odfs = mrtrix3tissue.ss3t_csd_beta1(
             dwi=mrconvert.output,
             response_odf=response_odf,
@@ -102,11 +97,6 @@ def compute_fods(
             bids=bids,
             single_shell=False,
         )
-        if not any(
-            type(response) is mrtrix.Dwi2fodResponseOdfParameters
-            for response in response_odf
-        ):
-            raise TypeError("Response odf is not of type 'Dwi2fodResponseOdf'")
         odfs = mrtrix.dwi2fod(
             algorithm="msmt_csd",
             dwi=mrconvert.output,
