@@ -1,5 +1,6 @@
 """Pre-tractography participant processing (to compute FODs)."""
 
+from functools import partial
 from logging import Logger
 from typing import Any
 
@@ -43,26 +44,57 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
         dwi_b2t.filter_multi(suffix="tractography", ext=".tck").groupby(groupby_keys)
     ):
         for _, row in group.ent.iterrows():
-            input_kwargs: dict[str, Any] = {
-                "input_data": utils.io.get_inputs(
-                    b2t=b2t,
-                    row=row,
-                    cfg=cfg,
-                ),
-                "input_group": dict(
-                    zip([key.lstrip("ent__") for key in groupby_keys], group_vals)
-                ),
-                "cfg": cfg,
-                "logger": logger,
-            }
+            input_data = utils.io.get_inputs(b2t=b2t, row=row, cfg=cfg)
+            input_group = dict(
+                zip([key.lstrip("ent__") for key in groupby_keys], group_vals)
+            )
 
             # Perform processing
-            uid = utils.io.bids_name(**input_kwargs["input_group"])
+            uid = utils.io.bids_name(**input_group)
             logger.info(f"Processing {uid}")
+            bids = partial(utils.io.bids_name, datatype="dwi", **input_group)
+            output_fpath = cfg["output_dir"] / bids(directory=True)
+            # Generate connectivity matrices
             if cfg.get("participant.connectivity.atlas"):
-                connectivity.generate_conn_matrix(**input_kwargs)
+                logger.info("Generating connectivity matrices")
+                connectivity.generate_conn_matrix(
+                    atlas_fpath=input_data["dwi"]["atlas"],
+                    **input_data["dwi"]["tractography"],
+                    search_radius=cfg["participant.connectivity.radius"],
+                    output_fpath=output_fpath,
+                    bids=bids,
+                )
+            # Perform tract extraction and optional surface mapping
             elif cfg.get("participant.connectivity.query_tract"):
-                connectivity.extract_tract(**input_kwargs)
+                logger.info("Extracting tract")
+                tdi, hemi, label = connectivity.extract_tract(
+                    **input_data["dwi"]["tractography"],
+                    **input_data["anat"]["rois"],
+                    voxel_size=[vox]
+                    if (vox := cfg.get("participant.connectivity.vox_mm"))
+                    else None,
+                    output_fpath=output_fpath,
+                    bids=bids,
+                )
+
+                if not input_data["anat"]["surfs"].get("inflated"):
+                    logger.warning("Inflated surface not found; not mapping end points")
+                else:
+                    for surf_type in ["white", "pial", "inflated"]:
+                        if len(surfs := input_data["anat"]["surfs"][surf_type]) > 1:
+                            logger.warning(
+                                f"More than 1 surface found: {surfs} - using "
+                                "first surface"
+                            )
+                    logger.info("Mapping tract to surface")
+                    connectivity.surface_map_tract(
+                        tdi=tdi,
+                        hemi=hemi,
+                        label=label,
+                        **input_data["anat"]["surfs"],
+                        output_fpath=output_fpath,
+                        bids=bids,
+                    )
             else:
                 raise ValueError("No valid inputs provided for connectivity workflow")
             logger.info(f"Completed processing for {uid}")
