@@ -14,8 +14,8 @@ def generate_conn_matrix(
     tck_fpath: Path,
     tck_weights_fpath: Path | None,
     search_radius: float,
-    output_fpath: Path,
-    bids: partial,
+    output_fpath: Path = Path.cwd(),
+    bids: partial = partial(utils.io.bids_name, sub="subject"),
 ) -> None:
     """Generate connectivity matrix."""
     tck2connectome = {}
@@ -46,8 +46,8 @@ def extract_tract(
     exclude_fpaths: list[Path],
     truncate_fpaths: list[Path],
     voxel_size: list[float] | None,
-    output_fpath: Path,
-    bids: partial,
+    output_fpath: Path = Path.cwd(),
+    bids: partial = partial(utils.io.bids_name, sub="subject"),
 ) -> tuple[mrtrix.TckmapOutputs, str | None, str | None]:
     """Extract individual tract."""
     # Organize ROIs and get tract label
@@ -105,8 +105,8 @@ def surface_map_tract(
     white: list[Path],
     pial: list[Path],
     inflated: list[Path],
-    output_fpath: Path,
-    bids: partial,
+    output_fpath: Path = Path.cwd(),
+    bids: partial = partial(utils.io.bids_name, sub="subject"),
 ) -> None:
     """Surface map extracted tract."""
     surf = workbench.volume_to_surface_mapping(

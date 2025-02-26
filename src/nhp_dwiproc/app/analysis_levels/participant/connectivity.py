@@ -53,6 +53,7 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
             logger.info(f"Processing {uid}")
             bids = partial(utils.io.bids_name, datatype="dwi", **input_group)
             output_fpath = cfg["output_dir"] / bids(directory=True)
+
             # Generate connectivity matrices
             if cfg.get("participant.connectivity.atlas"):
                 logger.info("Generating connectivity matrices")
@@ -63,6 +64,7 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
                     output_fpath=output_fpath,
                     bids=bids,
                 )
+
             # Perform tract extraction and optional surface mapping
             elif cfg.get("participant.connectivity.query_tract"):
                 logger.info("Extracting tract")
