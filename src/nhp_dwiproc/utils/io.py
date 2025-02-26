@@ -222,8 +222,8 @@ def get_inputs(
                         }
                     )
                     for key, method, suffix, ext in [
-                        ("tck", "iFOD2", "tractography", ".tck"),
-                        ("weights", "SIFT2", "tckWeights", ".txt"),
+                        ("tck_fpath", "iFOD2", "tractography", ".tck"),
+                        ("tck_weights_fpath", "SIFT2", "tckWeights", ".txt"),
                     ]
                 },
             }
@@ -238,9 +238,12 @@ def get_inputs(
                         queries=[sub_ses_query, tract_query, query]
                     )
                     for key, query in [
-                        ("inclusion", "desc.str.contains('include|seed|target')"),
-                        ("exclusion", "desc.str.contains('exclude')"),
-                        ("stop", "desc.str.contains('truncate')"),
+                        (
+                            "inclusion_fpaths",
+                            "desc.str.contains('include|seed|target')",
+                        ),
+                        ("exclusion_fpaths", "desc.str.contains('exclude')"),
+                        ("truncate_fpaths", "desc.str.contains('truncate')"),
                     ]
                 },
                 "surfs": {
