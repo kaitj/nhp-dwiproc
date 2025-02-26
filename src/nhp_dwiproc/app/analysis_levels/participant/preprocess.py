@@ -247,7 +247,7 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
         else:
             bval_fpath = pl.Path(str(bval_fpath).replace("space-T1w_", ""))
         shutil.copy2(bval, bval_fpath)
-        dwi_lib.grad_check(nii=dwi, bvec=bvec, bval=bval_fpath, mask=mask, cfg=cfg)
+        dwi_lib.grad_check(nii=dwi, bvec=bvec, bval=bval_fpath, mask=mask)
 
         # Create JSON sidecar
         json_fpath = bval_fpath.with_suffix(".json")
