@@ -36,7 +36,6 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
     if not isinstance(dwi_b2t, BIDSTable):
         raise TypeError(f"Queried table of type {type(dwi_b2t)} instead of BIDSTable")
 
-    # assert isinstance(dwi_b2t, BIDSTable)
     groupby_keys = utils.io.valid_groupby(
         b2t=dwi_b2t, keys=["sub", "ses", "run", "space"]
     )

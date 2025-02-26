@@ -10,29 +10,25 @@ from bids2table import BIDSEntities, BIDSTable, bids2table
 from styxdefs import OutputPathType
 
 
-def check_index_path(cfg: dict[str, Any]) -> Path:
-    """Check for index path."""
-    return cfg.get("opt.index_path", cfg["bids_dir"] / "index.b2t")
-
-
 def load_b2t(cfg: dict[str, Any], logger: Logger) -> pd.DataFrame:
     """Handle loading of bids2table."""
-    index_path = check_index_path(cfg=cfg)
-    overwrite = cfg.get("index.overwrite", False) if index_path.exists() else False
+    index_path: Path = cfg.get("opt.index_path", cfg["bids_dir"] / "index.b2t")
+    index_exists = index_path.exists()
+    overwrite = cfg.get("index.overwrite", False) if index_exists else False
 
     logger.info(
-        "Existing bids2table found" if index_path.exists() else "Indexing BIDS dataset"
+        "Existing bids2table found" if index_exists else "Indexing BIDS dataset"
     )
     if overwrite:
         logger.info("Overwriting existing table")
-    elif not index_path.exists():
+    elif not index_exists:
         logger.warning(
             "Index created but not saved - run 'index' level analysis to save"
         )
 
     b2t = bids2table(
         root=cfg["bids_dir"],
-        index_path=index_path if index_path.exists() else None,
+        index_path=index_path if index_exists else None,
         workers=cfg.get("opt.threads", 1),
         overwrite=overwrite,
     )
