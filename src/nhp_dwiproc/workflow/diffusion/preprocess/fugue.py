@@ -5,10 +5,10 @@ This step is added to process data collected with prepared fieldmaps.
 
 from functools import partial
 from logging import Logger
+from pathlib import Path
 from typing import Any
 
 from niwrap import fsl
-from styxdefs import InputPathType, OutputPathType
 
 import nhp_dwiproc.utils as utils
 from nhp_dwiproc.lib import metadata
@@ -17,20 +17,17 @@ WARP_DIR = {"i": "x", "i-": "x-", "j": "y", "j-": "y-", "k": "z", "k-": "z-"}
 
 
 def run_fugue(
-    input_data: dict[str, Any],
-    dwi: InputPathType,
+    dwi: Path,
+    fmap: Path,
     pe_dir: str,
-    input_group: dict[str, Any],
-    cfg: dict[str, Any],
-    logger: Logger,
-    **kwargs,
-) -> OutputPathType:
+    json: dict[str, Any],
+    echo_spacing: str | None,
+    smooth: float | None,
+    logger: Logger = Logger(name="logger"),
+    bids: partial = partial(utils.io.bids_name, sub="subject"),
+) -> Path:
     """Perform FSL's FUGUE."""
-    bids = partial(
-        utils.io.bids_name, datatype="dwi", desc="fugue", ext=".nii.gz", **input_group
-    )
     logger.info("Running FSL's fugue")
-
     if pe_dir not in WARP_DIR:
         logger.warning(
             "Unrecognized phase encode direction, using default warp direction 'y'"
@@ -38,13 +35,13 @@ def run_fugue(
 
     fugue = fsl.fugue(
         in_file=dwi,
-        unwarped_file=bids(),
-        fmap_in_file=input_data["fmap"]["nii"],
+        unwarped_file=bids(desc="fugue", ext=".nii.gz"),
+        fmap_in_file=fmap,
         dwell_time=metadata.echo_spacing(
-            dwi_json=input_data["dwi"]["json"], cfg=cfg, logger=logger, **kwargs
+            dwi_json=json, echo_spacing=echo_spacing, logger=logger
         ),
-        unwarp_direction=WARP_DIR.get(pe_dir, None),  # type: ignore
-        smooth3d=cfg["participant.preprocess.fugue.smooth"],
+        unwarp_direction=WARP_DIR.get(pe_dir, "y"),  # type: ignore
+        smooth3d=smooth,
     )
 
     if not fugue.unwarped_file_outfile:

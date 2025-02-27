@@ -46,7 +46,8 @@ dev-dependencies = [
   "mypy>=1.15.0",
   "pre-commit>=4.1.0",
   "pytest-cov>=6.0.0",
-  "ruff>=0.9.7"
+  "ruff>=0.9.9",
+  "types-pyyaml>=6.0.12.20241230"
 ]
 
 [tool.uv.sources]
@@ -67,6 +68,7 @@ pythonpath = ["src"]
 testpaths = ["tests"]
 
 [tool.mypy]
+allow_redefinition = true
 ignore_missing_imports = true
 
 [tool.ruff]

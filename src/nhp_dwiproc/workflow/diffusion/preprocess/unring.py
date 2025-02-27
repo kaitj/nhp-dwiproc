@@ -2,35 +2,34 @@
 
 from functools import partial
 from logging import Logger
-from typing import Any
+from pathlib import Path
 
 from niwrap import mrtrix
-from styxdefs import InputPathType, OutputPathType
 
 import nhp_dwiproc.utils as utils
 
 
 def degibbs(
-    dwi: InputPathType,
-    entities: dict[str, Any],
-    cfg: dict[str, Any],
-    logger: Logger,
-    **kwargs,
-) -> OutputPathType:
+    dwi: Path,
+    axes: list[int] | None,
+    nshifts: int | None,
+    min_w: int | None,
+    max_w: int | None,
+    skip: bool = False,
+    logger: Logger = Logger(name="logger"),
+    bids: partial[str] = partial(utils.io.bids_name, sub="subject"),
+) -> Path:
     """Minimize Gibbs ringing."""
-    bids = partial(utils.io.bids_name, datatype="dwi", **entities)
-    if cfg["participant.preprocess.unring.skip"]:
-        return OutputPathType(dwi)
+    if skip:
+        return dwi
 
     logger.info("Performing Gibbs unringing")
-
     degibbs = mrtrix.mrdegibbs(
         in_=dwi,
-        out=bids(desc="unring", suffix="dwi", ext=".nii.gz"),
-        axes=cfg.get("participant.preprocess.unring.axes"),
-        nshifts=cfg["participant.preprocess.unring.nshifts"],
-        min_w=cfg["participant.preprocess.unring.minW"],
-        max_w=cfg["participant.preprocess.unring.maxW"],
+        out=bids(datatype="dwi", desc="unring", suffix="dwi", ext=".nii.gz"),
+        axes=axes,
+        nshifts=nshifts,
+        min_w=min_w,
+        max_w=max_w,
     )
-
     return degibbs.out

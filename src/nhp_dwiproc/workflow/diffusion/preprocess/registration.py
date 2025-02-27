@@ -3,13 +3,12 @@
 NOTE: transforms saved in `anat` folder (similar to fmriprep)
 """
 
-import pathlib as pl
 from functools import partial
 from logging import Logger
+from pathlib import Path
 from typing import Any
 
 from niwrap import ants, c3d, fsl, greedy, mrtrix
-from styxdefs import InputPathType, OutputPathType
 
 import nhp_dwiproc.utils as utils
 from nhp_dwiproc.lib.anat import fake_t2w
@@ -18,19 +17,23 @@ from nhp_dwiproc.utils.assets import load_nifti
 
 
 def register(
-    dwi: InputPathType,
-    bval: InputPathType,
-    bvec: InputPathType,
-    mask: InputPathType,
-    input_group: dict[str, Any],
-    input_data: dict[str, Any],
-    cfg: dict[str, Any],
-    logger: Logger,
-    **kwargs,
-) -> tuple[pl.Path, dict[str, Any]]:
+    t1w: Path,
+    t1w_mask: Path | None,
+    dwi: Path,
+    bval: Path,
+    bvec: Path,
+    mask: Path,
+    reg_method: str,
+    iters: str,
+    metric: str,
+    bids: partial[str] = partial(utils.io.bids_name, sub="subject"),
+    working_dir: Path = Path.cwd() / "tmp",
+    output_dir: Path = Path.cwd(),
+    logger: Logger = Logger(name="logger"),
+    threads: int = 1,
+) -> tuple[Path, dict[str, Any]]:
     """Rigidly register to T1w with original dwi resolution."""
     logger.info("Computing rigid transformation to structural T1w")
-    bids = partial(utils.io.bids_name, datatype="dwi", **input_group)
     b0 = mrtrix.dwiextract(
         input_=dwi,
         output=bids(suffix="b0", ext=".mif"),
@@ -51,20 +54,20 @@ def register(
 
     # Fake T2w contrast for registration
     logger.info("Generating fake T2w brain from T1w.")
-    t2w = fake_t2w(t1w=input_data["t1w"]["nii"], input_group=input_group, cfg=cfg)
-    t2w_brain = fsl.fslmaths(
-        input_files=[t2w],
-        operations=[fsl.fslmaths_operation_params(mas=input_data["dwi"].get("mask"))],
-        output=bids(desc="fakeBrain", suffix="T2w", ext=".nii.gz"),
-    )
+    t2w_brain = fake_t2w(t1w=t1w, bids=bids, output_dir=working_dir)
+    if t1w_mask:
+        t2w_brain = fsl.fslmaths(
+            input_files=[t2w_brain],
+            operations=[fsl.fslmaths_operation_params(mas=t1w_mask)],
+            output=bids(desc="fakeBrain", suffix="T2w", ext=".nii.gz"),
+        ).output_file
 
     # Perform registration
     b0_to_t2 = greedy.greedy_(
         input_images=greedy.greedy_input_images_params(
-            fixed=t2w_brain.output_file, moving=b0_brain.output_file
+            fixed=t2w_brain, moving=b0_brain.output_file
         ),
         output=bids(
-            datatype="anat",
             from_="dwi",
             to="T1w",
             method="ras",
@@ -74,27 +77,25 @@ def register(
         ).replace("from_", "from"),
         affine=True,
         affine_dof=6,
-        ia_identity=cfg["participant.preprocess.register.init"] == "identity",
-        ia_image_centers=cfg["participant.preprocess.register.init"] == "image-centers",
-        iterations=cfg["participant.preprocess.register.iters"],
-        metric=greedy.greedy_metric_params(
-            cfg["participant.preprocess.register.metric"]
-        ),
+        ia_identity=reg_method == "identity",
+        ia_image_centers=reg_method == "image-centers",
+        iterations=iters,
+        metric=greedy.greedy_metric_params(metric),  # type: ignore
         dimensions=3,
-        threads=cfg["opt.threads"],
+        threads=threads,
     )
     transforms = {"ras": b0_to_t2.output_file}
     if not transforms.get("ras"):
         raise ValueError("No RAS transformation found")
     b0_resliced = greedy.greedy_(
-        fixed_reslicing_image=t2w,
+        fixed_reslicing_image=t2w_brain,
         reslice_moving_image=greedy.greedy_reslice_moving_image_params(
             moving=b0.output,
             output=bids(space="T1w", desc="avg", suffix="b0", ext=".nii.gz"),
         ),
         reslice=[transforms["ras"]],  # type: ignore
         dimensions=3,
-        threads=cfg["opt.threads"],
+        threads=threads,
     )
     if not b0_resliced.reslice_moving_image:
         raise ValueError("b0 image was unable to be resliced.")
@@ -115,7 +116,6 @@ def register(
     ras_to_itk = c3d.c3d_affine_tool(
         transform_file=transforms["ras"],
         out_itk_transform=bids(
-            datatype="anat",
             from_="dwi",
             to="T1w",
             method="itk",
@@ -128,31 +128,30 @@ def register(
 
     utils.io.save(
         files=[
-            pl.Path(b0_resliced.reslice_moving_image.resliced_image),
-            (ref_b0 := (pl.Path(ref_b0.root) / b0_fname)),
+            Path(b0_resliced.reslice_moving_image.resliced_image),
+            (ref_b0 := (Path(ref_b0.root) / b0_fname)),
             *transforms.values(),  # type: ignore
         ],
-        out_dir=cfg["output_dir"] / bids(directory=True),
+        out_dir=output_dir,
     )
 
     return ref_b0, transforms
 
 
 def apply_transform(
-    dwi: InputPathType,
-    bvec: InputPathType,
-    ref_b0: InputPathType,
-    mask: InputPathType,
+    dwi: Path,
+    bvec: Path,
+    ref_b0: Path,
+    t1w_mask: Path | None,
+    mask: Path,
     transforms: dict[str, Any],
-    input_group: dict[str, Any],
-    input_data: dict[str, Any],
-    cfg: dict[str, Any],
-    logger: Logger,
-    **kwargs,
-) -> tuple[OutputPathType, OutputPathType, pl.Path]:
+    bids: partial[str] = partial(utils.io.bids_name, sub="subject"),
+    working_dir: Path = Path.cwd() / "tmp",
+    output_dir: Path = Path.cwd(),
+    logger: Logger = Logger(name="logger"),
+) -> tuple[Path, ...]:
     """Apply transform to dwi volume."""
     logger.info("Applying transformations to DWI")
-    bids = partial(utils.io.bids_name, datatype="dwi", ext=".nii.gz", **input_group)
     xfm_dwi = ants.ants_apply_transforms(
         dimensionality=3,
         input_image_type=3,
@@ -169,10 +168,10 @@ def apply_transform(
     xfm_mask = ants.ants_apply_transforms(
         dimensionality=3,
         input_image_type=0,
-        input_image=input_data["dwi"].get("mask") or mask,
+        input_image=t1w_mask or mask,
         reference_image=ref_b0,
         transform=None
-        if input_data["dwi"].get("mask")
+        if t1w_mask
         else [ants.ants_apply_transforms_transform_file_name_params(transforms["itk"])],
         interpolation=ants.ants_apply_transforms_nearest_neighbor_params(),
         output=ants.ants_apply_transforms_warped_output_params(
@@ -180,11 +179,10 @@ def apply_transform(
         ),
     )
     xfm_bvec = rotate_bvec(
-        bvec_file=pl.Path(bvec),
+        bvec_file=Path(bvec),
         transformation=transforms["ras"],
-        cfg=cfg,
-        input_group=input_group,
-        **kwargs,
+        bids=bids,
+        output_dir=working_dir,
     )
 
     utils.io.save(
@@ -192,7 +190,7 @@ def apply_transform(
             xfm_dwi.output.output_image_outfile,
             xfm_mask.output.output_image_outfile,
         ],
-        out_dir=cfg["output_dir"] / bids(directory=True),
+        out_dir=output_dir,
     )
 
     return (
