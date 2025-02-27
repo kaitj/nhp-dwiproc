@@ -115,3 +115,4 @@ For downstream analysis, the final stage of the preprocessing performs a --rigid
 | `--register-skip`               | `participant.preprocess.register.skip`   | skip registration to participant structural t1w                                                |
 | `--register-metric <metric>`    | `participant.preprocess.register.metric` | similarity metric to use for registration; one of `SSD`, `MI`, `NMI`, `MAHAL` - default: `NMI` |
 | `--register-iters <iterations>` | `participant.preprocess.register.iters`  | number of iterations per level of multi-res - default: `50x50`                                 |
+| `--register-init-method <method>` | `participant.preprocess.register.init` | affine initialization method; one of `identity` (NIFTI Header), `image-centers` (matching image centers) - default: `identity` |

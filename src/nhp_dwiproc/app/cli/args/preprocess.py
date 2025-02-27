@@ -306,3 +306,12 @@ def _add_register(arg_group: _ArgumentGroup) -> None:
         default="50x50",
         help="number of iterations per level of multi-res (default: %(default)s",
     )
+    arg_group.add_argument(
+        "--register-init-method",
+        "--register_init_method",
+        dest="participant.preprocess.register.init",
+        type=str,
+        default="identity",
+        choices=["identity", "image-centers"],
+        help="affine initialization method one of [%(choices)s]; default: %(default)s)",
+    )
