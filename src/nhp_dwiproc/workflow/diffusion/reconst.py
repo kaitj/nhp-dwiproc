@@ -42,7 +42,7 @@ def compute_fods(
     single_shell: bool,
     shells: list[int | float] | None,
     lmax: list[int] | None,
-    bids: partial = partial(utils.io.bids_name, sub="subject"),
+    bids: partial[str] = partial(utils.io.bids_name, sub="subject"),
 ) -> mrtrix.MtnormaliseOutputs:
     """Process subject for tractography."""
     bids_dwi2response = partial(
@@ -103,7 +103,7 @@ def compute_dti(
     bvec: Path,
     bval: Path,
     mask: Path,
-    bids: partial = partial(utils.io.bids_name, sub="subject"),
+    bids: partial[str] = partial(utils.io.bids_name, sub="subject"),
     output_fpath: Path = Path.cwd(),
 ) -> None:
     """Process diffusion tensors."""

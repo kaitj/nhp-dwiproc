@@ -2,7 +2,7 @@
 
 from functools import partial
 from logging import Logger
-from typing import Any
+from pathlib import Path
 
 import numpy as np
 from niwrap import mrtrix
@@ -12,44 +12,40 @@ import nhp_dwiproc.utils as utils
 
 
 def denoise(
-    entities: dict[str, Any],
-    input_data: dict[str, Any],
-    cfg: dict[str, Any],
-    logger: Logger,
+    nii: Path,
+    bval: Path,
+    estimator: str | None,
+    noise_map: str | None,
+    extent: list[int] | None,
+    skip: bool = False,
+    logger: Logger = Logger(name="logger"),
+    bids: partial[str] = partial(utils.io.bids_name, sub="subject"),
+    output_fpath: Path = Path.cwd(),
     **kwargs,
 ) -> OutputPathType:
     """Perform mrtrix denoising."""
-    bval = np.loadtxt(input_data["dwi"]["bval"])
-    if bval[bval != 0].size < 30:
+    bval_arr = np.loadtxt(bval)
+    if bval_arr[bval_arr != 0].size < 30:
         logger.info("Less than 30 directions...skipping denoising")
-        cfg["participant.preprocess.denoise.skip"] = True
+        skip = True
 
-    if cfg["participant.preprocess.denoise.skip"]:
-        return input_data["dwi"]["nii"]
+    if skip:
+        return nii
 
     logger.info("Performing denoising")
-    bids = partial(utils.io.bids_name, datatype="dwi", **entities)
-
+    bids = partial(bids, datatype="dwi")
     denoise = mrtrix.dwidenoise(
-        dwi=input_data["dwi"]["nii"],
+        dwi=nii,
         out=bids(desc="denoise", suffix="dwi", ext=".nii.gz"),
-        estimator=cfg["participant.preprocess.denoise.estimator"],
-        noise=bids(
-            algorithm=cfg["participant.preprocess.denoise.estimator"],
-            param="noise",
-            suffix="dwimap",
-            ext=".nii.gz",
-        )
-        if (noise_map := cfg["participant.preprocess.denoise.map"])
+        estimator=estimator,
+        noise=bids(algorithm=estimator, param="noise", suffix="dwimap", ext=".nii.gz")
+        if noise_map
         else None,
-        extent=cfg.get("participant.preprocess.denoise.extent"),
+        extent=extent,
     )
-
     if noise_map:
         if not denoise.noise:
             raise ValueError("Noise map was not generated")
-        utils.io.save(
-            files=denoise.noise, out_dir=cfg["output_dir"] / bids(directory=True)
-        )
+        utils.io.save(files=denoise.noise, out_dir=output_fpath)
 
     return denoise.out

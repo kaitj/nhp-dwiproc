@@ -1,9 +1,7 @@
 """Preprocess steps associated with eddymotion."""
 
-import pathlib as pl
 from functools import partial
-from logging import Logger
-from typing import Any
+from pathlib import Path
 
 import numpy as np
 from eddymotion.data import dmri
@@ -13,47 +11,35 @@ import nhp_dwiproc.utils as utils
 
 
 def eddymotion(
-    dir_outs: dict[str, Any],
-    input_group: dict[str, Any],
-    cfg: dict[str, Any],
-    logger: Logger,
+    dwi: list[Path],
+    bvec: list[Path],
+    bval: list[Path],
+    iters: int,
+    seed: int,
+    bids: partial[str] = partial(utils.io.bids_name, sub="subject"),
+    output_dir: Path = Path.cwd() / "tmp",
+    threads: int = 1,
     **kwargs,
-) -> tuple[pl.Path, ...]:
+) -> tuple[Path, ...]:
     """Perform eddymotion."""
-    bids = partial(
-        utils.io.bids_name,
-        datatype="dwi",
-        desc="eddymotion",
-        ext=".nii.gz",
-        **input_group,
-    )
-    logger.info("Running eddymotion")
-
-    if any(
-        (len(dir_outs["dwi"]) > 1, len(dir_outs["bvec"]) > 1, len(dir_outs["bval"]) > 1)
-    ):
+    if any((len(dwi) > 1, len(bvec) > 1, len(bval) > 1)):
         raise ValueError("Multiple diffusion-associated files found")
 
-    out_fpath = cfg["opt.working_dir"] / f"{utils.assets.gen_hash()}_eddymotion"
+    out_fpath = output_dir / f"{utils.assets.gen_hash()}_eddymotion"
     out_fpath.mkdir(parents=True, exist_ok=True)
 
-    dwi_data = dmri.load(
-        filename=dir_outs["dwi"][0],
-        bvec_file=dir_outs["bvec"][0],
-        bval_file=dir_outs["bval"][0],
-    )
-
+    dwi_data = dmri.load(filename=dwi[0], bvec_file=bvec[0], bval_file=bval[0])
     estimator = EddyMotionEstimator()
     estimator.estimate(
-        dwi_data,
+        dwdata=dwi_data,
         models=["b0"],
-        n_iter=cfg["participant.preprocess.eddymotion.iters"],
-        seed=cfg["opt.seed_num"],
-        omp_nthreads=cfg["opt.threads"],
+        n_iter=iters,
+        seed=seed,
+        omp_nthreads=threads,
     )
 
     # Update output directory
-    dwi_fpath = out_fpath / bids(suffix="dwi")
+    dwi_fpath = out_fpath / bids(desc="eddymotion", suffix="dwi", ext=".nii.gz")
     dwi_data.to_nifti(filename=dwi_fpath, insert_b0=True)
 
     # Update rotated bvecs and save
@@ -62,4 +48,4 @@ def eddymotion(
     bvecs_fpath = out_fpath / bids(suffix="dwi", ext=".bvec")
     np.savetxt(bvecs_fpath, bvecs, fmt="%.5f")
 
-    return dwi_fpath, dir_outs["bval"][0], bvecs_fpath
+    return dwi_fpath, bval[0], bvecs_fpath
