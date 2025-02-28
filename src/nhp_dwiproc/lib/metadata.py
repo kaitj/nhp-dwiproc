@@ -5,10 +5,13 @@ from typing import Any
 
 
 def phase_encode_dir(
-    idx: int, dwi_json: dict[str, Any], cfg: dict[str, Any], logger: Logger, **kwargs
+    idx: int,
+    dwi_json: dict[str, Any],
+    pe_dirs: list[str] | None,
+    logger: Logger = Logger(name="logger"),
 ) -> str:
     """Check phase encoding direction - set if able / necessary."""
-    if pe_dirs := cfg.get("participant.preprocess.metadata.pe_dirs"):
+    if pe_dirs:
         logger.warning("Setting 'PhaseEncodingDirection'")
         dwi_json["PhaseEncodingDirection"] = pe_dirs[idx]
     elif "PhaseEncodingDirection" not in dwi_json:
@@ -22,10 +25,12 @@ def phase_encode_dir(
 
 
 def echo_spacing(
-    dwi_json: dict[str, Any], cfg: dict[str, Any], logger: Logger, **kwargs
+    dwi_json: dict[str, Any],
+    echo_spacing: str | None,
+    logger: Logger = Logger(name="logger"),
 ) -> float:
     """Check echo spacing - set if provided."""
-    if echo_spacing := cfg.get("participant.preprocess.metadata.echo_spacing"):
+    if echo_spacing:
         logger.info("Using provided echo spacing")
         dwi_json["EffectiveEchoSpacing"] = float(echo_spacing)
     elif "EffectiveEchoSpacing" not in dwi_json:
