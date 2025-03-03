@@ -90,7 +90,7 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
                     cfg["participant.preprocess.topup.skip"] = True
 
                 if not cfg["participant.preprocess.topup.skip"]:
-                    phenc, indices, topup, eddy_mask = preprocess.topup.run_apply_topup(
+                    phenc, indices, topup = preprocess.topup.run_apply_topup(
                         dir_outs=dir_outs, **input_kwargs
                     )
                 else:
@@ -104,7 +104,7 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
                         phenc=phenc,
                         indices=indices,
                         topup=topup,
-                        mask=eddy_mask,
+                        mask=None,
                         dir_outs=dir_outs,
                         **input_kwargs,
                     )
@@ -159,7 +159,7 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
                     cfg["participant.preprocess.topup.skip"] = True
 
                 if not cfg["participant.preprocess.topup.skip"]:
-                    phenc, indices, topup, eddy_mask = preprocess.topup.run_apply_topup(
+                    phenc, indices, topup = preprocess.topup.run_apply_topup(
                         dir_outs=dir_outs, **input_kwargs
                     )
                     for key in dir_outs.keys():
@@ -175,7 +175,7 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
                         phenc=phenc,
                         indices=indices,
                         topup=topup,
-                        mask=eddy_mask,
+                        mask=None,
                         dir_outs=dir_outs,
                         **input_kwargs,
                     )
