@@ -122,7 +122,6 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
                     phenc = None
                     indices = None
                     topup = None
-                    eddy_mask = None
 
                 if not cfg["participant.preprocess.eddy.skip"]:
                     logger.info("Running FSL's eddy")
@@ -131,7 +130,6 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
                         phenc=phenc,
                         indices=indices,
                         topup=topup,
-                        mask=None,
                         slm=cfg.get("participant.preprocess.eddy.slm", None),
                         cnr_maps=cfg["participant.preprocess.eddy.cnr_maps"],
                         repol=cfg["participant.preprocess.eddy.repol"],
@@ -220,7 +218,6 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
                     phenc = None
                     indices = None
                     topup = None
-                    eddy_mask = None
 
                 if not cfg["participant.preprocess.eddy.skip"]:
                     logger.info("Running FSL's eddy")
@@ -229,7 +226,6 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
                         phenc=phenc,
                         indices=indices,
                         topup=topup,
-                        mask=None,
                         slm=cfg.get("participant.preprocess.eddy.slm", None),
                         cnr_maps=cfg["participant.preprocess.eddy.cnr_maps"],
                         repol=cfg["participant.preprocess.eddy.repol"],
@@ -252,7 +248,6 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
                         phenc=None,
                         indices=None,
                         topup=None,
-                        mask=None,
                         slm=cfg.get("participant.preprocess.eddy.slm", None),
                         cnr_maps=cfg["participant.preprocess.eddy.cnr_maps"],
                         repol=cfg["participant.preprocess.eddy.repol"],

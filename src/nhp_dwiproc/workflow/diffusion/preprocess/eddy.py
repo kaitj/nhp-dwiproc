@@ -5,7 +5,6 @@ from pathlib import Path
 
 import numpy as np
 from niwrap import fsl, mrtrix
-from styxdefs import InputPathType
 
 import nhp_dwiproc.utils as utils
 from nhp_dwiproc.workflow.diffusion.preprocess.dwi import gen_eddy_inputs
@@ -20,7 +19,6 @@ def run_eddy(
     phenc: Path | None,
     indices: list[str] | None,
     topup: fsl.TopupOutputs | None,
-    mask: InputPathType | None,
     slm: str | None,
     cnr_maps: bool,
     repol: bool,
@@ -43,13 +41,12 @@ def run_eddy(
         output_dir=working_dir,
     )
 
-    # Generate crude mask for eddy if necessary
-    if not mask:
-        mask = mrtrix.dwi2mask(
-            input_=dwi_cat,
-            output=bids(desc="preEddy", suffix="mask", ext="nii.gz"),
-            fslgrad=mrtrix.dwi2mask_fslgrad_params(bvecs=bvec_cat, bvals=bval_cat),
-        ).output
+    # Generate crude mask for eddy
+    mask = mrtrix.dwi2mask(
+        input_=dwi_cat,
+        output=bids(desc="preEddy", suffix="mask", ext="nii.gz"),
+        fslgrad=mrtrix.dwi2mask_fslgrad_params(bvecs=bvec_cat, bvals=bval_cat),
+    ).output
 
     bids = partial(bids, desc="eddy")
     eddy = fsl.eddy(
