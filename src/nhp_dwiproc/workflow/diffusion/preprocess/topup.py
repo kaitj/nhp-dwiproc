@@ -5,8 +5,7 @@ from functools import partial
 from logging import Logger
 from typing import Any
 
-from niwrap import fsl, mrtrix
-from styxdefs import OutputPathType
+from niwrap import fsl
 
 import nhp_dwiproc.utils as utils
 from nhp_dwiproc.workflow.diffusion.preprocess.dwi import gen_topup_inputs
@@ -18,7 +17,7 @@ def run_apply_topup(
     cfg: dict[str, Any],
     logger: Logger,
     **kwargs,
-) -> tuple[pl.Path, list[str], fsl.TopupOutputs, OutputPathType]:
+) -> tuple[pl.Path, list[str], fsl.TopupOutputs]:
     """Perform FSL's topup."""
     bids = partial(
         utils.io.bids_name, datatype="dwi", desc="topup", ext=".nii.gz", **input_group
@@ -40,17 +39,4 @@ def run_apply_topup(
     if not topup.iout:
         raise ValueError("Unable to unwarp b0")
 
-    # Generate crude mask for eddy
-    mean_topup = mrtrix.mrmath(
-        input_=[topup.iout],
-        operation="mean",
-        output=bids(desc="mean", suffix="b0"),
-        axis=3,
-    )
-    mask = fsl.bet(
-        infile=mean_topup.output,
-        maskfile=bids(desc="preEddy", suffix="brain", ext=None),
-        binary_mask=True,
-    )
-
-    return phenc, indices, topup, mask.binary_mask
+    return phenc, indices, topup
