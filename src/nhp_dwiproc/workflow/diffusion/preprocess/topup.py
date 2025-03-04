@@ -17,6 +17,7 @@ def run_apply_topup(
     topup_cfg: Path,
     bids: partial[str] = partial(utils.io.bids_name, sub="subject"),
     output_dir: Path = Path.cwd(),
+    **kwargs,
 ) -> tuple[Path, list[str], fsl.TopupOutputs]:
     """Perform FSL's topup.
 

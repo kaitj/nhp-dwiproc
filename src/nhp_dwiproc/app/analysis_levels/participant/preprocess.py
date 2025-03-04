@@ -87,7 +87,7 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
                 b0, pe_dir, pe_data = preprocess.dwi.get_phenc_data(
                     dwi=dwi,
                     bval=input_data["dwi"]["bval"],
-                    bvec=input_data["dwi"]["bval"],
+                    bvec=input_data["dwi"]["bvec"],
                     json=input_data["dwi"]["json"],
                     idx=idx,
                     pe_dirs=cfg.get("participant.preprocess.metadata.pe_dirs"),
@@ -141,9 +141,8 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
                     )
             case "fieldmap":
                 # Mimic input_data dict for preprocessing
-                if input_data := locals().get("input_data", None):
-                    raise ValueError("No input data.")
-
+                if not input_data:  # type: ignore
+                    raise ValueError("Input data is missing")
                 fmap_data = {"dwi": {k: v for k, v in input_data["fmap"].items()}}
                 entities = BIDSEntities.from_path(fmap_data["dwi"]["nii"]).to_dict()
                 entities = {
@@ -185,7 +184,7 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
                     b0, pe_dir, pe_data = preprocess.dwi.get_phenc_data(
                         dwi=fmap,
                         bval=input_data["fmap"]["bval"],
-                        bvec=input_data["fmap"]["bval"],
+                        bvec=input_data["fmap"]["bvec"],
                         json=input_data["fmap"]["json"],
                         idx=len(dir_outs["dwi"]),
                         pe_dirs=cfg.get("participant.preprocess.metadata.pe_dirs"),
@@ -237,10 +236,9 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
                     )
             case "fugue":
                 # For legacy datasets (single phase-encode + fieldmap)
-                if input_data := locals().get("input_data", None):
-                    raise ValueError("No input data.")
-
-                dwi = None  # type: ignore
+                if not input_data:  # type: ignore
+                    raise ValueError("Input data is missing")
+                dwi = None  # type: ignore[assignment]
                 if not cfg["participant.preprocess.eddy.skip"]:
                     logger.info("Running FSL's eddy")
                     dwi, bval, bvec = preprocess.eddy.run_eddy(
@@ -286,8 +284,8 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
                 )
 
         # Ensure variables are bound
-        if input_data := locals().get("input_data", None):
-            raise ValueError("No input data.")
+        if not input_data:  # type: ignore
+            raise ValueError("Input data is missing")
         dwi = locals().get("dwi", input_data["dwi"]["nii"])
         bval = locals().get("bval", input_data["dwi"]["bval"])
         bvec = locals().get("bvec", input_data["dwi"]["bvec"])
@@ -298,10 +296,10 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
             bval=bval,
             bvec=bvec,
             spacing=cfg["participant.preprocess.biascorrect.spacing"],
-            iters=cfg["partiipant.preproces.biascorrect.iters"],
+            iters=cfg["participant.preprocess.biascorrect.iters"],
             shrink=cfg["participant.preprocess.biascorrect.shrink"],
             bids=bids,
-            output_dir=cfg["output_dir"] / bids(datatype="dwi", dirctory=True),
+            output_dir=cfg["output_dir"] / bids(datatype="dwi", directory=True),
         )
 
         bval_fpath = cfg["output_dir"] / (

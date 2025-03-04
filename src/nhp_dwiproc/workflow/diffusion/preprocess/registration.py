@@ -162,7 +162,7 @@ def apply_transform(
         ],
         interpolation=ants.ants_apply_transforms_linear_params(),
         output=ants.ants_apply_transforms_warped_output_params(
-            bids(space="T1w", res="dwi", desc="preproc", suffix="dwi")
+            bids(space="T1w", res="dwi", desc="preproc", suffix="dwi", ext=".nii.gz")
         ),
     )
     xfm_mask = ants.ants_apply_transforms(
@@ -175,7 +175,7 @@ def apply_transform(
         else [ants.ants_apply_transforms_transform_file_name_params(transforms["itk"])],
         interpolation=ants.ants_apply_transforms_nearest_neighbor_params(),
         output=ants.ants_apply_transforms_warped_output_params(
-            bids(space="T1w", res="dwi", desc="preproc", suffix="mask")
+            bids(space="T1w", res="dwi", desc="preproc", suffix="mask", ext=".nii.gz")
         ),
     )
     xfm_bvec = rotate_bvec(

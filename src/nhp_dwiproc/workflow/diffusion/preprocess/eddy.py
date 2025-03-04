@@ -38,13 +38,14 @@ def run_eddy(
         pe_data=pe_data,
         phenc=phenc,
         indices=indices,
+        bids=bids,
         output_dir=working_dir,
     )
 
     # Generate crude mask for eddy
     mask = mrtrix.dwi2mask(
         input_=dwi_cat,
-        output=bids(desc="preEddy", suffix="mask", ext="nii.gz"),
+        output=bids(desc="preEddy", suffix="mask", ext=".nii.gz"),
         fslgrad=mrtrix.dwi2mask_fslgrad_params(bvecs=bvec_cat, bvals=bval_cat),
     ).output
 
