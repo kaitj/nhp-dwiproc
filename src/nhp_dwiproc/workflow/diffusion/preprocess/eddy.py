@@ -1,76 +1,80 @@
 """Preprocess steps associated with FSL's eddy."""
 
-import pathlib as pl
 from functools import partial
-from logging import Logger
-from typing import Any
+from pathlib import Path
 
+import numpy as np
 from niwrap import fsl, mrtrix
-from styxdefs import InputPathType, OutputPathType
 
 import nhp_dwiproc.utils as utils
 from nhp_dwiproc.workflow.diffusion.preprocess.dwi import gen_eddy_inputs
 
 
 def run_eddy(
-    phenc: pl.Path | None,
+    dwi: list[Path],
+    bval: list[Path],
+    bvec: list[Path],
+    pe_dir: list[str],
+    pe_data: list[np.ndarray],
+    phenc: Path | None,
     indices: list[str] | None,
     topup: fsl.TopupOutputs | None,
-    mask: InputPathType | None,
-    dir_outs: dict[str, Any],
-    input_group: dict[str, Any],
-    cfg: dict[str, Any],
-    logger: Logger,
+    slm: str | None,
+    cnr_maps: bool,
+    repol: bool,
+    residuals: bool,
+    shelled: bool,
+    bids: partial[str] = partial(utils.io.bids_name, sub="subject"),
+    working_dir: Path = Path.cwd() / "tmp",
+    output_dir: Path = Path.cwd(),
     **kwargs,
-) -> tuple[OutputPathType, pl.Path, OutputPathType]:
+) -> tuple[Path, Path, Path]:
     """Perform FSL's eddy."""
-    bids = partial(utils.io.bids_name, datatype="dwi", ext=".nii.gz", **input_group)
-    dwi, bval, bvec, phenc, index_fpath = gen_eddy_inputs(
+    dwi_cat, bval_cat, bvec_cat, phenc, index_fpath = gen_eddy_inputs(
+        dwi=dwi,
+        bval=bval,
+        bvec=bvec,
+        pe_dir=pe_dir,
+        pe_data=pe_data,
         phenc=phenc,
         indices=indices,
-        dir_outs=dir_outs,
-        input_group=input_group,
-        cfg=cfg,
-        **kwargs,
+        bids=bids,
+        output_dir=working_dir,
     )
 
-    # Generate crude mask for eddy if necessary
-    if not mask:
-        mask = mrtrix.dwi2mask(
-            input_=dwi,
-            output=bids(desc="preEddy", suffix="mask"),
-            fslgrad=mrtrix.dwi2mask_fslgrad_params(bvecs=bvec, bvals=bval),
-        ).output
+    # Generate crude mask for eddy
+    mask = mrtrix.dwi2mask(
+        input_=dwi_cat,
+        output=bids(desc="preEddy", suffix="mask", ext=".nii.gz"),
+        fslgrad=mrtrix.dwi2mask_fslgrad_params(bvecs=bvec_cat, bvals=bval_cat),
+    ).output
 
-    logger.info("Running FSL's eddy")
-    bids = partial(utils.io.bids_name, datatype="dwi", desc="eddy", **input_group)
+    bids = partial(bids, desc="eddy")
     eddy = fsl.eddy(
-        imain=dwi,
+        imain=dwi_cat,
         mask=mask,
-        bvecs=bvec,
-        bvals=bval,
+        bvecs=bvec_cat,
+        bvals=bval_cat,
         acqp=phenc,
         index=index_fpath,
         topup="_".join(str(topup.movpar).split("_")[:-1]) if topup else None,
         out=bids(),
-        slm=cfg.get("participant.preprocess.eddy.slm", None),
-        cnr_maps=cfg["participant.preprocess.eddy.cnr_maps"],
-        repol=cfg["participant.preprocess.eddy.repol"],
-        residuals=cfg["participant.preprocess.eddy.residuals"],
-        data_is_shelled=cfg["participant.preprocess.eddy.shelled"],
+        slm=slm,  # type: ignore
+        cnr_maps=cnr_maps,
+        repol=repol,
+        residuals=residuals,
+        data_is_shelled=shelled,
     )
 
-    if cfg["participant.preprocess.eddy.cnr_maps"]:
+    if cnr_maps:
         cnr_fpath = utils.io.rename(
             old_fpath=eddy.cnr_maps, new_fname=bids(suffix="cnrmap", ext=".nii.gz")
         )
-        utils.io.save(files=cnr_fpath, out_dir=cfg["output_dir"] / bids(directory=True))
-    if cfg["participant.preprocess.eddy.residuals"]:
+        utils.io.save(files=cnr_fpath, out_dir=output_dir)
+    if residuals:
         residuals_fpath = utils.io.rename(
             old_fpath=eddy.residuals, new_fname=bids(suffix="residuals", ext=".nii.gz")
         )
-        utils.io.save(
-            files=residuals_fpath, out_dir=cfg["output_dir"] / bids(directory=True)
-        )
+        utils.io.save(files=residuals_fpath, out_dir=output_dir)
 
-    return eddy.out, bval, eddy.rotated_bvecs
+    return eddy.out, bval_cat, eddy.rotated_bvecs

@@ -1,10 +1,9 @@
 """Preprocess steps associated with FSL's topup."""
 
-import pathlib as pl
 from functools import partial
-from logging import Logger
-from typing import Any
+from pathlib import Path
 
+import numpy as np
 from niwrap import fsl
 
 import nhp_dwiproc.utils as utils
@@ -12,27 +11,27 @@ from nhp_dwiproc.workflow.diffusion.preprocess.dwi import gen_topup_inputs
 
 
 def run_apply_topup(
-    dir_outs: dict[str, Any],
-    input_group: dict[str, Any],
-    cfg: dict[str, Any],
-    logger: Logger,
+    b0: list[Path],
+    pe_data: list[np.ndarray],
+    pe_dir: list[str],
+    topup_cfg: Path,
+    bids: partial[str] = partial(utils.io.bids_name, sub="subject"),
+    output_dir: Path = Path.cwd(),
     **kwargs,
-) -> tuple[pl.Path, list[str], fsl.TopupOutputs]:
-    """Perform FSL's topup."""
-    bids = partial(
-        utils.io.bids_name, datatype="dwi", desc="topup", ext=".nii.gz", **input_group
-    )
-    logger.info("Running FSL's topup")
+) -> tuple[Path, list[str], fsl.TopupOutputs]:
+    """Perform FSL's topup.
 
-    phenc, b0, indices = gen_topup_inputs(
-        dir_outs=dir_outs, input_group=input_group, cfg=cfg, **kwargs
+    NOTE: `output_dir` refers to working directory in workflow.
+    """
+    phenc, b0_norm, indices = gen_topup_inputs(
+        b0=b0, pe_data=pe_data, pe_dir=pe_dir, bids=bids, output_dir=output_dir
     )
 
     topup = fsl.topup(
-        imain=b0,
+        imain=b0_norm,
         datain=phenc,
-        config=cfg["participant.preprocess.topup.config"],
-        out=f"{bids(ext=None)}",
+        config=topup_cfg,
+        out=f"{bids()}",
         iout=bids(suffix="b0s"),
         fout=bids(suffix="fmap"),
     )
