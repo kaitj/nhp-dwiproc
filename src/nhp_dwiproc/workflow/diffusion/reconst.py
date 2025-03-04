@@ -43,6 +43,7 @@ def compute_fods(
     shells: list[int | float] | None,
     lmax: list[int] | None,
     bids: partial[str] = partial(utils.io.bids_name, sub="subject"),
+    **kwargs,
 ) -> mrtrix.MtnormaliseOutputs:
     """Process subject for tractography."""
     bids_dwi2response = partial(
@@ -105,23 +106,24 @@ def compute_dti(
     mask: Path,
     bids: partial[str] = partial(utils.io.bids_name, sub="subject"),
     output_fpath: Path = Path.cwd(),
+    **kwargs,
 ) -> None:
     """Process diffusion tensors."""
     dwi2tensor = mrtrix.dwi2tensor(
         dwi=nii,
-        dt=bids(),
+        dt=bids(ext=".nii.gz"),
         fslgrad=mrtrix.dwi2tensor_fslgrad_params(bvecs=bvec, bvals=bval),
         mask=mask,
     )
     tensor2metrics = mrtrix.tensor2metric(
         tensor=dwi2tensor.dt,
         mask=mask,
-        adc=bids(param="MD"),
-        fa=bids(param="FA"),
-        rd=bids(param="RD"),
-        ad=bids(param="AD"),
-        value=bids(param="S1"),
-        vector=bids(param="V1"),
+        adc=bids(param="MD", ext=".nii.gz"),
+        fa=bids(param="FA", ext=".nii.gz"),
+        rd=bids(param="RD", ext=".nii.gz"),
+        ad=bids(param="AD", ext=".nii.gz"),
+        value=bids(param="S1", ext=".nii.gz"),
+        vector=bids(param="V1", ext=".nii.gz"),
         num=[1],
     )
 
