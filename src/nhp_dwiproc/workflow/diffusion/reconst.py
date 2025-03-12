@@ -1,8 +1,7 @@
 """Processing of diffusion data to setup tractography."""
 
 from functools import partial
-from logging import Logger
-from typing import Any
+from pathlib import Path
 
 from niwrap import mrtrix, mrtrix3tissue
 
@@ -36,76 +35,60 @@ def _create_response_odf(
 
 
 def compute_fods(
-    input_data: dict[str, Any],
-    input_group: dict[str, Any],
-    cfg: dict[str, Any],
-    logger: Logger,
+    nii: Path,
+    bvec: Path,
+    bval: Path,
+    mask: Path,
+    single_shell: bool,
+    shells: list[int | float] | None,
+    lmax: list[int] | None,
+    bids: partial[str] = partial(utils.io.bids_name, sub="subject"),
     **kwargs,
 ) -> mrtrix.MtnormaliseOutputs:
     """Process subject for tractography."""
-    logger.info("Computing response function")
-    bids = partial(
-        utils.io.bids_name,
-        datatype="dwi",
-        method="dhollander",
-        suffix="response",
-        ext=".txt",
-        **input_group,
+    bids_dwi2response = partial(
+        bids, method="dhollander", suffix="response", ext=".txt"
     )
     mrconvert = mrtrix.mrconvert(
-        input_=input_data["dwi"]["nii"],
-        output=input_data["dwi"]["nii"].name.replace(".nii.gz", ".mif"),
-        fslgrad=mrtrix.mrconvert_fslgrad_params(
-            bvecs=input_data["dwi"]["bvec"], bvals=input_data["dwi"]["bval"]
-        ),
+        input_=nii,
+        output=nii.name.replace(".nii.gz", ".mif"),
+        fslgrad=mrtrix.mrconvert_fslgrad_params(bvecs=bvec, bvals=bval),
     )
     dwi2response = mrtrix.dwi2response(
         algorithm=mrtrix.dwi2response_dhollander_params(
             input_=mrconvert.output,
-            out_sfwm=bids(param="wm"),
-            out_gm=bids(param="gm"),
-            out_csf=bids(param="csf"),
+            out_sfwm=bids_dwi2response(param="wm"),
+            out_gm=bids_dwi2response(param="gm"),
+            out_csf=bids_dwi2response(param="csf"),
         ),
-        mask=input_data["dwi"]["mask"],
-        shells=cfg.get("participant.tractography.shells"),
-        lmax=cfg.get("participant.tractography.lmax"),
+        mask=mask,
+        shells=shells,  # type: ignore
+        lmax=lmax,
     )
-
-    logger.info("Computing fiber orientation distribution")
-    bids = partial(
-        utils.io.bids_name,
-        datatype="dwi",
-        model="csd",
-        suffix="dwimap",
-        ext=".mif",
-        **input_group,
-    )
-    if cfg["participant.tractography.single_shell"]:
+    bids_fod = partial(bids, model="csd", suffix="dwimap", ext=".mif")
+    if single_shell:
         response_odf = _create_response_odf(
             response=dwi2response.algorithm,  # type: ignore
-            bids=bids,
+            bids=bids_fod,
             single_shell=True,
         )
         odfs = mrtrix3tissue.ss3t_csd_beta1(
-            dwi=mrconvert.output,
-            response_odf=response_odf,
-            mask=input_data["dwi"]["mask"],
+            dwi=mrconvert.output, response_odf=response_odf, mask=mask
         )
     else:
         response_odf = _create_response_odf(
             response=dwi2response.algorithm,  # type: ignore
-            bids=bids,
+            bids=bids_fod,
             single_shell=False,
         )
         odfs = mrtrix.dwi2fod(
             algorithm="msmt_csd",
             dwi=mrconvert.output,
             response_odf=response_odf,
-            mask=input_data["dwi"]["mask"],
-            shells=cfg.get("participant.tractography.shells"),
+            mask=mask,
+            shells=shells,
         )
 
-    logger.info("Normalizing fiber orientation distributions")
     normalize_odf = [
         mrtrix.mtnormalise_input_output_params(
             tissue_odf.odf,
@@ -113,49 +96,34 @@ def compute_fods(
         )
         for tissue_odf in odfs.response_odf
     ]
-    mtnormalise = mrtrix.mtnormalise(
-        input_output=normalize_odf, mask=input_data["dwi"]["mask"]
-    )
-
-    return mtnormalise
+    return mrtrix.mtnormalise(input_output=normalize_odf, mask=mask)
 
 
 def compute_dti(
-    input_data: dict[str, Any],
-    input_group: dict[str, Any],
-    cfg: dict[str, Any],
-    logger: Logger,
+    nii: Path,
+    bvec: Path,
+    bval: Path,
+    mask: Path,
+    bids: partial[str] = partial(utils.io.bids_name, sub="subject"),
+    output_fpath: Path = Path.cwd(),
     **kwargs,
 ) -> None:
     """Process diffusion tensors."""
-    logger.info("Performing tensor fitting")
-    bids = partial(
-        utils.io.bids_name,
-        datatype="dwi",
-        model="tensor",
-        suffix="dwimap",
-        ext=".nii.gz",
-        **input_group,
-    )
     dwi2tensor = mrtrix.dwi2tensor(
-        dwi=input_data["dwi"]["nii"],
-        dt=bids(),
-        fslgrad=mrtrix.dwi2tensor_fslgrad_params(
-            bvecs=input_data["dwi"]["bvec"], bvals=input_data["dwi"]["bval"]
-        ),
-        mask=input_data["dwi"]["mask"],
+        dwi=nii,
+        dt=bids(ext=".nii.gz"),
+        fslgrad=mrtrix.dwi2tensor_fslgrad_params(bvecs=bvec, bvals=bval),
+        mask=mask,
     )
-
-    logger.info("Generating tensor maps")
     tensor2metrics = mrtrix.tensor2metric(
         tensor=dwi2tensor.dt,
-        mask=input_data["dwi"]["mask"],
-        adc=bids(param="MD"),
-        fa=bids(param="FA"),
-        rd=bids(param="RD"),
-        ad=bids(param="AD"),
-        value=bids(param="S1"),
-        vector=bids(param="V1"),
+        mask=mask,
+        adc=bids(param="MD", ext=".nii.gz"),
+        fa=bids(param="FA", ext=".nii.gz"),
+        rd=bids(param="RD", ext=".nii.gz"),
+        ad=bids(param="AD", ext=".nii.gz"),
+        value=bids(param="S1", ext=".nii.gz"),
+        vector=bids(param="V1", ext=".nii.gz"),
         num=[1],
     )
 
@@ -169,6 +137,5 @@ def compute_dti(
             tensor2metrics.value,
             tensor2metrics.vector,
         ],
-        out_dir=cfg["output_dir"]
-        / (utils.io.bids_name(directory=True, datatype="dwi", **input_group)),
+        out_dir=output_fpath,
     )

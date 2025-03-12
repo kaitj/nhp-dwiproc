@@ -3,7 +3,10 @@
 from pathlib import Path
 
 import nibabel.nifti1 as nib
-from styxdefs import get_global_runner
+from styxdefs import LocalRunner, get_global_runner
+from styxdocker import DockerRunner
+from styxgraph import GraphRunner
+from styxsingularity import SingularityRunner
 
 try:
     import nifti
@@ -33,7 +36,9 @@ def load_nifti(fpath: str | Path) -> nib.Nifti1Image | nib.Nifti1Pair:
 
 def gen_hash() -> str:
     """Generate styx runner hash for python code."""
-    runner = get_global_runner()
-    runner.base.execution_counter += 1  # type: ignore
+    runner = get_global_runner()  # type: ignore
+    if isinstance(runner, GraphRunner):
+        runner: LocalRunner | DockerRunner | SingularityRunner = runner.base  # type: ignore
 
-    return f"{runner.base.uid}_{runner.base.execution_counter - 1}_python"  # type: ignore
+    runner.execution_counter += 1
+    return f"{runner.uid}_{runner.execution_counter - 1}_python"
