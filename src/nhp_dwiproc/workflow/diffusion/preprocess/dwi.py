@@ -74,7 +74,7 @@ def gen_topup_inputs(
     dwi_fpath = normalize(dwi_b0.output, bids=bids, output_dir=output_dir)
 
     # Get matching PE data to b0
-    output_dir = output_dir / f"{utils.assets.gen_hash()}_concat-phenc"
+    output_dir = output_dir.parent / f"{utils.assets.gen_hash()}_concat-phenc"
     phenc_fpath = concat_dir_phenc_data(
         pe_data=pe_data, bids=bids, output_dir=output_dir
     )
