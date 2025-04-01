@@ -118,12 +118,12 @@ def compute_dti(
     tensor2metrics = mrtrix.tensor2metric(
         tensor=dwi2tensor.dt,
         mask=mask,
-        adc=bids(param="MD", ext=".nii.gz"),
-        fa=bids(param="FA", ext=".nii.gz"),
-        rd=bids(param="RD", ext=".nii.gz"),
-        ad=bids(param="AD", ext=".nii.gz"),
-        value=bids(param="S1", ext=".nii.gz"),
-        vector=bids(param="V1", ext=".nii.gz"),
+        adc=bids(param="MD", suffix="dwimap", ext=".nii.gz"),
+        fa=bids(param="FA", suffix="dwimap", ext=".nii.gz"),
+        rd=bids(param="RD", suffix="dwimap", ext=".nii.gz"),
+        ad=bids(param="AD", suffix="dwimap", ext=".nii.gz"),
+        value=bids(param="S1", suffix="dwimap", ext=".nii.gz"),
+        vector=bids(param="V1", suffix="dwimap", ext=".nii.gz"),
         num=[1],
     )
 
