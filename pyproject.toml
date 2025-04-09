@@ -48,7 +48,7 @@ dev-dependencies = [
 ]
 
 [tool.uv.sources]
-nifti = {git = "https://github.com/childmindresearch/nifti", rev = "acde447"}
+nifti = {git = "https://github.com/childmindresearch/nifti", rev = "2cb51ed"}
 
 [tool.hatch.build]
 source = ["src/"]
