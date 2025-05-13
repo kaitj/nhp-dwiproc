@@ -8,7 +8,7 @@ dynamic = ["version"]
 requires-python = ">=3.11"
 dependencies = [
   "bidsapp-helper>=0.1.0",
-  "bids2table>=0.1.0",
+  "bids2table==0.1.0",
   "niwrap>=0.5.1",
   "pyyaml>=6.0.2",
   "eddymotion>=0.1.15",
