@@ -19,31 +19,29 @@ def biascorrect(
     output_dir: Path = Path.cwd(),
 ) -> tuple[Path, ...]:
     """Perform biascorrection steps."""
-    biascorrect = mrtrix.dwibiascorrect(
+    dwibiascorrect = partial(
+        mrtrix.dwibiascorrect,
+        algorithm="ants",
+        fslgrad=mrtrix.dwibiascorrect_fslgrad_params(bvecs=bvec, bvals=bval),
+        ants_b=f"{spacing},3",
+        ants_c=f"{iters},0.0",
+        ants_s=f"{shrink}",
+    )
+
+    biascorrect = dwibiascorrect(
         input_image=dwi,
         output_image=bids(desc="biascorrect", suffix="dwi", ext=".nii.gz"),
-        algorithm="ants",
-        fslgrad=mrtrix.dwibiascorrect_fslgrad_params(bvecs=bvec, bvals=bval),
-        ants_b=f"{spacing},3",
-        ants_c=f"{iters},0.0",
-        ants_s=f"{shrink}",
     )
-    biascorrect = mrtrix.dwibiascorrect(
+    biascorrect = dwibiascorrect(
         input_image=biascorrect.output_image_file,
         output_image=bids(desc="preproc", suffix="dwi", ext=".nii.gz"),
-        algorithm="ants",
-        fslgrad=mrtrix.dwibiascorrect_fslgrad_params(bvecs=bvec, bvals=bval),
-        ants_b=f"{spacing},3",
-        ants_c=f"{iters},0.0",
-        ants_s=f"{shrink}",
     )
+    utils.io.save(files=biascorrect.output_image_file, out_dir=output_dir)
 
     mask = mrtrix.dwi2mask(
         input_=biascorrect.output_image_file,
         output=bids(desc="biascorrect", suffix="mask", ext=".nii.gz"),
         fslgrad=mrtrix.dwi2mask_fslgrad_params(bvecs=bvec, bvals=bval),
     )
-
-    utils.io.save(files=biascorrect.output_image_file, out_dir=output_dir)
 
     return biascorrect.output_image_file, mask.output
