@@ -132,7 +132,9 @@ def gen_eddy_inputs(
     # Generate phenc file if necessary
     if not phenc:
         phenc = concat_dir_phenc_data(
-            pe_data=[pe_data[0]], bids=bids, output_dir=output_dir
+            pe_data=[pe_data[0]],
+            bids=bids,
+            output_dir=output_dir / f"{utils.assets.gen_hash()}_concat-phenc",
         )
 
     # Generate index file
