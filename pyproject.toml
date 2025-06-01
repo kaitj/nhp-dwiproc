@@ -9,9 +9,9 @@ requires-python = ">=3.11"
 dependencies = [
   "attrs>=25.3.0",
   "bidsapp-helper>=0.1.0",
-  "bids2table==0.1.0",
+  "bids2table==2.1.0",
   # for bids2table=0.1.0
-  "pyarrow<20.0",
+  "pyarrow<21.0",
   "niwrap>=0.6.1",
   "pyyaml>=6.0.2",
   "eddymotion>=0.1.15",
