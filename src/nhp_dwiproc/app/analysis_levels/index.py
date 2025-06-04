@@ -16,7 +16,5 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
         logger.info("Index already exists - not overwriting")
     else:
         logger.info("Indexing bids dataset...")
-        table = get_bids_table(
-            dataset_dir=cfg["bids_dir"], index=index_path, return_type="pyarrow"
-        )
+        table = get_bids_table(dataset_dir=cfg["bids_dir"], index=index_path)
         pq.write_table(table, index_path)

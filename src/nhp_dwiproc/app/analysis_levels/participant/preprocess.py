@@ -9,7 +9,8 @@ from pathlib import Path
 from typing import Any, DefaultDict
 
 import niwrap_helper
-from bids2table import BIDSEntities, BIDSTable
+import polars as pl
+from bids2table import parse_bids_entities
 from tqdm import tqdm
 
 import nhp_dwiproc.utils as utils
@@ -20,26 +21,26 @@ from nhp_dwiproc.workflow.diffusion import preprocess
 def run(cfg: dict[str, Any], logger: Logger) -> None:
     """Runner for preprocessing-level analysis."""
     logger.info("Preprocess analysis-level")
-    b2t = utils.io.load_b2t(cfg=cfg, logger=logger)
+    df = utils.io.load_participant_table(cfg=cfg, logger=logger)
 
-    # Filter b2t based on string query
-    if cfg.get("participant.query"):
-        b2t = b2t.loc[b2t.flat.query(cfg["participant.query"]).index]
-    if not isinstance(b2t, BIDSTable):
-        raise TypeError(f"Expected BIDSTable, but got {type(b2t).__name__}")
+    # Filter df based on string query
+    if cfg.get("participant.query") is not None:
+        df = utils.io.query(df=df, query=cfg["participant.query"])
+    if not isinstance(df, pl.DataFrame):
+        raise TypeError(f"Expected polars.DataFrame, but got {type(df).__name__}")
 
-    dwi_b2t = b2t
-    if cfg.get("participant.query_dwi"):
-        dwi_b2t = b2t.loc[b2t.flat.query(cfg["participant.query_dwi"]).index]
-    if not isinstance(dwi_b2t, BIDSTable):
-        raise TypeError(f"Expected BIDSTable, but got {type(dwi_b2t).__name__}")
+    dwi_df = df
+    if cfg.get("participant.query_dwi") is not None:
+        dwi_df = utils.io.query(df=df, query=cfg["participant.query_dwi"])
+    if not isinstance(dwi_df, pl.DataFrame):
+        raise TypeError(f"Expected polars.DataFrame, but got {type(dwi_df).__name__}")
 
     # Loop through remaining subjects after query
-    groupby_keys = utils.io.valid_groupby(b2t=dwi_b2t, keys=["sub", "ses", "run"])
+    groupby_keys = utils.io.valid_groupby(df=dwi_df, keys=["sub", "ses", "run"])
     for group_vals, group in tqdm(
-        dwi_b2t.filter_multi(suffix="dwi", ext={"items": [".nii", ".nii.gz"]}).groupby(
-            groupby_keys
-        )
+        dwi_df.filter(
+            (pl.col("suffix") == "dwi") & (pl.col("ext").is_in([".nii", ".nii.gz"]))
+        ).group_by(groupby_keys)
     ):
         input_group = dict(
             zip([key.lstrip("ent__") for key in groupby_keys], group_vals)
@@ -50,9 +51,10 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
 
         # Inner loop process per direction, save to list
         dir_outs: DefaultDict[str, list[Any]] = defaultdict(list)
-        for idx, (_, row) in enumerate(group.ent.iterrows()):
-            input_data = utils.io.get_inputs(b2t=b2t, row=row, cfg=cfg)
-            entities = row[["sub", "ses", "run", "dir"]].to_dict()
+        # Want the rows named
+        for idx, row in enumerate(group.iter_rows(named=True)):
+            input_data = utils.io.get_inputs(df=df, row=row, cfg=cfg)
+            entities = {k: v for k, v in row if k in ["sub", "ses", "run", "dir"]}
             bids = partial(niwrap_helper.bids_path, **entities)
             output_fpath = cfg["output_dir"] / bids(datatype="dwi", directory=True)
             dwi = preprocess.denoise.denoise(
@@ -145,7 +147,7 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
                 if not input_data:  # type: ignore
                     raise ValueError("Input data is missing")
                 fmap_data = {"dwi": {k: v for k, v in input_data["fmap"].items()}}
-                entities = BIDSEntities.from_path(fmap_data["dwi"]["nii"]).to_dict()
+                entities = parse_bids_entities(fmap_data["dwi"]["nii"])
                 entities = {
                     k: v
                     for k, v in entities.items()

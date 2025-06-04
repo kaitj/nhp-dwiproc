@@ -4,7 +4,7 @@ from functools import partial
 from pathlib import Path
 
 import niwrap_helper
-from bids2table import BIDSEntities
+from bids2table._entities import parse_bids_entities
 from niwrap import mrtrix, workbench
 
 import nhp_dwiproc.utils as utils
@@ -71,9 +71,9 @@ def extract_tract(
     if len(rois) == 0:
         raise ValueError("No ROIs were provided")
 
-    tract_entities = BIDSEntities.from_path(rois[0].spec.obj)
-    label = tract_entities.label
-    hemi = tract_entities.hemi
+    tract_entities = parse_bids_entities(rois[0].spec.obj)
+    label = tract_entities.get("label")
+    hemi = tract_entities.get("hemi")
     tckedit = mrtrix.tckedit(
         tracks_in=[tck_fpath],
         tracks_out=bids(
