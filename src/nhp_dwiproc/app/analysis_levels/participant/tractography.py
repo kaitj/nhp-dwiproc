@@ -4,6 +4,7 @@ from functools import partial
 from logging import Logger
 from typing import Any
 
+import niwrap_helper
 from bids2table import BIDSTable
 from tqdm import tqdm
 
@@ -44,9 +45,9 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
             )
 
             # Perform processing
-            uid = utils.io.bids_name(**input_group)
+            uid = niwrap_helper.bids_path(**input_group)
             logger.info(f"Processing {uid}")
-            bids = partial(utils.io.bids_name, datatype="dwi", **input_group)
+            bids = partial(niwrap_helper.bids_path, datatype="dwi", **input_group)
             output_fpath = cfg["output_dir"] / bids(directory=True)
             dwi_lib.grad_check(**input_data["dwi"])
 

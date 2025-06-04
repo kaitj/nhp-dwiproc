@@ -3,7 +3,7 @@
 import shutil
 from logging import Logger
 from pathlib import Path
-from typing import Any, Literal, Sequence, overload
+from typing import Any, Sequence
 
 import pyarrow as pa
 import pyarrow.compute as pc
@@ -282,35 +282,6 @@ def save(
     # Ensure `files` is iterable and process each one
     for file in [files] if isinstance(files, (str, Path)) else files:
         _save_file(Path(file))
-
-
-@overload
-def bids_name(
-    directory: Literal[False], return_path: Literal[False], **entities
-) -> str: ...
-
-
-@overload
-def bids_name(
-    directory: Literal[False], return_path: Literal[True], **entities
-) -> Path: ...
-
-
-@overload
-def bids_name(
-    directory: Literal[True], return_path: Literal[False], **entities
-) -> Path: ...
-
-
-def bids_name(
-    directory: bool = False, return_path: bool = False, **entities
-) -> Path | str:
-    """Helper function to generate bids-esque name."""
-    if directory and return_path:
-        raise ValueError("Only one of 'directory' or 'return_path' can be True")
-
-    name = BIDSEntities.from_dict(entities).to_path()
-    return name if return_path else name.parent if directory else name.name
 
 
 def rename(old_fpath: Path, new_fname: str) -> Path:

@@ -8,6 +8,7 @@ from logging import Logger
 from pathlib import Path
 from typing import Any, DefaultDict
 
+import niwrap_helper
 from bids2table import BIDSEntities, BIDSTable
 from tqdm import tqdm
 
@@ -45,14 +46,14 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
         )
 
         # Outer loops processes the combined directions
-        logger.info(f"Processing {(uid := utils.io.bids_name(**input_group))}")
+        logger.info(f"Processing {(uid := niwrap_helper.bids_path(**input_group))}")
 
         # Inner loop process per direction, save to list
         dir_outs: DefaultDict[str, list[Any]] = defaultdict(list)
         for idx, (_, row) in enumerate(group.ent.iterrows()):
             input_data = utils.io.get_inputs(b2t=b2t, row=row, cfg=cfg)
             entities = row[["sub", "ses", "run", "dir"]].to_dict()
-            bids = partial(utils.io.bids_name, **entities)
+            bids = partial(niwrap_helper.bids_path, **entities)
             output_fpath = cfg["output_dir"] / bids(datatype="dwi", directory=True)
             dwi = preprocess.denoise.denoise(
                 **input_data["dwi"],
@@ -102,7 +103,7 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
                 dir_outs["pe_data"].append(pe_data)
                 dir_outs["pe_dir"].append(pe_dir)
 
-        bids = partial(utils.io.bids_name, **input_group)
+        bids = partial(niwrap_helper.bids_path, **input_group)
         output_dir = cfg["output_dir"] / bids(datatype="dwi", directory=True)
         match cfg["participant.preprocess.undistort.method"]:
             case "topup":
@@ -150,7 +151,7 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
                     for k, v in entities.items()
                     if k in ["sub", "ses", "run", "dir"]
                 }
-                bids = partial(utils.io.bids_name, **entities)
+                bids = partial(niwrap_helper.bids_path, **entities)
                 output_fpath = cfg["output_dir"] / bids(datatype="dwi", directory=True)
                 fmap = preprocess.denoise.denoise(
                     **fmap_data["dwi"],
