@@ -12,7 +12,8 @@ dependencies = [
   "bids2table[s3]>=2.1.0",
   "nifti",
   "niwrap>=0.6.1",
-  "niwrap-helper>=0.2.1",
+  "niwrap-helper>=0.3.0",
+  "polars>=1.30.0",
   "pyyaml>=6.0.2",
   "eddymotion>=0.1.15",
   # (Temporary) pinned versions of packages to fix errors
