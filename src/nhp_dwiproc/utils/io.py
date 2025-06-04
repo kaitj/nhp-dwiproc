@@ -3,50 +3,53 @@
 import shutil
 from logging import Logger
 from pathlib import Path
-from typing import Any, Literal, overload
+from typing import Any, Literal, Sequence, overload
 
-import pandas as pd
-from bids2table import BIDSEntities, BIDSTable, bids2table
+import pyarrow as pa
+import pyarrow.compute as pc
+import pyarrow.parquet as pq
+from bids2table._pathlib import as_path
+from niwrap_helper.bids import get_bids_table
 from styxdefs import OutputPathType
 
 
-def load_b2t(cfg: dict[str, Any], logger: Logger) -> pd.DataFrame:
+def load_b2t(cfg: dict[str, Any], logger: Logger) -> pa.Table:
     """Handle loading of bids2table."""
-    index_path: Path = cfg.get("opt.index_path", cfg["bids_dir"] / "index.b2t")
+    index_path = as_path(cfg.get("opt.index_path", cfg["bids_dir"] / "index.b2t"))
     index_exists = index_path.exists()
-    overwrite = cfg.get("index.overwrite", False) if index_exists else False
 
-    logger.info(
-        "Existing bids2table found" if index_exists else "Indexing BIDS dataset"
+    if index_exists:
+        logger.info("Existing bids2table found")
+    else:
+        logger.info("Indexing BIDS dataset")
+
+    table = get_bids_table(
+        dataset_dir=cfg["bids_dir"], index=index_path, return_type="pyarrow"
     )
-    if overwrite:
+
+    if cfg.get("index.overwrite", False):
         logger.info("Overwriting existing table")
+        pq.write_table(table, index_path)
     elif not index_exists:
         logger.warning(
             "Index created but not saved - run 'index' level analysis to save"
         )
 
-    b2t = bids2table(
-        root=cfg["bids_dir"],
-        index_path=index_path if index_exists else None,
-        workers=cfg.get("opt.threads", 1),
-        overwrite=overwrite,
-    )
-
-    # Extract and flatten extra entities
-    extra_entities = pd.json_normalize(b2t.pop("ent__extra_entities")).set_index(  # type: ignore
-        b2t.index  # type: ignore
-    )
-    return pd.concat([b2t, extra_entities.add_prefix("ent__")], axis=1)
+    return table
 
 
-def valid_groupby(b2t: BIDSTable, keys: list[str]) -> list[str]:
+def valid_groupby(b2t: pa.Table, keys: Sequence[str]) -> list[str]:
     """Return a list of valid keys to group by."""
-    return [f"ent__{key}" for key in keys if b2t[f"ent__{key}"].notna().any()]
+    cols = b2t.schema.names
+    return [
+        key
+        for key in keys
+        if key in cols and pc.any(pc.invert(pc.is_null(b2t[key]))).as_py()
+    ]
 
 
 def get_inputs(
-    b2t: BIDSTable,
+    b2t: pd.DataFrame,
     row: pd.Series,
     cfg: dict[str, Any],
 ) -> dict[str, Any]:
