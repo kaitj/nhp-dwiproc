@@ -11,7 +11,7 @@ from niwrap_helper.bids import get_bids_table
 def run(cfg: dict[str, Any], logger: Logger) -> None:
     """Runner for index-level analysis."""
     logger.info("Index analysis-level")
-    index_path: Path = cfg.get("opt.index_path", cfg["bids_dir"] / ".index.b2t")
+    index_path: Path = cfg.get("opt.index_path", cfg["bids_dir"] / ".index.parquet")
     if index_path.exists() and not cfg["index.overwrite"]:
         logger.info("Index already exists - not overwriting")
     else:

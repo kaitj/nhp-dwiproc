@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any, Sequence
 
 import polars as pl
+from bids2table import load_bids_metadata
 from bids2table._pathlib import PathT, as_path
 from niwrap_helper.bids import get_bids_table
 from styxdefs import OutputPathType
@@ -14,7 +15,7 @@ from styxdefs import OutputPathType
 
 def load_participant_table(cfg: dict[str, Any], logger: Logger) -> pl.DataFrame:
     """Handle loading of bids2table."""
-    index_path = as_path(cfg.get("opt.index_path", cfg["bids_dir"] / "index.df"))
+    index_path = as_path(cfg.get("opt.index_path", cfg["bids_dir"] / ".index.parquet"))
     index_exists = index_path.exists()
 
     if index_exists:
@@ -56,7 +57,7 @@ def get_inputs(
         entities: dict[str, Any] | None = None,
         queries: list[str] | None = None,
         metadata: bool = False,
-    ) -> PathT | None:
+    ) -> PathT | dict[str, Any] | None:
         """Retrieve file path from BIDSTable."""
         if entities is not None and queries is not None:
             raise ValueError("Provide only one of 'entities' or 'queries'")
@@ -65,21 +66,25 @@ def get_inputs(
         if queries is not None:
             query_str = " & ".join(queries)
             query_data = query(df=df, query=query_str)
-        elif entities is not None:
+        else:
             all_entities: dict[str, str] = {**row, **(entities or {})}
             expr = reduce(
                 lambda acc, cond: acc & cond,
-                [pl.col(k) == v for k, v in all_entities.items() if v is not None],
+                [
+                    pl.col(k) == v
+                    for k, v in all_entities.items()
+                    if k not in ["path", "root"] and v is not None
+                ],
             )
             query_data = df.filter(expr)
 
         if query_data.is_empty():
             return None
         else:
-            fpath = "/".join(query_data.select(["root", "path"]).row(0))
+            fpath = as_path("/".join(query_data.select(["root", "path"]).row(0)))
             if metadata:
-                return as_path(fpath.split(".")[0]).with_suffix(".json")
-            return as_path(fpath)
+                return load_bids_metadata(fpath)
+            return fpath
 
     def _get_surf_roi_paths(queries: list[str] | None = None) -> list[PathT] | None:
         """Retrieve ROI paths from BIDSTable."""
@@ -93,9 +98,9 @@ def get_inputs(
         ]
 
     sub_ses_query = (
-        f"sub = {row['sub']}"
+        f"sub = '{row['sub']}'"
         if row["ses"] is None
-        else f"sub = {row['sub']} AND ses = {row['ses']}"
+        else f"sub = '{row['sub']}' AND ses = '{row['ses']}'"
     )
     nii_ext_query = "(ext = '.nii' OR ext = '.nii.gz')"
 

@@ -54,7 +54,9 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
         # Want the rows named
         for idx, row in enumerate(group.iter_rows(named=True)):
             input_data = utils.io.get_inputs(df=df, row=row, cfg=cfg)
-            entities = {k: v for k, v in row if k in ["sub", "ses", "run", "dir"]}
+            entities = {
+                k: v for k, v in row.items() if k in ["sub", "ses", "run", "dir"]
+            }
             bids = partial(niwrap_helper.bids_path, **entities)
             output_fpath = cfg["output_dir"] / bids(datatype="dwi", directory=True)
             dwi = preprocess.denoise.denoise(
