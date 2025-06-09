@@ -26,7 +26,7 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
     # Load df table, querying if necessary
     df = utils.io.load_participant_table(cfg=cfg, logger=logger)
     if cfg.get("participant.query") is not None:
-        df = utils.io.query(df=df, query=cfg["particiapnt.query"])
+        df = utils.io.query(df=df, query=cfg["participant.query"])
     if not isinstance(df, pl.DataFrame):
         raise TypeError(f"Expected polars.DataFrame, but got {type(df).__name__}")
 
@@ -42,7 +42,7 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
     )
     for group_vals, group in tqdm(
         dwi_df.filter(
-            (pl.col("suffix") == "tractography") & (pl.col("ext") == (".tck"))
+            (pl.col("suffix") == "dwi") & (pl.col("ext").is_in([".nii", ".nii.gz"]))
         ).group_by(groupby_keys)
     ):
         for row in group.iter_rows(named=True):

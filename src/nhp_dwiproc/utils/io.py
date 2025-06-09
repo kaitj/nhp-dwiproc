@@ -68,14 +68,19 @@ def get_inputs(
             query_data = query(df=df, query=query_str)
         else:
             all_entities: dict[str, str] = {**row, **(entities or {})}
-            expr = reduce(
-                lambda acc, cond: acc & cond,
-                [
-                    pl.col(k) == v
-                    for k, v in all_entities.items()
-                    if k not in ["path", "root"] and v is not None
-                ],
-            )
+            # This is to accept a list of possible entities, adapted from b2t v0.1.x
+            exprs = [
+                (
+                    pl.col(k).is_in(v["items"])  # type: ignore[index]
+                    if isinstance(v, dict)
+                    and "items" in v
+                    and isinstance(v["items"], list)
+                    else pl.col(k) == v
+                )
+                for k, v in all_entities.items()
+                if k not in {"dataset", "path", "root"} and v is not None
+            ]
+            expr = reduce(lambda acc, cond: acc & cond, exprs, pl.lit(True))
             query_data = df.filter(expr)
 
         if query_data.is_empty():
