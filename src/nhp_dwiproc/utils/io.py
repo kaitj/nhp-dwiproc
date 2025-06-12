@@ -1,53 +1,54 @@
 """IO related functions for application."""
 
 import shutil
+from functools import reduce
 from logging import Logger
 from pathlib import Path
-from typing import Any, Literal, overload
+from typing import Any, Sequence
 
-import pandas as pd
-from bids2table import BIDSEntities, BIDSTable, bids2table
+import polars as pl
+from bids2table import load_bids_metadata
+from bids2table._pathlib import PathT, as_path
+from niwrap_helper.bids import get_bids_table
 from styxdefs import OutputPathType
 
 
-def load_b2t(cfg: dict[str, Any], logger: Logger) -> pd.DataFrame:
+def load_participant_table(cfg: dict[str, Any], logger: Logger) -> pl.DataFrame:
     """Handle loading of bids2table."""
-    index_path: Path = cfg.get("opt.index_path", cfg["bids_dir"] / "index.b2t")
+    index_path = as_path(cfg.get("opt.index_path", cfg["bids_dir"] / ".index.parquet"))
     index_exists = index_path.exists()
-    overwrite = cfg.get("index.overwrite", False) if index_exists else False
 
-    logger.info(
-        "Existing bids2table found" if index_exists else "Indexing BIDS dataset"
-    )
-    if overwrite:
-        logger.info("Overwriting existing table")
-    elif not index_exists:
-        logger.warning(
-            "Index created but not saved - run 'index' level analysis to save"
-        )
+    if index_exists:
+        logger.info("Existing dataset index found")
+    else:
+        logger.info("Indexing dataset - run 'index' level analysis instead to save")
 
-    b2t = bids2table(
-        root=cfg["bids_dir"],
-        index_path=index_path if index_exists else None,
-        workers=cfg.get("opt.threads", 1),
-        overwrite=overwrite,
-    )
-
-    # Extract and flatten extra entities
-    extra_entities = pd.json_normalize(b2t.pop("ent__extra_entities")).set_index(  # type: ignore
-        b2t.index  # type: ignore
-    )
-    return pd.concat([b2t, extra_entities.add_prefix("ent__")], axis=1)
+    table = get_bids_table(dataset_dir=cfg["bids_dir"], index=index_path)
+    return pl.from_arrow(table)
 
 
-def valid_groupby(b2t: BIDSTable, keys: list[str]) -> list[str]:
+def valid_groupby(df: pl.DataFrame, keys: Sequence[str]) -> list[str]:
     """Return a list of valid keys to group by."""
-    return [f"ent__{key}" for key in keys if b2t[f"ent__{key}"].notna().any()]
+    return [
+        key for key in keys if key in df.columns and df[key].null_count() < df.height
+    ]
+
+
+def query(df: pl.DataFrame, query: str) -> pl.DataFrame:
+    """Query data using Polars' SQL syntax.
+
+    NOTE: This function is temporary to provide partial pandas string query support -
+    it may be nice to keep this long term, but it largely to replace certain operations.
+    """
+    query = reduce(
+        lambda s, kv: s.replace(*kv), zip(["&", "|", "=="], ["AND", "OR", "="]), query
+    )
+    return df.sql(f"SELECT * FROM self WHERE {query}")
 
 
 def get_inputs(
-    b2t: BIDSTable,
-    row: pd.Series,
+    df: pl.DataFrame,
+    row: dict[str, Any],
     cfg: dict[str, Any],
 ) -> dict[str, Any]:
     """Retrieve relevant inputs for workflow."""
@@ -56,45 +57,57 @@ def get_inputs(
         entities: dict[str, Any] | None = None,
         queries: list[str] | None = None,
         metadata: bool = False,
-    ) -> Path | None:
+    ) -> PathT | dict[str, Any] | None:
         """Retrieve file path from BIDSTable."""
-        if entities and queries:
-            raise ValueError("Proivde only one of 'entities' or 'queries'")
+        if entities is not None and queries is not None:
+            raise ValueError("Provide only one of 'entities' or 'queries'")
 
-        query_data = (
-            b2t.loc[b2t.flat.query(" & ".join(queries)).index].flat
-            if queries
-            else b2t.filter_multi(
-                **{
-                    k: v
-                    for k, v in {**row.dropna().to_dict(), **(entities or {})}.items()
-                    if v is not None
-                }
-            ).flat
-        )
+        query_data = pl.DataFrame()
+        if queries is not None:
+            query_str = " & ".join(queries)
+            query_data = query(df=df, query=query_str)
+        else:
+            all_entities: dict[str, str] = {**row, **(entities or {})}
+            # This is to accept a list of possible entities, adapted from b2t v0.1.x
+            exprs = [
+                (
+                    pl.col(k).is_in(v["items"])  # type: ignore[index]
+                    if isinstance(v, dict)
+                    and "items" in v
+                    and isinstance(v["items"], list)
+                    else pl.col(k) == v
+                )
+                for k, v in all_entities.items()
+                if k not in {"dataset", "path", "root"} and v is not None
+            ]
+            expr = reduce(lambda acc, cond: acc & cond, exprs, pl.lit(True))
+            query_data = df.filter(expr)
 
-        return (
-            None
-            if query_data.empty
-            else (
-                query_data.json.iloc[0]
-                if metadata
-                else Path(query_data.file_path.iloc[0])
-            )
-        )
+        if query_data.is_empty():
+            return None
+        else:
+            fpath = as_path("/".join(query_data.select(["root", "path"]).row(0)))
+            if metadata:
+                return load_bids_metadata(fpath)
+            return fpath
 
-    def _get_surf_roi_paths(queries: list[str] | None = None) -> list[Path] | None:
+    def _get_surf_roi_paths(queries: list[str] | None = None) -> list[PathT] | None:
         """Retrieve ROI paths from BIDSTable."""
-        return (
-            list(map(Path, b2t.flat.query(" & ".join(queries)).file_path))
-            if queries
-            else None
-        )
+        if queries is None:
+            return None
 
-    sub_ses_query = " & ".join(
-        f"{k} == '{v}'" for k, v in row[["sub", "ses"]].to_dict().items()
+        surfs_df = query(df, " & ".join(queries))
+        return [
+            as_path(f"{row['root']}/{row['path']}")
+            for row in surfs_df.iter_rows(named=True)
+        ]
+
+    sub_ses_query = (
+        f"sub = '{row['sub']}'"
+        if row["ses"] is None
+        else f"sub = '{row['sub']}' AND ses = '{row['ses']}'"
     )
-    nii_ext_query = "(ext == '.nii' or ext == '.nii.gz')"
+    nii_ext_query = "(ext = '.nii' OR ext = '.nii.gz')"
 
     # Base inputs
     wf_inputs: dict[str, Any] = {
@@ -279,35 +292,6 @@ def save(
     # Ensure `files` is iterable and process each one
     for file in [files] if isinstance(files, (str, Path)) else files:
         _save_file(Path(file))
-
-
-@overload
-def bids_name(
-    directory: Literal[False], return_path: Literal[False], **entities
-) -> str: ...
-
-
-@overload
-def bids_name(
-    directory: Literal[False], return_path: Literal[True], **entities
-) -> Path: ...
-
-
-@overload
-def bids_name(
-    directory: Literal[True], return_path: Literal[False], **entities
-) -> Path: ...
-
-
-def bids_name(
-    directory: bool = False, return_path: bool = False, **entities
-) -> Path | str:
-    """Helper function to generate bids-esque name."""
-    if directory and return_path:
-        raise ValueError("Only one of 'directory' or 'return_path' can be True")
-
-    name = BIDSEntities.from_dict(entities).to_path()
-    return name if return_path else name.parent if directory else name.name
 
 
 def rename(old_fpath: Path, new_fname: str) -> Path:

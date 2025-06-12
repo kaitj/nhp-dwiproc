@@ -3,6 +3,7 @@
 from functools import partial
 from pathlib import Path
 
+import niwrap_helper
 import numpy as np
 from niwrap import fsl, mrtrix
 
@@ -24,7 +25,7 @@ def run_eddy(
     repol: bool,
     residuals: bool,
     shelled: bool,
-    bids: partial[str] = partial(utils.io.bids_name, sub="subject"),
+    bids: partial[str] = partial(niwrap_helper.bids_path, sub="subject"),
     working_dir: Path = Path.cwd() / "tmp",
     output_dir: Path = Path.cwd(),
     **kwargs,

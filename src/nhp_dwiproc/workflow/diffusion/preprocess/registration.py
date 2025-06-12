@@ -8,6 +8,7 @@ from logging import Logger
 from pathlib import Path
 from typing import Any
 
+import niwrap_helper
 from niwrap import ants, c3d, fsl, greedy, mrtrix
 
 import nhp_dwiproc.utils as utils
@@ -26,7 +27,7 @@ def register(
     reg_method: str,
     iters: str,
     metric: str,
-    bids: partial[str] = partial(utils.io.bids_name, sub="subject"),
+    bids: partial[str] = partial(niwrap_helper.bids_path, sub="subject"),
     working_dir: Path = Path.cwd() / "tmp",
     output_dir: Path = Path.cwd(),
     logger: Logger = Logger(name="logger"),
@@ -145,7 +146,7 @@ def apply_transform(
     t1w_mask: Path | None,
     mask: Path,
     transforms: dict[str, Any],
-    bids: partial[str] = partial(utils.io.bids_name, sub="subject"),
+    bids: partial[str] = partial(niwrap_helper.bids_path, sub="subject"),
     working_dir: Path = Path.cwd() / "tmp",
     output_dir: Path = Path.cwd(),
     logger: Logger = Logger(name="logger"),

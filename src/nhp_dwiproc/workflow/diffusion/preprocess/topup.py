@@ -3,10 +3,10 @@
 from functools import partial
 from pathlib import Path
 
+import niwrap_helper
 import numpy as np
 from niwrap import fsl
 
-import nhp_dwiproc.utils as utils
 from nhp_dwiproc.workflow.diffusion.preprocess.dwi import gen_topup_inputs
 
 
@@ -15,7 +15,7 @@ def run_apply_topup(
     pe_data: list[np.ndarray],
     pe_dir: list[str],
     topup_cfg: Path,
-    bids: partial[str] = partial(utils.io.bids_name, sub="subject"),
+    bids: partial[str] = partial(niwrap_helper.bids_path, sub="subject"),
     output_dir: Path = Path.cwd(),
     **kwargs,
 ) -> tuple[Path, list[str], fsl.TopupOutputs]:

@@ -15,6 +15,10 @@ perform processing of non-human primate (NHP) diffusion datasets. The applicatio
 aims to provide flexible, reproducible workflows for various stages of processing
 (e.g. preprocessing, tractography, etc) across various acquisition protocols.
 
+> [!Important]
+> Dataset indexes generated with `nhp-dwiproc v0.1.x` are incompatible with the
+> latest development and release versions.
+
 <!-- Generalized workflow figure to be included here -->
 
 ## Requirements

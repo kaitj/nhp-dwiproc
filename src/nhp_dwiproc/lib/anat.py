@@ -4,6 +4,7 @@ from functools import partial
 from pathlib import Path
 
 import nibabel.nifti1 as nib
+import niwrap_helper
 import numpy as np
 
 import nhp_dwiproc.utils as utils
@@ -11,7 +12,7 @@ import nhp_dwiproc.utils as utils
 
 def fake_t2w(
     t1w: Path,
-    bids: partial = partial(utils.io.bids_name, sub="subject"),
+    bids: partial = partial(niwrap_helper.bids_path, sub="subject"),
     output_dir: Path = Path.cwd() / "tmp",
 ) -> Path:
     """Fake T2w contrast from T1w."""

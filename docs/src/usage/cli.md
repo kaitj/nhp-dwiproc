@@ -41,6 +41,7 @@ These optional arguments can be used for all analysis level stages:
 | `--fmap-query <query>` | `participant.query_fmap` | string query for fieldmap-associated BIDS entities |
 | `--b0-thresh <thresh>` | `participant.b0_thresh` | threshold for shell to be considered b=0 - default: `10` |
 
+
 </br>
 > [!IMPORTANT]
 > Please refer to the [Analysis levels](./analysis_levels/) page for specific details regarding each processing
@@ -52,9 +53,14 @@ Query arguments are string arguments passed to search the `bids2table` index for
 
 ```bash
 nhp_dwiproc bids_dir output_dir analysis_level \
-  --participant-query 'sub=="001" & ses=="YY' \
-  --dwi-query 'run==1'
+  --participant-query 'sub = "001" AND ses = "YY"' \
+  --dwi-query 'run = 1'
 ```
+
+> [!NOTE]
+> While `pandas`-like string queries are partially supported, SQL queries are preferred.
+> For SQL-like queries, only the condition needs to be provided
+> (e.g. `sub = '001' AND ses = 'AA'`)
 
 The participant-query will identify all participants with matching BIDS entities
  `sub-001_ses-YY`, while the DWI query will identify all diffusion-associated files matching

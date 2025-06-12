@@ -3,7 +3,8 @@
 from functools import partial
 from pathlib import Path
 
-from bids2table import BIDSEntities
+import niwrap_helper
+from bids2table._entities import parse_bids_entities
 from niwrap import mrtrix, workbench
 
 import nhp_dwiproc.utils as utils
@@ -15,7 +16,7 @@ def generate_conn_matrix(
     tck_weights_fpath: Path | None,
     search_radius: float,
     output_fpath: Path = Path.cwd(),
-    bids: partial[str] = partial(utils.io.bids_name, sub="subject"),
+    bids: partial[str] = partial(niwrap_helper.bids_path, sub="subject"),
 ) -> None:
     """Generate connectivity matrix."""
     tck2connectome = {}
@@ -47,7 +48,7 @@ def extract_tract(
     truncate_fpaths: list[Path],
     voxel_size: list[float] | None,
     output_fpath: Path = Path.cwd(),
-    bids: partial[str] = partial(utils.io.bids_name, sub="subject"),
+    bids: partial[str] = partial(niwrap_helper.bids_path, sub="subject"),
 ) -> tuple[mrtrix.TckmapOutputs, str | None, str | None]:
     """Extract individual tract."""
     # Organize ROIs and get tract label
@@ -70,9 +71,9 @@ def extract_tract(
     if len(rois) == 0:
         raise ValueError("No ROIs were provided")
 
-    tract_entities = BIDSEntities.from_path(rois[0].spec.obj)
-    label = tract_entities.label
-    hemi = tract_entities.hemi
+    tract_entities = parse_bids_entities(rois[0].spec.obj)
+    label = tract_entities.get("label")
+    hemi = tract_entities.get("hemi")
     tckedit = mrtrix.tckedit(
         tracks_in=[tck_fpath],
         tracks_out=bids(
@@ -106,7 +107,7 @@ def surface_map_tract(
     pial: list[Path],
     inflated: list[Path],
     output_fpath: Path = Path.cwd(),
-    bids: partial[str] = partial(utils.io.bids_name, sub="subject"),
+    bids: partial[str] = partial(niwrap_helper.bids_path, sub="subject"),
 ) -> None:
     """Surface map extracted tract."""
     surf = workbench.volume_to_surface_mapping(

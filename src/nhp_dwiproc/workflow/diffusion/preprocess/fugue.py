@@ -8,9 +8,9 @@ from logging import Logger
 from pathlib import Path
 from typing import Any
 
+import niwrap_helper
 from niwrap import fsl
 
-import nhp_dwiproc.utils as utils
 from nhp_dwiproc.lib import metadata
 
 WARP_DIR = {"i": "x", "i-": "x-", "j": "y", "j-": "y-", "k": "z", "k-": "z-"}
@@ -24,7 +24,7 @@ def run_fugue(
     echo_spacing: str | None,
     smooth: float | None,
     logger: Logger = Logger(name="logger"),
-    bids: partial = partial(utils.io.bids_name, sub="subject"),
+    bids: partial = partial(niwrap_helper.bids_path, sub="subject"),
 ) -> Path:
     """Perform FSL's FUGUE."""
     logger.info("Running FSL's fugue")

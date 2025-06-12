@@ -4,6 +4,7 @@ from functools import partial
 from logging import Logger
 from pathlib import Path
 
+import niwrap_helper
 import numpy as np
 from niwrap import mrtrix
 from styxdefs import OutputPathType
@@ -19,7 +20,7 @@ def denoise(
     extent: list[int] | None,
     skip: bool = False,
     logger: Logger = Logger(name="logger"),
-    bids: partial[str] = partial(utils.io.bids_name, sub="subject"),
+    bids: partial[str] = partial(niwrap_helper.bids_path, sub="subject"),
     output_fpath: Path = Path.cwd(),
     **kwargs,
 ) -> OutputPathType:

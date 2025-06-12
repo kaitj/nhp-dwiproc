@@ -4,9 +4,8 @@ from functools import partial
 from logging import Logger
 from pathlib import Path
 
+import niwrap_helper
 from niwrap import mrtrix
-
-import nhp_dwiproc.utils as utils
 
 
 def degibbs(
@@ -17,7 +16,7 @@ def degibbs(
     max_w: int | None,
     skip: bool = False,
     logger: Logger = Logger(name="logger"),
-    bids: partial[str] = partial(utils.io.bids_name, sub="subject"),
+    bids: partial[str] = partial(niwrap_helper.bids_path, sub="subject"),
 ) -> Path:
     """Minimize Gibbs ringing."""
     if skip:

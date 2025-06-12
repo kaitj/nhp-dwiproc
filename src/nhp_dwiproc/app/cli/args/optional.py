@@ -64,7 +64,7 @@ def add_optional_args(app_parser: BidsAppArgumentParser) -> None:
         dest="opt.index_path",
         type=pl.Path,
         default=None,
-        help="bids2table index path (default: {bids_dir}/index.b2t)",
+        help="bids2table index path (default: {bids_dir}/index.parquet)",
     )
     app_parser.add_argument(
         "--graph",

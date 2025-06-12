@@ -3,6 +3,7 @@
 from functools import partial
 from pathlib import Path
 
+import niwrap_helper
 from niwrap import mrtrix
 
 import nhp_dwiproc.utils as utils
@@ -17,7 +18,7 @@ def generate_tractography(
     streamlines: int,
     backtrack: bool,
     nocrop_gmwmi: bool,
-    bids: partial[str] = partial(utils.io.bids_name, sub="subject"),
+    bids: partial[str] = partial(niwrap_helper.bids_path, sub="subject"),
     output_fpath: Path = Path.cwd(),
 ) -> None:
     """Generate subject tractography."""
