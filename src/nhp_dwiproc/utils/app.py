@@ -109,8 +109,10 @@ def validate_cfg(cfg: dict[str, Any]) -> None:
                 if not Path(topup_cfg).exists():
                     raise FileNotFoundError("TOPUP configuration not found")
                 topup_cfg = str(topup_cfg).rstrip(".cnf")
-            cfg["participant.preprocess.topup.config"] = (
-                APP_LOCATION / "resources" / "topup" / f"{topup_cfg}.cnf"
-            )
+                cfg["participant.preprocess.topup.config"] = f"{topup_cfg}.cnf"
+            else:
+                cfg["participant.preprocess.topup.config"] = (
+                    APP_LOCATION / "resources" / "topup" / f"{topup_cfg}.cnf"
+                )
         case _:
             raise ValueError("Invalid analysis level provided")
