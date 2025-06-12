@@ -4,6 +4,7 @@ import logging
 from functools import partial
 from pathlib import Path
 
+import niwrap_helper
 from niwrap import mrtrix, mrtrix3tissue
 from styxdefs import StyxRuntimeError, get_global_runner
 from styxgraph import GraphRunner
@@ -41,7 +42,7 @@ def compute_fods(
     single_shell: bool,
     shells: list[int | float] | None,
     lmax: list[int] | None,
-    bids: partial[str] = partial(utils.io.bids_name, sub="subject"),
+    bids: partial[str] = partial(niwrap_helper.bids_path, sub="subject"),
     **kwargs,
 ) -> mrtrix.MtnormaliseOutputs:
     """Process subject for tractography."""
@@ -136,7 +137,7 @@ def compute_dti(
     bvec: Path,
     bval: Path,
     mask: Path,
-    bids: partial[str] = partial(utils.io.bids_name, sub="subject"),
+    bids: partial[str] = partial(niwrap_helper.bids_path, sub="subject"),
     output_fpath: Path = Path.cwd(),
     **kwargs,
 ) -> None:

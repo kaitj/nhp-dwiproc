@@ -3,6 +3,7 @@
 from functools import partial
 from pathlib import Path
 
+import niwrap_helper
 from niwrap import mrtrix
 
 import nhp_dwiproc.utils as utils
@@ -15,7 +16,7 @@ def biascorrect(
     spacing: float,
     iters: float,
     shrink: float,
-    bids: partial[str] = partial(utils.io.bids_name, sub="subject"),
+    bids: partial[str] = partial(niwrap_helper.bids_path, sub="subject"),
     output_dir: Path = Path.cwd(),
 ) -> tuple[Path, ...]:
     """Perform biascorrection steps."""

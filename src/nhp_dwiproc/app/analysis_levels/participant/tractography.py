@@ -4,7 +4,8 @@ from functools import partial
 from logging import Logger
 from typing import Any
 
-from bids2table import BIDSTable
+import niwrap_helper
+import polars as pl
 from tqdm import tqdm
 
 import nhp_dwiproc.utils as utils
@@ -16,37 +17,35 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
     """Runner for tractography-level analysis."""
     # Load BIDSTable, querying if necessary
     logger.info("Tractography analysis-level")
-    b2t = utils.io.load_b2t(cfg=cfg, logger=logger)
-    if cfg.get("participant.query"):
-        b2t = b2t.loc[b2t.flat.query(cfg.get("participant.query", "")).index]
-    if not isinstance(b2t, BIDSTable):
-        raise TypeError(f"Loaded table of type {type(b2t)} instead of BIDSTable")
+    df = utils.io.load_participant_table(cfg=cfg, logger=logger)
+    if cfg.get("participant.query") is not None:
+        df = utils.io.query(df=df, query=cfg["participant.query"])
+    if not isinstance(df, pl.DataFrame):
+        raise TypeError(f"Expected polars.DataFrame, but got {type(df).__name__}")
 
-    dwi_b2t = b2t
-    if cfg.get("participant.query_dwi"):
-        dwi_b2t = b2t.loc[b2t.flat.query(cfg["participant.query_dwi"]).index]
-    if not isinstance(dwi_b2t, BIDSTable):
-        raise TypeError(f"Queried table of type {type(dwi_b2t)} instead of BIDSTable")
+    dwi_df = df
+    if cfg.get("participant.query_dwi") is not None:
+        dwi_df = utils.io.query(df=df, query=cfg["participant.query_dwi"])
+    if not isinstance(dwi_df, pl.DataFrame):
+        raise TypeError(f"Expected polars.DataFrame, but got {type(dwi_df).__name__}")
 
     # Loop through remaining subjects after query
     groupby_keys = utils.io.valid_groupby(
-        b2t=dwi_b2t, keys=["sub", "ses", "run", "space"]
+        df=dwi_df, keys=["sub", "ses", "run", "space"]
     )
     for group_vals, group in tqdm(
-        dwi_b2t.filter_multi(suffix="dwi", ext={"items": [".nii", ".nii.gz"]}).groupby(
-            groupby_keys
-        )
+        dwi_df.filter(
+            (pl.col("suffix") == "dwi") & (pl.col("ext").is_in([".nii", ".nii.gz"]))
+        ).group_by(groupby_keys)
     ):
-        for _, row in group.ent.iterrows():
-            input_data = utils.io.get_inputs(b2t=b2t, row=row, cfg=cfg)
-            input_group = dict(
-                zip([key.lstrip("ent__") for key in groupby_keys], group_vals)
-            )
+        for row in group.iter_rows(named=True):
+            input_data = utils.io.get_inputs(df=df, row=row, cfg=cfg)
+            input_group = dict(zip([key for key in groupby_keys], group_vals))
 
             # Perform processing
-            uid = utils.io.bids_name(**input_group)
+            uid = niwrap_helper.bids_path(**input_group)
             logger.info(f"Processing {uid}")
-            bids = partial(utils.io.bids_name, datatype="dwi", **input_group)
+            bids = partial(niwrap_helper.bids_path, datatype="dwi", **input_group)
             output_fpath = cfg["output_dir"] / bids(directory=True)
             dwi_lib.grad_check(**input_data["dwi"])
 
