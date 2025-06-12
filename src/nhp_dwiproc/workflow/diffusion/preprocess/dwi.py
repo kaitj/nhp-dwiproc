@@ -5,6 +5,7 @@ from logging import Logger
 from pathlib import Path
 from typing import Any
 
+import niwrap_helper
 import numpy as np
 from niwrap import mrtrix
 
@@ -27,7 +28,7 @@ def get_phenc_data(
     pe_dirs: list[str] | None = None,
     echo_spacing: str | None = None,
     logger: Logger = Logger(name="logger"),
-    bids: partial[str] = partial(utils.io.bids_name, sub="subject"),
+    bids: partial[str] = partial(niwrap_helper.bids_path, sub="subject"),
 ) -> tuple[Path, str, np.ndarray]:
     """Generate phase-encoding direction data for downstream steps."""
     logger.info("Getting phase-encoding information")
@@ -61,7 +62,7 @@ def gen_topup_inputs(
     b0: list[Path],
     pe_data: list[np.ndarray],
     pe_dir: list[str],
-    bids: partial[str] = partial(utils.io.bids_name, sub="subject"),
+    bids: partial[str] = partial(niwrap_helper.bids_path, sub="subject"),
     output_dir: Path = Path.cwd(),
 ) -> tuple[Path, Path, list[str]]:
     """Generate concatenated inputs for topup."""
@@ -86,7 +87,7 @@ def gen_topup_inputs(
 def concat_bv(
     bvals: list[Path],
     bvecs: list[Path],
-    bids: partial[str] = partial(utils.io.bids_name, sub="subject"),
+    bids: partial[str] = partial(niwrap_helper.bids_path, sub="subject"),
     output_dir: Path = Path.cwd(),
 ) -> tuple[Path, Path]:
     """Concatenate .bval and .bvec files."""
@@ -110,7 +111,7 @@ def gen_eddy_inputs(
     pe_data: list[np.ndarray],
     phenc: Path | None,
     indices: list[str] | None,
-    bids: partial[str] = partial(utils.io.bids_name, sub="subject"),
+    bids: partial[str] = partial(niwrap_helper.bids_path, sub="subject"),
     output_dir: Path = Path.cwd() / "tmp",
 ) -> tuple[Path, ...]:
     """Generate concatenated inputs for eddy."""

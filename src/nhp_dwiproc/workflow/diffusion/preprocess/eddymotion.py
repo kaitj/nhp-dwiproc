@@ -3,6 +3,7 @@
 from functools import partial
 from pathlib import Path
 
+import niwrap_helper
 import numpy as np
 from eddymotion.data import dmri
 from eddymotion.estimator import EddyMotionEstimator
@@ -16,7 +17,7 @@ def eddymotion(
     bval: list[Path],
     iters: int,
     seed: int,
-    bids: partial[str] = partial(utils.io.bids_name, sub="subject"),
+    bids: partial[str] = partial(niwrap_helper.bids_path, sub="subject"),
     output_dir: Path = Path.cwd() / "tmp",
     threads: int = 1,
     **kwargs,
