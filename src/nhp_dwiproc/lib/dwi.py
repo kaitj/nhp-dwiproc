@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Any
 
 import nibabel.nifti1 as nib
+import niwrap_helper
 import numpy as np
 from niwrap import mrtrix
 
@@ -64,7 +65,7 @@ def get_phenc_info(
 
 def concat_dir_phenc_data(
     pe_data: list[np.ndarray],
-    bids: partial[str] = partial(utils.io.bids_name, sub="subject"),
+    bids: partial[str] = partial(niwrap_helper.bids_path, sub="subject"),
     output_dir: Path = Path.cwd(),
 ) -> Path:
     """Concatenate opposite phase encoding directions."""
@@ -77,7 +78,7 @@ def concat_dir_phenc_data(
 
 def normalize(
     img: str | Path,
-    bids: partial[str] = partial(utils.io.bids_name, sub="subject"),
+    bids: partial[str] = partial(niwrap_helper.bids_path, sub="subject"),
     output_dir: Path = Path.cwd(),
 ) -> Path:
     """Normalize 4D image."""
@@ -123,7 +124,7 @@ def get_pe_indices(pe_dir: list[str]) -> list[str]:
 def get_eddy_indices(
     niis: list[Path],
     indices: list[str] | None,
-    bids: partial[str] = partial(utils.io.bids_name, sub="subject"),
+    bids: partial[str] = partial(niwrap_helper.bids_path, sub="subject"),
     output_dir: Path = Path.cwd() / "tmp",
 ) -> Path:
     """Generate dwi index file for eddy."""
@@ -144,7 +145,7 @@ def get_eddy_indices(
 def rotate_bvec(
     bvec_file: Path,
     transformation: Path,
-    bids: partial[str] = partial(utils.io.bids_name, sub="subject"),
+    bids: partial[str] = partial(niwrap_helper.bids_path, sub="subject"),
     output_dir: Path = Path.cwd() / "tmp",
 ) -> Path:
     """Rotate bvec file."""
