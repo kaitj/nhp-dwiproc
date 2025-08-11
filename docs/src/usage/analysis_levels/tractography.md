@@ -24,6 +24,12 @@ generation.
 > - Diffusion tensor fitting is performed two stages, fitting to the log-signal first using
 > weight least squares (WLS) and additional iteration of WLS fitting
 
+> [!IMPORTANT]
+> If there is not enough contrast to different WM From GM, the single-shell method may error when
+> attempting to normalize the tissue. In these situations, the application will automatically
+> revert to using the same algorithm as multi-shell, but using only `WM` and `CSF` for normalization
+> to provide some compensation for partial volume effects.
+
 ### Anatomically constrained tractography optional arguments
 
 | Argument | Config Key | Description |
