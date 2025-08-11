@@ -1,37 +1,35 @@
 """Processing of diffusion data to setup tractography."""
 
+import logging
 from functools import partial
 from pathlib import Path
 
 from niwrap import mrtrix, mrtrix3tissue
+from styxdefs import StyxRuntimeError, get_global_runner
 
 import nhp_dwiproc.utils as utils
 
 
 def _create_response_odf(
-    response: mrtrix.Dwi2responseDhollanderOutputs, bids: partial, single_shell: bool
+    response: mrtrix.Dwi2responseDhollanderOutputs,
+    bids: partial,
+    single_shell: bool,
+    _no_gm: bool = False,
 ) -> list[
     mrtrix.Dwi2fodResponseOdfParameters
     | mrtrix3tissue.Ss3tCsdBeta1ResponseOdfParameters
 ]:
     """Helper to create ODFs."""
-    if single_shell:
-        return [
-            mrtrix3tissue.ss3t_csd_beta1_response_odf_params(
-                response.out_sfwm, bids(param="wm")
-            ),
-            mrtrix3tissue.ss3t_csd_beta1_response_odf_params(
-                response.out_gm, bids(param="gm")
-            ),
-            mrtrix3tissue.ss3t_csd_beta1_response_odf_params(
-                response.out_csf, bids(param="csf")
-            ),
-        ]
-    return [
-        mrtrix.dwi2fod_response_odf_params(response.out_sfwm, bids(param="wm")),
-        mrtrix.dwi2fod_response_odf_params(response.out_gm, bids(param="gm")),
-        mrtrix.dwi2fod_response_odf_params(response.out_csf, bids(param="csf")),
-    ]
+    func = (
+        mrtrix3tissue.ss3t_csd_beta1_response_odf_params
+        if single_shell
+        else mrtrix.dwi2fod_response_odf_params
+    )
+    params = [(response.out_sfwm, "wm")]
+    if not (not single_shell and _no_gm):
+        params.append((response.out_gm, "gm"))
+    params.append((response.out_csf, "csf"))
+    return [func(out, bids(param=param)) for out, param in params]
 
 
 def compute_fods(
@@ -46,9 +44,46 @@ def compute_fods(
     **kwargs,
 ) -> mrtrix.MtnormaliseOutputs:
     """Process subject for tractography."""
+
+    # Helper functons
+    def _normalize(
+        odfs: mrtrix.Dwi2fodOutputs | mrtrix3tissue.Ss3tCsdBeta1Outputs,
+    ) -> list[mrtrix.MtnormaliseInputOutputParameters]:
+        """Build normalization parameters for ODF outputs."""
+        return [
+            mrtrix.mtnormalise_input_output_params(
+                odf.odf,
+                odf.odf.name.replace("dwimap.mif", "desc-normalized_dwimap.mif"),
+            )
+            for odf in odfs.response_odf
+        ]
+
+    def _run_fod(
+        response_odf: list[
+            mrtrix.Dwi2fodResponseOdfParameters
+            | mrtrix3tissue.Ss3tCsdBeta1ResponseOdfParameters
+        ],
+        single_shell: bool,
+    ) -> mrtrix.Dwi2fodOutputs | mrtrix3tissue.Ss3tCsdBeta1Outputs:
+        """Estimate FOD depending on shell configuration."""
+        if single_shell:
+            return mrtrix3tissue.ss3t_csd_beta1(
+                dwi=mrconvert.output, response_odf=response_odf, mask=mask
+            )
+        return mrtrix.dwi2fod(
+            algorithm="msmt_csd",
+            dwi=mrconvert.output,
+            response_odf=response_odf,
+            mask=mask,
+            shells=shells,
+        )
+
+    # Partials
     bids_dwi2response = partial(
         bids, method="dhollander", suffix="response", ext=".txt"
     )
+    bids_fod = partial(bids, model="csd", suffix="dwimap", ext=".mif")
+
     mrconvert = mrtrix.mrconvert(
         input_=nii,
         output=nii.name.replace(".nii.gz", ".mif"),
@@ -65,38 +100,31 @@ def compute_fods(
         shells=shells,  # type: ignore
         lmax=lmax,
     )
-    bids_fod = partial(bids, model="csd", suffix="dwimap", ext=".mif")
-    if single_shell:
+
+    try:
+        response_odf = _create_response_odf(
+            response=dwi2response.algorithm,  # type: ignore
+            bids=bids_fod,
+            single_shell=single_shell,
+        )
+        odfs = _run_fod(response_odf, single_shell)
+        return mrtrix.mtnormalise(input_output=_normalize(odfs), mask=mask)
+    except StyxRuntimeError:
+        if not single_shell:
+            raise StyxRuntimeError()
+
+        # SS3T failed, fallback to SS2T
+        logger = logging.getLogger(get_global_runner().logger_name)  # type: ignore
+        logger.warning("Unable to perform SS3T, trying SS2T (WM+CSF)")
+
         response_odf = _create_response_odf(
             response=dwi2response.algorithm,  # type: ignore
             bids=bids_fod,
             single_shell=True,
+            _no_gm=True,
         )
-        odfs = mrtrix3tissue.ss3t_csd_beta1(
-            dwi=mrconvert.output, response_odf=response_odf, mask=mask
-        )
-    else:
-        response_odf = _create_response_odf(
-            response=dwi2response.algorithm,  # type: ignore
-            bids=bids_fod,
-            single_shell=False,
-        )
-        odfs = mrtrix.dwi2fod(
-            algorithm="msmt_csd",
-            dwi=mrconvert.output,
-            response_odf=response_odf,
-            mask=mask,
-            shells=shells,
-        )
-
-    normalize_odf = [
-        mrtrix.mtnormalise_input_output_params(
-            tissue_odf.odf,
-            tissue_odf.odf.name.replace("dwimap.mif", "desc-normalized_dwimap.mif"),
-        )
-        for tissue_odf in odfs.response_odf
-    ]
-    return mrtrix.mtnormalise(input_output=normalize_odf, mask=mask)
+        odfs = _run_fod(response_odf, single_shell=False)  # Fallback uses MSMT CSD
+        return mrtrix.mtnormalise(input_output=_normalize(odfs), mask=mask)
 
 
 def compute_dti(
