@@ -27,7 +27,7 @@ def _create_response_odf(
         else mrtrix.dwi2fod_response_odf_params
     )
     params = [(response.out_sfwm, "wm")]
-    if not (not single_shell and _no_gm):
+    if not (single_shell and _no_gm):
         params.append((response.out_gm, "gm"))
     params.append((response.out_csf, "csf"))
     return [func(out, bids(param=param)) for out, param in params]
