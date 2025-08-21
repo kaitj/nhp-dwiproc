@@ -102,7 +102,7 @@ def get_inputs(
             "nii": _get_file_path(),
             "bval": _get_file_path(entities={"ext": ".bval"}),
             "bvec": _get_file_path(entities={"ext": ".bvec"}),
-            "json": _get_file_path(metadata=True),
+            "json": _get_file_path(metadata=True) or {},
         },
         "t1w": {
             "nii": _get_file_path(queries=[sub_ses_query, cfg["participant.query_t1w"]])
