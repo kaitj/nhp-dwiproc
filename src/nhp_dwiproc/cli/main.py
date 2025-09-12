@@ -374,7 +374,6 @@ def preprocess(
 
     from pprint import pprint
 
-    pprint(preproc_map)
     pprint(ctx.obj)
 
 
