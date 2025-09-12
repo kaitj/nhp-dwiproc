@@ -14,33 +14,47 @@ class TestCLI:
 
     @pytest.mark.parametrize("stage", ["preprocess", "reconstruction", "connectivity"])
     def test_valid_command(self, tmp_path: Path, stage: str):
-        result = runner.invoke(app, args=[str(tmp_path), str(tmp_path), stage])
+        result = runner.invoke(app, args=[str(tmp_path), str(tmp_path), stage, "-vvv"])
         assert result.exit_code == 0
 
     def test_invalid_command(self, tmp_path: Path):
-        result = runner.invoke(app, args=[str(tmp_path), str(tmp_path), "invalid"])
+        result = runner.invoke(
+            app, args=[str(tmp_path), str(tmp_path), "invalid", "-vvv"]
+        )
         assert result.exit_code == 2
 
     @pytest.mark.parametrize("stage", ["preprocess", "reconstruction", "connectivity"])
     def test_valid_options(self, tmp_path: Path, stage: str):
         # Lots of valid parameters to choose from, only testing one valid
         result = runner.invoke(
-            app, args=[str(tmp_path), str(tmp_path), stage, "--runner", "local"]
+            app, args=[str(tmp_path), str(tmp_path), stage, "--runner", "local", "-vvv"]
         )
         assert result.exit_code == 0
 
     def test_invalid_option(self, tmp_path: Path):
         result = runner.invoke(
-            app, args=[str(tmp_path), str(tmp_path), "preprocess", "--invalid"]
+            app, args=[str(tmp_path), str(tmp_path), "preprocess", "--invalid", "-vvv"]
         )
         assert result.exit_code == 2
 
     def test_valid_option_invalid_value(self, tmp_path: Path):
         result = runner.invoke(
             app,
-            args=[str(tmp_path), str(tmp_path), "preprocess", "--runner", "invalid"],
+            args=[
+                str(tmp_path),
+                str(tmp_path),
+                "preprocess",
+                "--runner",
+                "invalid",
+                "-vvv",
+            ],
         )
         assert result.exit_code == 2
+
+    def test_version(self):
+        result = runner.invoke(app, args=["--version"])
+        assert result.exit_code == 0
+        assert "NHP-DWIProc version: " in result.output
 
 
 class TestAppOptions:
@@ -79,9 +93,14 @@ class TestAppOptions:
                 "preprocess",
                 "--config",
                 str(valid_cfg_yaml),
+                "-vvv",
             ],
         )
-        for expected in [str(valid_cfg_yaml), "docker", "sub=='001"]:
+        for expected in [
+            f"config: {str(valid_cfg_yaml)}",
+            "name: docker",
+            "participant: sub=='001",
+        ]:
             assert expected in result.output
 
     def test_valid_stage_invalid_config(self, tmp_path: Path, invalid_cfg_yaml: Path):
@@ -94,6 +113,7 @@ class TestAppOptions:
                 "preprocess",
                 "--config",
                 str(invalid_cfg_yaml),
+                "-vvv",
             ],
         )
         assert result.exit_code == 0
@@ -111,11 +131,12 @@ class TestAppOptions:
                 "connectivity",
                 "--config",
                 str(valid_cfg_yaml),
+                "-vvv",
             ],
         )
-        for expected in [str(valid_cfg_yaml), "docker"]:
+        for expected in [f"config: {str(valid_cfg_yaml)}", "name: docker"]:
             assert expected in result.output
-        assert "sub=='001'" not in result.output
+        assert "participant: sub=='001'" not in result.output
 
     def test_cli_overwrite(self, tmp_path: Path, valid_cfg_yaml: Path):
         """Test overwriting config parameters with CLI."""
@@ -131,12 +152,13 @@ class TestAppOptions:
                 "singularity",
                 "--threads",
                 "4",
+                "-vvv",
             ],
         )
         for expected in [
             str(valid_cfg_yaml),
-            "sub=='001",
-            "singularity",
-            "threads=4",
+            "participant: sub=='001",
+            "name: singularity",
+            "threads: 4",
         ]:
             assert expected in result.output

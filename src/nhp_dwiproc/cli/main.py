@@ -1,37 +1,61 @@
 """Main CLI using callback pattern."""
 
+import logging
 from functools import partial
 from pathlib import Path
 from types import SimpleNamespace
 
 import typer
 
+from .._version import __version__
 from ..config import connectivity as conn
 from ..config import preprocess as preproc
 from ..config import reconstruction as recon
 from ..config import shared, utils
-from .utils import _json_dict_callback
+from .utils import _json_dict_callback, _namespace_to_yaml
+
+LOG_LEVELS = [logging.WARNING, logging.INFO, logging.DEBUG]
 
 app = typer.Typer(
+    name="NHP-DWIProc",
     add_completion=False,
     help="Diffusion MRI processing workflows.",
 )
 
 
-@app.callback()
+@app.callback(invoke_without_command=True)
 def main(
     ctx: typer.Context,
     # Required
     input_dir: Path = typer.Argument(
-        ..., exists=True, file_okay=False, readable=True, help="Input directory."
+        None, exists=True, file_okay=False, readable=True, help="Input directory."
     ),
     output_dir: Path = typer.Argument(
-        ..., file_okay=False, writable=True, help="Output directory."
+        None, file_okay=False, writable=True, help="Output directory."
+    ),
+    # Options
+    version: bool = typer.Option(
+        False,
+        "--version",
+        help="Show application version and exit.",
+        is_eager=True,
     ),
 ) -> None:
     """Diffusion MRI processing pipeline."""
+    # Print version
+    if version:
+        typer.echo(f"{ctx.info_name.replace('_', '-')} version: {__version__}")
+        exit(0)
+    # Print help if required args are missing
+    if not input_dir and not output_dir or ctx.invoked_subcommand is None:
+        typer.echo(ctx.get_help())
     ctx.obj = SimpleNamespace(
-        input_dir=input_dir, output_dir=output_dir, stage=ctx.invoked_subcommand
+        cfg=SimpleNamespace(
+            input_dir=input_dir,
+            output_dir=output_dir,
+            stage=ctx.invoked_subcommand,
+        ),
+        version=__version__,
     )
 
 
@@ -66,25 +90,26 @@ def index(
         help="Overwrite existing bids2table index. [default: "
         f"{shared.IndexConfig.overwrite}]",
     ),
+    verbose: int = typer.Option(0, "-v", count=True, help="Verbosity (-v, -vv, -vvv)."),
 ) -> None:
     """Index stage-level."""
     builder = partial(utils.build_config, ctx_params=ctx.params, cfg_file=opts_config)
     # Global options
     opt_map = utils.map_param("opts_", "", locals())
-    ctx.obj.opt = builder(
+    ctx.obj.cfg.opt = builder(
         cfg_class=shared.GlobalOptsConfig,
         cfg_key="opts",
         include_only=list(opt_map.keys()),
         cli_map=opt_map,
     )
     # Index options
-    ctx.obj.index = builder(
+    ctx.obj.cfg.index = builder(
         cfg_class=shared.IndexConfig, cfg_key="index", include_only=["overwrite"]
     )
-
-    from pprint import pprint
-
-    pprint(ctx.obj)
+    # Verbosity
+    ctx.obj.log_level = LOG_LEVELS[min(verbose, len(LOG_LEVELS)) - 1]
+    if ctx.obj.log_level <= logging.DEBUG:
+        print(_namespace_to_yaml(ctx.obj))
 
 
 @app.command(help="Processing stage.")
@@ -332,14 +357,15 @@ def preprocess(
         help="Initialization method for registration step. [default: "
         f"'{preproc.RegistrationConfig.init}']",
     ),
+    verbose: int = typer.Option(0, "-v", count=True, help="Verbosity (-v, -vv, -vvv)."),
 ) -> None:
     """Preprocess stage-level."""
     builder = partial(utils.build_config, ctx_params=ctx.params, cfg_file=opts_config)
     mapper = partial(utils.map_param, vars_dict=locals())
     # Global options
     opt_map = mapper("opts_", "")
-    opt_map.update({"runner": "runner.name", "images": "runner.images"})
-    ctx.obj.opts = builder(
+    opt_map.update({"opts_runner": "runner.name", "opts_images": "runner.images"})
+    ctx.obj.cfg.opts = builder(
         cfg_class=shared.GlobalOptsConfig,
         cfg_key="opts",
         include_only=list(opt_map.keys()),
@@ -358,23 +384,23 @@ def preprocess(
         **mapper("bias_", "biascorrect."),
         **mapper("reg_", "registration."),
     }
-    ctx.obj.preprocess = builder(
+    ctx.obj.cfg.preprocess = builder(
         cfg_class=preproc.PreprocessConfig,
         cfg_key="preprocess",
         include_only=list(preproc_map.keys()),
         cli_map=preproc_map,
     )
     # Post initialization
-    match ctx.obj.preprocess.undistort.method:
+    match ctx.obj.cfg.preprocess.undistort.method:
         case "eddymotion":
-            ctx.obj.preprocess.undistort.opts.topup = None
-            ctx.obj.preprocess.undistort.opts.eddy = None
+            ctx.obj.cfg.preprocess.undistort.opts.topup = None
+            ctx.obj.cfg.preprocess.undistort.opts.eddy = None
         case _:
-            ctx.obj.preprocess.undistort.opts.eddymotion = None
-
-    from pprint import pprint
-
-    pprint(ctx.obj)
+            ctx.obj.cfg.preprocess.undistort.opts.eddymotion = None
+    # Verbosity
+    ctx.obj.log_level = LOG_LEVELS[min(verbose, len(LOG_LEVELS)) - 1]
+    if ctx.obj.log_level <= logging.DEBUG:
+        print(_namespace_to_yaml(ctx.obj))
 
 
 @app.command(help="Reconstruction stage.")
@@ -514,6 +540,7 @@ def reconstruction(
         help="Do not crop streamline endpoints as they cross the GM-WM interface. "
         f"[default: {recon.TractographyACTConfig.no_crop_gmwmi}]",
     ),
+    verbose: int = typer.Option(0, "-v", count=True, help="Verbosity (-v, -vv, -vvv)."),
 ) -> None:
     """Reconstruction stage-level."""
     local_vars = locals()
@@ -521,8 +548,8 @@ def reconstruction(
     mapper = partial(utils.map_param, vars_dict=local_vars)
     # Global options
     opt_map = mapper("opts_", "")
-    opt_map.update({"runner": "runner.name", "images": "runner.images"})
-    ctx.obj.opts = builder(
+    opt_map.update({"opts_runner": "runner.name", "opts_images": "runner.images"})
+    ctx.obj.cfg.opts = builder(
         cfg_class=shared.GlobalOptsConfig,
         cfg_key="opts",
         include_only=list(opt_map.keys()),
@@ -531,16 +558,16 @@ def reconstruction(
     # Reconstruction options
     recon_map = {**mapper("query_", "query."), **mapper("tract_", "tractography.")}
     recon_map.update({k: v.replace(".act_", ".opts.") for k, v in recon_map.items()})
-    ctx.obj.reconstruction = builder(
+    ctx.obj.cfg.reconstruction = builder(
         cfg_class=recon.ReconstructionConfig,
         cfg_key="reconstruction",
         include_only=list(recon_map.keys()),
         cli_map=recon_map,
     )
-
-    from pprint import pprint
-
-    pprint(ctx.obj)
+    # Verbosity
+    ctx.obj.log_level = LOG_LEVELS[min(verbose, len(LOG_LEVELS)) - 1]
+    if ctx.obj.log_level <= logging.DEBUG:
+        print(_namespace_to_yaml(ctx.obj))
 
 
 @app.command(help="Connectivity stage.")
@@ -648,6 +675,7 @@ def connectivity(
         "etc.) will be automatically identified. "
         f"[default: {conn.TractMapConfig.surface_query}]",
     ),
+    verbose: int = typer.Option(0, "-v", count=True, help="Verbosity (-v, -vv, -vvv)."),
 ) -> None:
     """Connectivity stage-level."""
     local_vars = locals()
@@ -656,7 +684,7 @@ def connectivity(
     # Global options
     opt_map = mapper("opts_", "")
     opt_map.update({"opts_runner": "runner.name", "opts_images": "runner.images"})
-    ctx.obj.opts = builder(
+    ctx.obj.cfg.opts = builder(
         cfg_class=shared.GlobalOptsConfig,
         cfg_key="opts",
         include_only=list(opt_map.keys()),
@@ -671,17 +699,17 @@ def connectivity(
             "tract": conn.TractMapConfig,
         },
     }
-    ctx.obj.connectivity = builder(
+    ctx.obj.cfg.connectivity = builder(
         cfg_class=conn.ConnectivityConfig,
         cfg_key="connectivity",
         include_only=list(conn_map.keys()),
         cli_map=conn_map,
         dynamic_method_map=method_map,
     )
-
-    from pprint import pprint
-
-    pprint(ctx.obj)
+    # Verbosity
+    ctx.obj.log_level = LOG_LEVELS[min(verbose, len(LOG_LEVELS)) - 1]
+    if ctx.obj.log_level <= logging.DEBUG:
+        print(_namespace_to_yaml(ctx.obj))
 
 
 if __name__ == "__main__":

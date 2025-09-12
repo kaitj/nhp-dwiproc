@@ -1,7 +1,7 @@
 [project]
 name = "nhp-dwiproc"
 description = "BIDS app for performing diffusion processing of NHP dataset(s)"
-authors = [{ name = "Jason Kai", email = "jason.kai@childmind.org" }]
+authors = [{name = "Jason Kai", email = "jason.kai@childmind.org"}]
 license = "MIT"
 readme = "README.md"
 dynamic = ["version"]
@@ -14,10 +14,10 @@ dependencies = [
   "niwrap-helper>=0.3.0",
   "polars>=1.30.0",
   "pyyaml>=6.0.2",
+  "typer>=0.17.4",
   "eddymotion>=0.1.15",
   # (Temporary) pinned versions of packages to fix errors
-  "nitransforms==24.0.1",
-  "typer>=0.17.4",
+  "nitransforms==24.0.1"
 ]
 keywords = ["nhp", "diffusion mri", "processing"]
 classifiers = [
@@ -27,7 +27,7 @@ classifiers = [
   "License :: OSI Approved :: MIT License",
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3.11",
-  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.12"
 ]
 
 [project.urls]
@@ -47,17 +47,17 @@ dev-dependencies = [
   "pre-commit>=4.3.0",
   "pytest-cov>=6.3.0",
   "ruff>=0.12.12",
-  "types-pyyaml>=6.0.12.20250822",
+  "types-pyyaml>=6.0.12.20250822"
 ]
 
 [tool.uv.sources]
-nifti = { git = "https://github.com/childmindresearch/nifti", rev = "65ca06b" }
+nifti = {git = "https://github.com/childmindresearch/nifti", rev = "65ca06b"}
 
 [tool.hatch.build]
 source = ["src/"]
 
 [tool.hatch.build.hooks.vcs]
-version-file = "_version.py"
+version-file = "src/nhp_dwiproc/_version.py"
 
 [tool.hatch.version]
 source = "vcs"
@@ -79,9 +79,9 @@ target-version = "py311"
 [tool.ruff.lint]
 select = ["ANN", "D", "E", "F", "I"]
 ignore = [
-  "ANN002", # Missing *args annotation
-  "ANN003", # Missing **kwargs annotated.
-  "ANN401", # 'Any' typehint
+  "ANN002",  # Missing *args annotation
+  "ANN003",  # Missing **kwargs annotated.
+  "ANN401"  # 'Any' typehint
 ]
 fixable = ["ALL"]
 unfixable = []
@@ -92,9 +92,9 @@ convention = "google"
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**/*.py" = [
-  "ANN201", # Missing return type
-  "D100",   # Missing module docstring
-  "D102",   # Missing method docstring
+  "ANN201",  # Missing return type
+  "D100",  # Missing module docstring
+  "D102"  # Missing method docstring
 ]
 
 [tool.ruff.format]
