@@ -5,26 +5,35 @@ from enum import Enum
 from pathlib import Path
 
 
+@dataclass
+class RequiredConfig:
+    """Required argument configuration."""
+
+    input_dir: Path
+    output_dir: Path
+    stage: str
+
+
 class Runner(str, Enum):
     """Runner config options."""
 
-    local = "local"
-    docker = "docker"
-    podman = "podman"
-    appainer = "apptainer"
-    singularity = "singularity"
+    LOCAL = "local"
+    DOCKER = "docker"
+    PODMAN = "podman"
+    APPTAINER = "apptainer"
+    SINGULARITY = "singularity"
 
 
 @dataclass
 class RunnerConfig:
     """Runner configuration."""
 
-    type_: Runner = Runner.local
+    name: str = Runner.LOCAL.value
     images: dict[str, str | Path] | None = None
 
 
 @dataclass
-class GlobalConfig:
+class GlobalOptsConfig:
     """Shared configuration across all analysis levels."""
 
     config: Path | None = None
@@ -54,3 +63,10 @@ class BaseConfig:
     """Base processing step configuration."""
 
     skip: bool = False
+
+
+@dataclass
+class IndexConfig:
+    """Index config."""
+
+    overwrite: bool = False

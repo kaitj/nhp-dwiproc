@@ -1,15 +1,16 @@
 """Main CLI using callback pattern."""
 
-import json
+from functools import partial
 from pathlib import Path
 from types import SimpleNamespace
 
 import typer
 
-from .config import connectivity as conn
-from .config import preprocess as preproc
-from .config import reconstruction as recon
-from .config.shared import GlobalConfig, QueryConfig, Runner, RunnerConfig
+from ..config import connectivity as conn
+from ..config import preprocess as preproc
+from ..config import reconstruction as recon
+from ..config import shared, utils
+from .utils import _json_dict_callback
 
 app = typer.Typer(
     add_completion=False,
@@ -20,7 +21,7 @@ app = typer.Typer(
 @app.callback()
 def main(
     ctx: typer.Context,
-    # Required args
+    # Required
     input_dir: Path = typer.Argument(
         ..., exists=True, file_okay=False, readable=True, help="Input directory."
     ),
@@ -30,227 +31,55 @@ def main(
 ) -> None:
     """Diffusion MRI processing pipeline."""
     ctx.obj = SimpleNamespace(
-        input_dir=input_dir,
-        output_dir=output_dir,
+        input_dir=input_dir, output_dir=output_dir, stage=ctx.invoked_subcommand
     )
 
 
 @app.command(help="Indexing stage.")
 def index(
     ctx: typer.Context,
-    config: Path | None = typer.Option(
-        None, "--config", help="YAML-formatted configuration file."
+    opts_config: Path | None = typer.Option(
+        None,
+        "--config",
+        help="YAML-formatted configuration file. [default: "
+        f"{shared.GlobalOptsConfig.config}]",
+        exists=True,
+        dir_okay=False,
+        file_okay=True,
+        resolve_path=True,
     ),
-    threads: int = typer.Option(1, "--threads", help="Number of threads to use."),
-    index_path: Path = typer.Option(
-        None, "--index-path", help="Path to read / write bids2table index."
+    opts_threads: int | None = typer.Option(
+        None,
+        "--threads",
+        help=f"Number of threads to use [default: {shared.GlobalOptsConfig.threads}].",
     ),
-    overwrite: bool = typer.Option(
-        False, "--index-overwrite", help="Overwrite existing bids2table index."
+    opts_index_path: Path | None = typer.Option(
+        None,
+        "--index-path",
+        help="Path to read / write bids2table index. [default: "
+        f"{shared.GlobalOptsConfig.index_path}]",
+        writable=True,
+    ),
+    overwrite: bool | None = typer.Option(
+        None,
+        "--overwrite",
+        help="Overwrite existing bids2table index. [default: "
+        f"{shared.IndexConfig.overwrite}]",
     ),
 ) -> None:
     """Index stage-level."""
-    ctx.obj.opts = GlobalConfig(
-        config=config,
-        threads=threads,
-        index_path=index_path,
+    builder = partial(utils.build_config, ctx_params=ctx.params, cfg_file=opts_config)
+    # Global options
+    opt_map = utils.map_param("opts_", "", locals())
+    ctx.obj.opt = builder(
+        cfg_class=shared.GlobalOptsConfig,
+        cfg_key="opts",
+        include_only=list(opt_map.keys()),
+        cli_map=opt_map,
     )
-    ctx.obj.overwrite = overwrite
-
-
-@app.command(help="Processing stage.")
-def preprocess(
-    ctx: typer.Context,
-    config: Path | None = typer.Option(
-        None, "--config", help="YAML-formatted configuration file."
-    ),
-    threads: int = typer.Option(1, "--threads", help="Number of threads to use."),
-    index_path: Path = typer.Option(
-        None, "--index-path", help="Path to read / write bids2table index."
-    ),
-    runner: Runner = typer.Option(
-        "local", "--runner", help="Type of runner to run workflow."
-    ),
-    images: str = typer.Option(
-        None,
-        "--runner-images",
-        help="JSON string mapping containers to paths for non-local runners.",
-    ),
-    graph: bool = typer.Option(
-        False, "--graph", help="Print mermaid diagram of workflow."
-    ),
-    seed_number: int = typer.Option(
-        99, "--seed-num", help="Fixed seed to use for generating reproducible results."
-    ),
-    work_dir: Path = typer.Option(
-        Path("styx_tmp"), "--work-dir", help="Working directory."
-    ),
-    work_keep: bool = typer.Option(
-        False, "--work-keep", help="Keep working directory."
-    ),
-    b0_thresh: int = typer.Option(
-        10, "--b0-thresh", help="Threshold for shell to be considered b0."
-    ),
-    participant: str = typer.Option(
-        None, "--participant-query", help="String query for 'subject' & 'session'."
-    ),
-    dwi: str = typer.Option(
-        None, "--dwi-query", help="String query for DWI-associated BIDS entities."
-    ),
-    t1w: str = typer.Option(
-        None, "--t1w-query", help="String query for T1w-associated BIDS entities."
-    ),
-    mask: str = typer.Option(
-        None,
-        "--mask-query",
-        help="String query for custom mask -associated BIDS entities.",
-    ),
-    fmap: str = typer.Option(
-        None, "--fmap-query", help="String query for fieldmap-associated BIDS entities."
-    ),
-    pe_dirs: list[str] = typer.Option(
-        None,
-        "--pe-dirs",
-        help="Set phase encoding for dwi acquisition (space-separated for multiple "
-        "acquisitions) overwriting value provided in metadata (JSON) file.",
-    ),
-    echo_spacing: float = typer.Option(
-        None,
-        "--echo-spacing",
-        help="Estimated echo spacing for all dwi acquisitions, value in metadata "
-        "(JSON) file will take priority.",
-    ),
-    denoise_skip: bool = typer.Option(
-        False, "--denoise-skip", help="Skip denoising step."
-    ),
-    denoise_map: bool = typer.Option(False, "--denoise-map", help="Output noise map."),
-    denoise_estimator: preproc.DenoiseEstimator = typer.Option(
-        "Exp2", "--denoise-estimator", help="Noise level estimator."
-    ),
-    unring_skip: bool = typer.Option(
-        False, "--unring-skip", help="Skip unringing step."
-    ),
-    unring_axes: list[int] = typer.Option(
-        [0, 1],
-        "--unring-axes",
-        help="Slice axes for unringing",
-    ),
-    undistort_method: preproc.DistortionMethod = typer.Option(
-        "topup", "--undistort-method", help="Distortion correction method."
-    ),
-    topup_skip: bool = typer.Option(False, "--topup-skip", help="Skip TOPUP step."),
-    topup_config: str = typer.Option(
-        "b02b0_macaque",
-        "--topup-method",
-        help="TOPUP configuration file; custom path "
-        "can be provided or choose the following: 'b02b0', 'b02b0_macaque', "
-        "'b02b0_marmoset'",
-    ),
-    eddy_skip: bool = typer.Option(False, "--eddy-skip", help="Skip Eddy step."),
-    eddy_slm: preproc.EddySLMModel = typer.Option(
-        None,
-        "--eddy-slm",
-        help="Diffusion gradient model for generating eddy currents during Eddy step.",
-    ),
-    eddy_cnr: bool = typer.Option(
-        False, "--eddy-cnr", help="Generate CNR maps during Eddy step."
-    ),
-    eddy_repol: bool = typer.Option(
-        False, "--eddy-repol", help="Replace outliers during Eddy step."
-    ),
-    eddy_residuals: bool = typer.Option(
-        False, "--eddy-residuals", help="Generate 4D residual volume."
-    ),
-    eddy_shelled: bool = typer.Option(
-        False,
-        "--eddy-shelled",
-        help="Indicate diffusion data is shelled, skipping checking during Eddy.",
-    ),
-    eddymotion_iters: int = typer.Option(
-        2, "--eddymotion-iters", help="Number of iterations for eddymotion."
-    ),
-    bias_skip: bool = typer.Option(
-        False, "--biascorrect-skip", help="Skip biascorrection step."
-    ),
-    bias_spacing: float = typer.Option(
-        100.00,
-        "--biascorrect-spacing",
-        help="Initial biascorrection mesh resolution in mm.",
-    ),
-    bias_iters: int = typer.Option(
-        1000, "--biascorrect-iters", help="Number of biascorrection iterations."
-    ),
-    bias_shrink: int = typer.Option(
-        4,
-        "--biascorrect-shrink",
-        help="Biascorrection shrink factor applied to spatial dimension.",
-    ),
-    reg_skip: bool = typer.Option(
-        False,
-        "--register-skip",
-        help="Skip registration step to participant anatomical.",
-    ),
-    reg_metric: preproc.RegistrationMetric = typer.Option(
-        "NMI",
-        "--register-metric",
-        help="Similarity metric to use for registration step.",
-    ),
-    reg_iters: str = typer.Option(
-        "50x50",
-        "--register-iters",
-        help="Number of iterations per level of multi-res in registration step.",
-    ),
-    reg_init: preproc.RegistrationInit = typer.Option(
-        "identity",
-        "--register-init",
-        help="Initialization method for registration step.",
-    ),
-) -> None:
-    """Preprocess stage-level."""
-    ctx.obj.opts = GlobalConfig(
-        config=config,
-        threads=threads,
-        index_path=index_path,
-        runner=RunnerConfig(
-            type_=runner, images=json.loads(images) if images is not None else None
-        ),
-        graph=graph,
-        seed_number=seed_number,
-        work_dir=work_dir,
-        work_keep=work_keep,
-        b0_thresh=b0_thresh,
-    )
-    ctx.obj.query = QueryConfig(
-        participant=participant, dwi=dwi, t1w=t1w, mask=mask, fmap=fmap
-    )
-    ctx.obj.preproc = SimpleNamespace(
-        metadata=preproc.MetadataConfig(pe_dirs=pe_dirs, echo_spacing=echo_spacing),
-        denoise=preproc.DenoiseConfig(
-            skip=denoise_skip, map_=denoise_map, estimator=denoise_estimator
-        ),
-        unring=preproc.UnringConfig(skip=unring_skip, axes=unring_axes),
-        undistort=SimpleNamespace(
-            method=undistort_method,
-            opts=SimpleNamespace(
-                topup=preproc.TopupConfig(skip=topup_skip, config=topup_config),
-                eddy=preproc.EddyConfig(
-                    skip=eddy_skip,
-                    slm=eddy_slm,
-                    cnr=eddy_cnr,
-                    repol=eddy_repol,
-                    residuals=eddy_residuals,
-                    shelled=eddy_shelled,
-                ),
-            )
-            if undistort_method != preproc.DistortionMethod.eddymotion
-            else preproc.EddyMotionConfig(iters=eddymotion_iters),
-        ),
-        biascorrect=preproc.BiascorrectConfig(
-            skip=bias_skip, spacing=bias_spacing, iters=bias_iters, shrink=bias_shrink
-        ),
-        registration=preproc.RegistrationConfig(
-            skip=reg_skip, metric=reg_metric, iters=reg_iters, init=reg_init
-        ),
+    # Index options
+    ctx.obj.index = builder(
+        cfg_class=shared.IndexConfig, cfg_key="index", include_only=["overwrite"]
     )
 
     from pprint import pprint
@@ -258,208 +87,599 @@ def preprocess(
     pprint(ctx.obj)
 
 
+@app.command(help="Processing stage.")
+def preprocess(
+    ctx: typer.Context,
+    opts_config: Path | None = typer.Option(
+        None,
+        "--config",
+        help="YAML-formatted configuration file. [default: "
+        f"{shared.GlobalOptsConfig.config}]",
+        exists=True,
+        dir_okay=False,
+        file_okay=True,
+        resolve_path=True,
+    ),
+    opts_threads: int | None = typer.Option(
+        None,
+        "--threads",
+        help=f"Number of threads to use. [default: {shared.GlobalOptsConfig.threads}]",
+    ),
+    opts_index_path: Path | None = typer.Option(
+        None,
+        "--index-path",
+        help="Path to read bids2table index. [default: "
+        f"{shared.GlobalOptsConfig.index_path}]",
+        exists=True,
+        resolve_path=True,
+    ),
+    opts_runner: shared.Runner | None = typer.Option(
+        None,
+        "--runner",
+        help=f"Type of runner to run workflow. [default: '{shared.RunnerConfig.name}']",
+    ),
+    opts_images: str | None = typer.Option(
+        None,
+        "--runner-images",
+        callback=_json_dict_callback,
+        help="JSON string mapping containers to paths for non-local runners. "
+        f"[default: {shared.RunnerConfig.images}]",
+    ),
+    opts_graph: bool | None = typer.Option(
+        None,
+        "--graph",
+        help="Print mermaid diagram of workflow. [default: "
+        f"{shared.GlobalOptsConfig.graph}]",
+    ),
+    opts_seed_number: int | None = typer.Option(
+        None,
+        "--seed-num",
+        help="Fixed seed to use for generating reproducible results. [default: "
+        f"{shared.GlobalOptsConfig.seed_number}]",
+    ),
+    opts_work_dir: Path | None = typer.Option(
+        None,
+        "--work-dir",
+        help=f"Working directory. [default: '{shared.GlobalOptsConfig.work_dir}']",
+        file_okay=False,
+        resolve_path=True,
+    ),
+    opts_work_keep: bool | None = typer.Option(
+        None,
+        "--work-keep",
+        help=f"Keep working directory. [default: {shared.GlobalOptsConfig.work_keep}]",
+    ),
+    opts_b0_thresh: int | None = typer.Option(
+        None,
+        "--b0-thresh",
+        help=f"Threshold for shell to be considered b0. [default: "
+        f"{shared.GlobalOptsConfig.b0_thresh}]",
+    ),
+    query_participant: str | None = typer.Option(
+        None,
+        "--participant-query",
+        help="String query for 'subject' & 'session'. [default: "
+        f"{shared.QueryConfig.participant}]",
+    ),
+    query_dwi: str | None = typer.Option(
+        None,
+        "--dwi-query",
+        help="String query for DWI-associated BIDS entities. [default: "
+        f"{shared.QueryConfig.dwi}]",
+    ),
+    query_t1w: str | None = typer.Option(
+        None,
+        "--t1w-query",
+        help="String query for T1w-associated BIDS entities. [default: "
+        f"{shared.QueryConfig.t1w}]",
+    ),
+    query_mask: str | None = typer.Option(
+        None,
+        "--mask-query",
+        help="String query for custom mask-associated BIDS entities. [default: "
+        f"{shared.QueryConfig.mask}]",
+    ),
+    query_fmap: str | None = typer.Option(
+        None,
+        "--fmap-query",
+        help="String query for fieldmap-associated BIDS entities. [default: "
+        f"{shared.QueryConfig.fmap}]",
+    ),
+    metadata_pe_dirs: list[str] | None = typer.Option(
+        None,
+        "--pe-dirs",
+        help="Set phase encoding for dwi acquisition (space-separated for multiple "
+        "acquisitions) overwriting value provided in metadata (JSON) file. "
+        f"[default: {preproc.MetadataConfig.pe_dirs}]",
+    ),
+    metadata_echo_spacing: float = typer.Option(
+        None,
+        "--echo-spacing",
+        help="Estimated echo spacing for dwi acquisitions, value in metadata "
+        "(JSON) file will take priority. [default: "
+        f"{preproc.MetadataConfig.echo_spacing}]",
+    ),
+    denoise_skip: bool = typer.Option(
+        False,
+        "--denoise-skip",
+        help=f"Skip denoising step. [default: {preproc.DenoiseConfig.skip}]",
+    ),
+    denoise_map_: bool = typer.Option(
+        False,
+        "--denoise-map",
+        help=f"Output noise map. [default: {preproc.DenoiseConfig.map_}]",
+    ),
+    denoise_estimator: preproc.DenoiseEstimator = typer.Option(
+        "Exp2",
+        "--denoise-estimator",
+        help=f"Noise level estimator. [default: {preproc.DenoiseConfig.estimator}]",
+    ),
+    unring_skip: bool | None = typer.Option(
+        None,
+        "--unring-skip",
+        help=f"Skip unringing step. [default: {preproc.UnringConfig.skip}]",
+    ),
+    unring_axes: list[int] | None = typer.Option(
+        None,
+        "--unring-axes",
+        help=f"Slice axes for unringing [default: {preproc.UnringConfig.axes}]",
+    ),
+    undistort_method: preproc.UndistortionMethod | None = typer.Option(
+        None,
+        "--undistort-method",
+        help=f"Distortion correction method - topup performed unless skipped or using "
+        f"'eddymotion'. [default: '{preproc.UndistortionConfig.method}']",
+    ),
+    topup_skip: bool | None = typer.Option(
+        None,
+        "--topup-skip",
+        help=f"Skip TOPUP step. [default: {preproc.TopupConfig.skip}]",
+    ),
+    topup_config: str | None = typer.Option(
+        None,
+        "--topup-method",
+        help="TOPUP configuration file; custom path "
+        "can be provided or choose from: 'b02b0', 'b02b0_macaque', "
+        f"'b02b0_marmoset' [default: '{preproc.TopupConfig.config}']",
+    ),
+    eddy_skip: bool | None = typer.Option(
+        None,
+        "--eddy-skip",
+        help=f"Skip Eddy step. [default: {preproc.EddyConfig.skip}]",
+    ),
+    eddy_slm: preproc.EddySLMModel | None = typer.Option(
+        None,
+        "--eddy-slm",
+        help="Diffusion gradient model for generating eddy currents in Eddy step. "
+        f"[default: {preproc.EddyConfig.slm}]",
+    ),
+    eddy_cnr: bool | None = typer.Option(
+        None,
+        "--eddy-cnr",
+        help=f"Generate CNR maps in Eddy step. [default: {preproc.EddyConfig.cnr}]",
+    ),
+    eddy_repol: bool | None = typer.Option(
+        None,
+        "--eddy-repol",
+        help=f"Replace outliers in Eddy step. [default: {preproc.EddyConfig.repol}]",
+    ),
+    eddy_residuals: bool | None = typer.Option(
+        None,
+        "--eddy-residuals",
+        help=f"Generate 4D residual volume. [default: {preproc.EddyConfig.residuals}]",
+    ),
+    eddy_shelled: bool | None = typer.Option(
+        None,
+        "--eddy-shelled",
+        help="Indicate diffusion data is shelled, skipping checking during Eddy. "
+        f"[default: {preproc.EddyConfig.shelled}]",
+    ),
+    eddymotion_skip: bool | None = typer.Option(
+        None,
+        "--eddymotion-skip",
+        help=f"Skip Eddymotion step. [default: {preproc.EddyConfig.skip}]",
+    ),
+    eddymotion_iters: int | None = typer.Option(
+        None,
+        "--eddymotion-iters",
+        help=f"Number of iterations for eddymotion. [default: "
+        f"{preproc.EddyMotionConfig.iters}]",
+    ),
+    bias_skip: bool | None = typer.Option(
+        None,
+        "--biascorrect-skip",
+        help=f"Skip biascorrection step. [default: {preproc.BiascorrectConfig.skip}]",
+    ),
+    bias_spacing: float | None = typer.Option(
+        None,
+        "--biascorrect-spacing",
+        help=f"Initial biascorrection mesh resolution in mm. [default: "
+        f"{preproc.BiascorrectConfig.spacing}]",
+    ),
+    bias_iters: int | None = typer.Option(
+        None,
+        "--biascorrect-iters",
+        help=f"Number of biascorrection iterations. [default: "
+        f"{preproc.BiascorrectConfig.iters}]",
+    ),
+    bias_shrink: int | None = typer.Option(
+        None,
+        "--biascorrect-shrink",
+        help=f"Biascorrection shrink factor applied to spatial dimension. [default: "
+        f"{preproc.BiascorrectConfig.shrink}]",
+    ),
+    reg_skip: bool | None = typer.Option(
+        None,
+        "--register-skip",
+        help=f"Skip registration step to participant anatomical. [default: "
+        f"{preproc.RegistrationConfig.skip}]",
+    ),
+    reg_metric: preproc.RegistrationMetric | None = typer.Option(
+        None,
+        "--register-metric",
+        help=f"Similarity metric to use for registration step. [default: "
+        f"'{preproc.RegistrationConfig.metric}']",
+    ),
+    reg_iters: str | None = typer.Option(
+        None,
+        "--register-iters",
+        help="Number of iterations per level of multi-res in registration step. "
+        f"[default: {preproc.RegistrationConfig.iters}]",
+    ),
+    reg_init: preproc.RegistrationInit | None = typer.Option(
+        None,
+        "--register-init",
+        help="Initialization method for registration step. [default: "
+        f"'{preproc.RegistrationConfig.init}']",
+    ),
+) -> None:
+    """Preprocess stage-level."""
+    builder = partial(utils.build_config, ctx_params=ctx.params, cfg_file=opts_config)
+    mapper = partial(utils.map_param, vars_dict=locals())
+    # Global options
+    opt_map = mapper("opts_", "")
+    opt_map.update({"runner": "runner.name", "images": "runner.images"})
+    ctx.obj.opts = builder(
+        cfg_class=shared.GlobalOptsConfig,
+        cfg_key="opts",
+        include_only=list(opt_map.keys()),
+        cli_map=opt_map,
+    )
+    # Preprocess options
+    preproc_map = {
+        **mapper("query_", "query."),
+        **mapper("metadata_", "metadata."),
+        **mapper("denoise_", "denoise."),
+        **mapper("unring_", "unring."),
+        **{"undistort_method": "undistort.method"},
+        **mapper("topup_", "undistort.opts.topup."),
+        **mapper("eddy_", "undistort.opts.eddy."),
+        **mapper("eddymotion_", "undistort.opts.eddymotion."),
+        **mapper("bias_", "biascorrect."),
+        **mapper("reg_", "registration."),
+    }
+    ctx.obj.preprocess = builder(
+        cfg_class=preproc.PreprocessConfig,
+        cfg_key="preprocess",
+        include_only=list(preproc_map.keys()),
+        cli_map=preproc_map,
+    )
+    # Post initialization
+    match ctx.obj.preprocess.undistort.method:
+        case "eddymotion":
+            ctx.obj.preprocess.undistort.opts.topup = None
+            ctx.obj.preprocess.undistort.opts.eddy = None
+        case _:
+            ctx.obj.preprocess.undistort.opts.eddymotion = None
+
+    from pprint import pprint
+
+    pprint(preproc_map)
+    pprint(ctx.obj)
+
+
 @app.command(help="Reconstruction stage.")
 def reconstruction(
     ctx: typer.Context,
-    config: Path | None = typer.Option(
-        None, "--config", help="YAML-formatted configuration file."
+    opts_config: Path | None = typer.Option(
+        None,
+        "--config",
+        help="YAML-formatted configuration file. [default: "
+        f"{shared.GlobalOptsConfig.config}]",
+        exists=True,
+        dir_okay=False,
+        file_okay=True,
+        resolve_path=True,
     ),
-    threads: int = typer.Option(1, "--threads", help="Number of threads to use."),
-    index_path: Path = typer.Option(
-        None, "--index-path", help="Path to read / write bids2table index."
+    opts_threads: int | None = typer.Option(
+        None,
+        "--threads",
+        help=f"Number of threads to use. [default: {shared.GlobalOptsConfig.threads}]",
     ),
-    runner: Runner = typer.Option(
-        "local", "--runner", help="Type of runner to run workflow."
+    opts_index_path: Path | None = typer.Option(
+        None,
+        "--index-path",
+        help="Path to read / write bids2table index. [default: "
+        f"{shared.GlobalOptsConfig.index_path}]",
     ),
-    images: str = typer.Option(
+    opts_runner: shared.Runner | None = typer.Option(
+        None,
+        "--runner",
+        help=f"Type of runner to run workflow. [default: '{shared.RunnerConfig.name}']",
+    ),
+    opts_images: str | None = typer.Option(
         None,
         "--runner-images",
-        help="JSON string mapping containers to paths for non-local runners.",
+        callback=_json_dict_callback,
+        help="JSON string mapping containers to paths for non-local runners. "
+        f"[default: {shared.RunnerConfig.images}]",
     ),
-    graph: bool = typer.Option(
-        False, "--graph", help="Print mermaid diagram of workflow."
+    opts_graph: bool | None = typer.Option(
+        None,
+        "--graph",
+        help="Print mermaid diagram of workflow. [default: "
+        f"{shared.GlobalOptsConfig.graph}]",
     ),
-    seed_number: int = typer.Option(
-        99, "--seed-num", help="Fixed seed to use for generating reproducible results."
+    opts_seed_number: int | None = typer.Option(
+        None,
+        "--seed-num",
+        help="Fixed seed to use for generating reproducible results. [default: "
+        f"{shared.GlobalOptsConfig.seed_number}]",
     ),
-    work_dir: Path = typer.Option(
-        Path("styx_tmp"), "--work-dir", help="Working directory."
+    opts_work_dir: Path | None = typer.Option(
+        None,
+        "--work-dir",
+        help=f"Working directory. [default: '{shared.GlobalOptsConfig.work_dir}']",
+        file_okay=False,
+        resolve_path=True,
     ),
-    work_keep: bool = typer.Option(
-        False, "--work-keep", help="Keep working directory."
+    opts_work_keep: bool | None = typer.Option(
+        None,
+        "--work-keep",
+        help=f"Keep working directory. [default: {shared.GlobalOptsConfig.work_keep}]",
     ),
-    b0_thresh: int = typer.Option(
-        10, "--b0-thresh", help="Threshold for shell to be considered b0."
+    query_participant: str | None = typer.Option(
+        None,
+        "--participant-query",
+        help="String query for 'subject' & 'session'. [default: "
+        f"{shared.QueryConfig.participant}]",
     ),
-    participant: str = typer.Option(
-        None, "--participant-query", help="String query for 'subject' & 'session'."
+    query_dwi: str | None = typer.Option(
+        None,
+        "--dwi-query",
+        help="String query for DWI-associated BIDS entities. [default: "
+        f"{shared.QueryConfig.dwi}]",
     ),
-    dwi: str = typer.Option(
-        None, "--dwi-query", help="String query for DWI-associated BIDS entities."
+    query_t1w: str | None = typer.Option(
+        None,
+        "--t1w-query",
+        help="String query for T1w-associated BIDS entities. [default: "
+        f"{shared.QueryConfig.t1w}]",
     ),
-    t1w: str = typer.Option(
-        None, "--t1w-query", help="String query for T1w-associated BIDS entities."
-    ),
-    mask: str = typer.Option(
+    query_mask: str | None = typer.Option(
         None,
         "--mask-query",
-        help="String query for custom mask -associated BIDS entities.",
+        help="String query for custom mask-associated BIDS entities. [default: "
+        f"{shared.QueryConfig.mask}]",
     ),
-    single_shell: bool = typer.Option(
-        False, "--single-shell", help="Indicate single-shell data."
+    tract_single_shell: bool | None = typer.Option(
+        None,
+        "--single-shell",
+        help="Indicate single-shell data. [default: "
+        f"{recon.TractographyConfig.single_shell}]",
     ),
-    shells: list[int] = typer.Option(
+    tract_shells: list[int] | None = typer.Option(
         None,
         "--shells",
-        help="Space-separated list of b-values (b0 must be explicitly included).",
+        help="Space-separated list of b-values (b0 must be explicitly included). "
+        f"[default: {recon.TractographyConfig.shells}]",
     ),
-    lmax: list[int] = typer.Option(
+    tract_lmax: list[int] | None = typer.Option(
         None,
         "--lmax",
         help="Space-separated list of maximum harmonic degrees (b0 must be explicitly "
-        "included).",
+        f"included). [default: {recon.TractographyConfig.lmax}]",
     ),
-    steps: float = typer.Option(
+    tract_steps: float | None = typer.Option(
         None,
         "--steps",
         help="Step size (in mm) for tractography sampling [default: 0.5 x voxel_size].",
     ),
-    cutoff: float = typer.Option(
-        0.1, "--cutoff", help="FOD cutoff amplitude for track termination."
+    tract_cutoff: float | None = typer.Option(
+        None,
+        "--cutoff",
+        help="FOD cutoff amplitude for track termination. [default: "
+        f"{recon.TractographyConfig.cutoff}]",
     ),
-    streamlines: int = typer.Option(
-        10_000, "--streamlines", help="Number of streamlines to select."
+    tract_streamlines: int | None = typer.Option(
+        None,
+        "--streamlines",
+        help="Number of streamlines to select. [default: "
+        f"{recon.TractographyConfig.streamlines}]",
     ),
-    method: recon.TractographyMethod = typer.Option(
-        "wm", "--tractography-method", help="Tractography seeding method."
+    tract_method: recon.TractographyMethod | None = typer.Option(
+        None,
+        "--tractography-method",
+        help="Tractography seeding method. [default: "
+        f"{recon.TractographyConfig.method}]",
     ),
-    act_backtrack: bool = typer.Option(
-        False,
+    tract_act_backtrack: bool | None = typer.Option(
+        None,
         "--tractography-act-backtrack",
-        help="Allow tracts to be truncated and "
-        "re-tracked due to poor structural termination during ACT.",
+        help="Allow tracts to be truncated and re-tracked due to poor structural "
+        f"termination during ACT. [default: {recon.TractographyACTConfig.backtrack}]",
     ),
-    act_nocrop: bool = typer.Option(
-        False,
+    tract_act_nocrop: bool | None = typer.Option(
+        None,
         "--tractography-act-nocrop",
-        help="Do not crop streamline endpoints as they cross the GM-WM interface.",
+        help="Do not crop streamline endpoints as they cross the GM-WM interface. "
+        f"[default: {recon.TractographyACTConfig.no_crop_gmwmi}]",
     ),
 ) -> None:
     """Reconstruction stage-level."""
-    ctx.obj.opts = GlobalConfig(
-        config=config,
-        threads=threads,
-        index_path=index_path,
-        runner=RunnerConfig(
-            type_=runner, images=json.loads(images) if images is not None else None
-        ),
-        graph=graph,
-        seed_number=seed_number,
-        work_dir=work_dir,
-        work_keep=work_keep,
-        b0_thresh=b0_thresh,
+    local_vars = locals()
+    builder = partial(utils.build_config, ctx_params=ctx.params, cfg_file=opts_config)
+    mapper = partial(utils.map_param, vars_dict=local_vars)
+    # Global options
+    opt_map = mapper("opts_", "")
+    opt_map.update({"runner": "runner.name", "images": "runner.images"})
+    ctx.obj.opts = builder(
+        cfg_class=shared.GlobalOptsConfig,
+        cfg_key="opts",
+        include_only=list(opt_map.keys()),
+        cli_map=opt_map,
     )
-    ctx.obj.query = QueryConfig(participant=participant, dwi=dwi, t1w=t1w, mask=mask)
-    ctx.obj.recon = SimpleNamespace(
-        tractography=recon.TractographyConfig(
-            single_shell=single_shell,
-            shells=shells,
-            lmax=lmax,
-            steps=steps,
-            method=method,
-            opts=recon.TractographyACTConfig(
-                backtrack=act_backtrack, no_crop_gmwmi=act_nocrop
-            )
-            if method == recon.TractographyMethod.act
-            else None,
-            cutoff=cutoff,
-            streamlines=streamlines,
-        )
+    # Reconstruction options
+    recon_map = {**mapper("query_", "query."), **mapper("tract_", "tractography.")}
+    recon_map.update({k: v.replace(".act_", ".opts.") for k, v in recon_map.items()})
+    ctx.obj.reconstruction = builder(
+        cfg_class=recon.ReconstructionConfig,
+        cfg_key="reconstruction",
+        include_only=list(recon_map.keys()),
+        cli_map=recon_map,
     )
+
+    from pprint import pprint
+
+    pprint(ctx.obj)
 
 
 @app.command(help="Connectivity stage.")
 def connectivity(
     ctx: typer.Context,
-    config: Path | None = typer.Option(
-        None, "--config", help="YAML-formatted configuration file."
+    opts_config: Path | None = typer.Option(
+        None,
+        "--config",
+        help="YAML-formatted configuration file. [default: "
+        f"{shared.GlobalOptsConfig.config}]",
+        exists=True,
+        dir_okay=False,
+        file_okay=True,
+        resolve_path=True,
     ),
-    threads: int = typer.Option(1, "--threads", help="Number of threads to use."),
-    index_path: Path = typer.Option(
-        None, "--index-path", help="Path to read / write bids2table index."
+    opts_threads: int | None = typer.Option(
+        None,
+        "--threads",
+        help=f"Number of threads to use. [default: {shared.GlobalOptsConfig.threads}]",
     ),
-    runner: Runner = typer.Option(
-        "local", "--runner", help="Type of runner to run workflow."
+    opts_index_path: Path | None = typer.Option(
+        None,
+        "--index-path",
+        help="Path to read / write bids2table index. [default: "
+        f"{shared.GlobalOptsConfig.index_path}]",
     ),
-    images: str = typer.Option(
+    opts_runner: shared.Runner | None = typer.Option(
+        None,
+        "--runner",
+        help=f"Type of runner to run workflow. [default: '{shared.RunnerConfig.name}']",
+    ),
+    opts_images: str | None = typer.Option(
         None,
         "--runner-images",
-        help="JSON string mapping containers to paths for non-local runners.",
+        callback=_json_dict_callback,
+        help="JSON string mapping containers to paths for non-local runners. "
+        f"[default: {shared.RunnerConfig.images}]",
     ),
-    graph: bool = typer.Option(
-        False, "--graph", help="Print mermaid diagram of workflow."
+    opts_graph: bool | None = typer.Option(
+        None,
+        "--graph",
+        help="Print mermaid diagram of workflow. [default: "
+        f"{shared.GlobalOptsConfig.graph}]",
     ),
-    seed_number: int = typer.Option(
-        99, "--seed-num", help="Fixed seed to use for generating reproducible results."
+    opts_seed_number: int | None = typer.Option(
+        None,
+        "--seed-num",
+        help="Fixed seed to use for generating reproducible results. [default: "
+        f"{shared.GlobalOptsConfig.seed_number}]",
     ),
-    work_dir: Path = typer.Option(
-        Path("styx_tmp"), "--work-dir", help="Working directory."
+    opts_work_dir: Path | None = typer.Option(
+        None,
+        "--work-dir",
+        help=f"Working directory. [default: '{shared.GlobalOptsConfig.work_dir}']",
+        file_okay=False,
+        resolve_path=True,
     ),
-    work_keep: bool = typer.Option(
-        False, "--work-keep", help="Keep working directory."
+    opts_work_keep: bool | None = typer.Option(
+        None,
+        "--work-keep",
+        help=f"Keep working directory. [default: {shared.GlobalOptsConfig.work_keep}]",
     ),
-    method: conn.ConnectivityMethod = typer.Option(
-        "connectome", "--method", help="Type of connectivity analysis to perform."
+    query_participant: str | None = typer.Option(
+        None,
+        "--participant-query",
+        help="String query for 'subject' & 'session'. [default: "
+        f"{shared.QueryConfig.participant}]",
     ),
-    atlas: str = typer.Option(
+    conn_method: conn.ConnectivityMethod | None = typer.Option(
+        None,
+        "--method",
+        help="Type of connectivity analysis to perform. [default: "
+        f"'{conn.ConnectivityConfig.method}']",
+    ),
+    conn_atlas: str | None = typer.Option(
         None,
         "--atlas",
         help="Volumetric atlas (assumed to be in same space) to compute connectivity "
-        "matrix.",
+        f"matrix. [default: {conn.ConnectomeConfig.atlas}]",
     ),
-    radius: float = typer.Option(
-        2.0, "--radius", help="Distance (in mm) to nearest parcel"
+    conn_radius: float | None = typer.Option(
+        None,
+        "--radius",
+        help="Distance (in mm) to nearest parcel. [default: "
+        f"{conn.ConnectomeConfig.radius}]",
     ),
-    voxel_size: list[float] = typer.Option(
+    conn_voxel_size: list[float] | None = typer.Option(
         None,
         "--vox-mm",
-        help="Isotropic voxel size (in mm) or space-separated list of voxel sizes "
-        "to map tracts to.",
+        help="Isotropic voxel size (in mm) or list of voxel sizes "
+        f"(repeat argument) for tract map. [default: {conn.TractMapConfig.voxel_size}]",
     ),
-    tract: str = typer.Option(
+    conn_tract_query: str | None = typer.Option(
         None,
         "--tract-query",
         help="String query for tract-associated BIDS entities; associated ROIs should "
         "contain description entities of 'include', 'exclude', 'stop' for respective "
-        "ROIs.",
+        f"ROIs. [default: {conn.TractMapConfig.tract_query}]",
     ),
-    surface: str = typer.Option(
+    conn_surface_query: str | None = typer.Option(
         None,
         "--surf-query",
         help="String query for surface-associated BIDS entities to perform "
         "ribbon-constrained mapping of streamlines; surface type (e.g. white, pial, "
-        "etc.) will be automatically identified.",
+        "etc.) will be automatically identified. "
+        f"[default: {conn.TractMapConfig.surface_query}]",
     ),
 ) -> None:
     """Connectivity stage-level."""
-    ctx.obj.opts = GlobalConfig(
-        config=config,
-        threads=threads,
-        index_path=index_path,
-        runner=RunnerConfig(
-            type_=runner, images=json.loads(images) if images is not None else None
-        ),
-        graph=graph,
-        seed_number=seed_number,
-        work_dir=work_dir,
-        work_keep=work_keep,
+    local_vars = locals()
+    builder = partial(utils.build_config, ctx_params=ctx.params, cfg_file=opts_config)
+    mapper = partial(utils.map_param, vars_dict=local_vars)
+    # Global options
+    opt_map = mapper("opts_", "")
+    opt_map.update({"opts_runner": "runner.name", "opts_images": "runner.images"})
+    ctx.obj.opts = builder(
+        cfg_class=shared.GlobalOptsConfig,
+        cfg_key="opts",
+        include_only=list(opt_map.keys()),
+        cli_map=opt_map,
     )
-    ctx.obj.connectivity = conn.ConnectivityConfig(
-        method=method,
-        opts=conn.ConnectomeConfig(atlas=atlas, radius=radius)
-        if method is conn.ConnectivityMethod.connectome
-        else conn.TractMapConfig(voxel_size=voxel_size, tract=tract, surface=surface),
+    # Stage specific options
+    conn_map = mapper("conn_", "opts.")
+    conn_map.update({"conn_method": "method", "query_participant": "query.participant"})
+    method_map: dict[str, dict[object, type]] = {
+        "method": {
+            "connectome": conn.ConnectomeConfig,
+            "tract": conn.TractMapConfig,
+        },
+    }
+    ctx.obj.connectivity = builder(
+        cfg_class=conn.ConnectivityConfig,
+        cfg_key="connectivity",
+        include_only=list(conn_map.keys()),
+        cli_map=conn_map,
+        dynamic_method_map=method_map,
     )
+
     from pprint import pprint
 
     pprint(ctx.obj)

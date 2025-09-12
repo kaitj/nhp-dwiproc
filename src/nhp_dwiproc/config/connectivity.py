@@ -3,14 +3,16 @@
 from dataclasses import dataclass, field
 from enum import Enum
 
+from .shared import QueryConfig
+
 
 @dataclass
 class TractMapConfig:
     """Tract mapping configuration."""
 
     voxel_size: list[float] | None = None
-    tract: str | None = None
-    surface: str | None = None
+    tract_query: str | None = None
+    surface_query: str | None = None
 
 
 @dataclass
@@ -32,5 +34,6 @@ class ConnectivityMethod(str, Enum):
 class ConnectivityConfig:
     """Connectivity configuration."""
 
-    method: ConnectivityMethod = ConnectivityMethod.connectome
-    opts: TractMapConfig | ConnectomeConfig = field(default_factory=ConnectomeConfig)
+    query: QueryConfig = field(default_factory=QueryConfig)
+    method: str = ConnectivityMethod.connectome.value
+    opts: ConnectomeConfig | TractMapConfig = field(default_factory=ConnectomeConfig)
