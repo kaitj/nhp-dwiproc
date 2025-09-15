@@ -7,7 +7,6 @@ readme = "README.md"
 dynamic = ["version"]
 requires-python = ">=3.11, <3.13"
 dependencies = [
-  "bidsapp-helper>=0.1.0",
   "bids2table[s3]>=2.1.0",
   "nifti",
   "niwrap>=0.6.1",
