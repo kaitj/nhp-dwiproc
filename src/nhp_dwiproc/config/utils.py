@@ -1,9 +1,11 @@
 """Utility functions for working with configs.
 
 Todo:
-  - Method for writing final config
+  - Method for outputting final config
 """
 
+import json
+import logging
 from collections.abc import Sequence
 from dataclasses import fields, is_dataclass, replace
 from enum import Enum
@@ -14,6 +16,8 @@ from typing import Any, TypeVar
 import yaml
 
 T = TypeVar("T", bound=object)
+
+logger = logging.getLogger(__name__)
 
 
 @lru_cache
@@ -254,3 +258,40 @@ def map_param(prefix: str, replace_with: str, vars_dict: dict) -> dict:
     return {
         k: k.replace(prefix, replace_with) for k in vars_dict if k.startswith(prefix)
     }
+
+
+def generate_descriptor(
+    app_name: str,
+    version: str,
+    bids_version: str = "1.9.0",
+    out_fpath: str | Path = "dataset_description.json",
+) -> None:
+    """Generate dataset_description.json file.
+
+    Args:
+        app_name: Application name.
+        version: Application version.
+        bids_version: Compatible BIDS version.
+        out_fpath: Path to save descriptor file.
+    """
+    out_fpath = Path(out_fpath)
+    if not out_fpath.name.endswith(".json"):
+        logger.warning("File extension is not '.json'.")
+
+    descriptor = {
+        "Name": app_name,
+        "BIDSVersion": bids_version,
+        "DatasetType": "derivative",
+        "GeneratedBy": {
+            "Name": app_name,
+            "Version": version,
+            "CodeURL": "https://github.com/HumanBrainEd/nhp-dwiproc",
+            "Author": "Jason Kai",
+            "AuthorEmail": "jason.kai@childmind.org",
+        },
+    }
+
+    # Save file
+    out_fpath.parent.mkdir(parents=True, exist_ok=True)
+    with open(out_fpath, "w") as out_file:
+        json.dump(descriptor, out_file, indent=4)
