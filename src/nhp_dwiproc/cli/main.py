@@ -50,12 +50,13 @@ def main(
     if not input_dir and not output_dir or ctx.invoked_subcommand is None:
         typer.echo(ctx.get_help())
     ctx.obj = SimpleNamespace(
+        app=ctx.info_name,
+        version=__version__,
         cfg=SimpleNamespace(
             input_dir=input_dir,
             output_dir=output_dir,
             stage=ctx.invoked_subcommand,
         ),
-        version=__version__,
     )
 
 
@@ -390,7 +391,7 @@ def preprocess(
         include_only=list(preproc_map.keys()),
         cli_map=preproc_map,
     )
-    # Post initialization
+    # Post config initialization
     match ctx.obj.cfg.preprocess.undistort.method:
         case "eddymotion":
             ctx.obj.cfg.preprocess.undistort.opts.topup = None
