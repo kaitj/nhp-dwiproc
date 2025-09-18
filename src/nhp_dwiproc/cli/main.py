@@ -116,11 +116,11 @@ def index(
         else logging.CRITICAL + 1
     )
     # Setup styx
-    logger, _ = setup_styx(runner="local")
+    logger, runner = setup_styx(runner="local")
     logger.setLevel(ctx.obj.log_level)
     logger.debug(f"Stage options:\n\n{_namespace_to_yaml(ctx.obj)}")
     # Run
-    analysis_levels.index.run(
+    analysis_levels.index(
         input_dir=ctx.obj.cfg.input_dir,
         index_opts=ctx.obj.cfg.index,
         global_opts=ctx.obj.cfg.opt,
@@ -726,9 +726,24 @@ def connectivity(
         dynamic_method_map=method_map,
     )
     # Verbosity
-    ctx.obj.log_level = LOG_LEVELS[min(verbose, len(LOG_LEVELS)) - 1]
-    if ctx.obj.log_level <= logging.DEBUG:
-        print(_namespace_to_yaml(ctx.obj))
+    ctx.obj.log_level = (
+        LOG_LEVELS[min(verbose, len(LOG_LEVELS)) - 1]
+        if verbose > 0
+        else logging.CRITICAL + 1
+    )
+    # Setup styx
+    logger, runner = setup_styx(runner=ctx.obj.cfg.opts.runner.name)
+    logger.setLevel(ctx.obj.log_level)
+    logger.debug(f"Stage options:\n\n{_namespace_to_yaml(ctx.obj)}")
+    # Run
+    analysis_levels.connectivity(
+        input_dir=ctx.obj.cfg.input_dir,
+        output_dir=ctx.obj.cfg.output_dir,
+        conn_opts=ctx.obj.cfg.connectivity,
+        global_opts=ctx.obj.cfg.opts,
+        runner=runner,
+        logger=logger,
+    )
 
 
 if __name__ == "__main__":

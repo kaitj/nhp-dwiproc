@@ -1,19 +1,19 @@
-"""Index analysis-level."""
+"""Index stage-level."""
 
 import logging
 from pathlib import Path
 
 import pyarrow.parquet as pq
-from niwrap_helper.bids import get_bids_table
+from niwrap_helper import get_bids_table
 from niwrap_helper.types import StrPath
 
-from ...config import shared
+from ...config.shared import GlobalOptsConfig, IndexConfig
 
 
 def run(
     input_dir: StrPath,
-    index_opts: shared.IndexConfig = shared.IndexConfig(),
-    global_opts: shared.GlobalOptsConfig = shared.GlobalOptsConfig(),
+    index_opts: IndexConfig = IndexConfig(),
+    global_opts: GlobalOptsConfig = GlobalOptsConfig(),
     logger: logging.Logger = logging.Logger(__name__),
 ) -> None:
     """Runner for index-level analysis.
