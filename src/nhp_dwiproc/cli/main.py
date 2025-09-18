@@ -9,14 +9,14 @@ import typer
 from niwrap_helper.styx import setup_styx
 
 from .._version import __version__
-from ..app import analysis_levels
+from ..app import analysis_levels, initialize
 from ..config import connectivity as conn
 from ..config import preprocess as preproc
 from ..config import reconstruction as recon
 from ..config import shared, utils
 from .utils import _json_dict_callback, _namespace_to_yaml
 
-LOG_LEVELS = [logging.WARNING, logging.INFO, logging.DEBUG]
+LOG_LEVELS = [logging.INFO, logging.DEBUG]
 
 app = typer.Typer(
     name="NHP-DWIProc",
@@ -118,12 +118,13 @@ def index(
     # Setup styx
     logger, runner = setup_styx(runner="local")
     logger.setLevel(ctx.obj.log_level)
-    logger.debug(f"Stage options:\n\n{_namespace_to_yaml(ctx.obj)}")
+    logger.debug(f"Stage options:\n\n{_namespace_to_yaml(obj=ctx.obj)}")
     # Run
     analysis_levels.index(
         input_dir=ctx.obj.cfg.input_dir,
         index_opts=ctx.obj.cfg.index,
         global_opts=ctx.obj.cfg.opt,
+        runner=runner,
         logger=logger,
     )
 
@@ -732,10 +733,17 @@ def connectivity(
         else logging.CRITICAL + 1
     )
     # Setup styx
-    logger, runner = setup_styx(runner=ctx.obj.cfg.opts.runner.name)
+    logger, runner = initialize(
+        output_dir=ctx.obj.cfg.output_dir, global_opts=ctx.obj.cfg.opts
+    )
     logger.setLevel(ctx.obj.log_level)
-    logger.debug(f"Stage options:\n\n{_namespace_to_yaml(ctx.obj)}")
+    logger.debug(f"Stage options:\n\n{_namespace_to_yaml(obj=ctx.obj)}")
     # Run
+    utils.generate_descriptor(
+        app_name=ctx.obj.app,
+        version=ctx.obj.app,
+        out_fpath=ctx.obj.cfg.output_dir / "dataset_description.json",
+    )
     analysis_levels.connectivity(
         input_dir=ctx.obj.cfg.input_dir,
         output_dir=ctx.obj.cfg.output_dir,
