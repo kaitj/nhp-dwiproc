@@ -1,6 +1,5 @@
-"""Non-human primate diffusion processing suite."""
+"""Diffusion processing suite (with non-human primate focus)."""
 
 from pathlib import Path
 
-APP_NAME = "nhp_dwiproc"
-APP_LOCATION = Path(__file__).parent
+APP_LOCATION = Path(__file__)

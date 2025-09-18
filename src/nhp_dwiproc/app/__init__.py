@@ -1,13 +1,11 @@
 """Initialize application module."""
 
-from nhp_dwiproc.app import analysis_levels
-from nhp_dwiproc.app.descriptor import generate_descriptor
-from nhp_dwiproc.utils.app import generate_mrtrix_conf, initialize, validate_cfg
+from ..utils.app import generate_mrtrix_conf, initialize, validate_opts
+from . import analysis_levels
 
 __all__ = [
     "analysis_levels",
-    "generate_descriptor",
-    "generate_mrtrix_conf",
     "initialize",
-    "validate_cfg",
+    "generate_mrtrix_conf",
+    "validate_opts",
 ]
