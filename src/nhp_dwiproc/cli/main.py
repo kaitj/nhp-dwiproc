@@ -6,8 +6,10 @@ from pathlib import Path
 from types import SimpleNamespace
 
 import typer
+from niwrap_helper.styx import setup_styx
 
 from .._version import __version__
+from ..app import analysis_levels
 from ..config import connectivity as conn
 from ..config import preprocess as preproc
 from ..config import reconstruction as recon
@@ -108,9 +110,22 @@ def index(
         cfg_class=shared.IndexConfig, cfg_key="index", include_only=["overwrite"]
     )
     # Verbosity
-    ctx.obj.log_level = LOG_LEVELS[min(verbose, len(LOG_LEVELS)) - 1]
-    if ctx.obj.log_level <= logging.DEBUG:
-        print(_namespace_to_yaml(ctx.obj))
+    ctx.obj.log_level = (
+        LOG_LEVELS[min(verbose, len(LOG_LEVELS)) - 1]
+        if verbose > 0
+        else logging.CRITICAL + 1
+    )
+    # Setup styx
+    logger, _ = setup_styx(runner="local")
+    logger.setLevel(ctx.obj.log_level)
+    logger.debug(f"Stage options:\n\n{_namespace_to_yaml(ctx.obj)}")
+    # Run
+    analysis_levels.index.run(
+        input_dir=ctx.obj.cfg.input_dir,
+        index_opts=ctx.obj.cfg.index,
+        global_opts=ctx.obj.cfg.opt,
+        logger=logger,
+    )
 
 
 @app.command(help="Processing stage.")
@@ -568,7 +583,10 @@ def reconstruction(
     # Verbosity
     ctx.obj.log_level = LOG_LEVELS[min(verbose, len(LOG_LEVELS)) - 1]
     if ctx.obj.log_level <= logging.DEBUG:
-        print(_namespace_to_yaml(ctx.obj))
+        from pprint import pprint
+
+        pprint(ctx.obj)
+        # print(_namespace_to_yaml(ctx.obj))
 
 
 @app.command(help="Connectivity stage.")
