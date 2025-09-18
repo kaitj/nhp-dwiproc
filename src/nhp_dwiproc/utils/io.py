@@ -1,30 +1,46 @@
 """IO related functions for application."""
 
+import logging
 import shutil
 from functools import reduce
-from logging import Logger
 from pathlib import Path
 from typing import Any, Sequence
 
 import polars as pl
 from bids2table import load_bids_metadata
 from bids2table._pathlib import PathT, as_path
-from niwrap_helper.bids import get_bids_table
+from niwrap_helper import get_bids_table
+from niwrap_helper.types import StrPath
 from styxdefs import OutputPathType
 
+from ..config.connectivity import ConnectomeConfig, TractMapConfig
+from ..config.preprocess import UndistortionConfig
+from ..config.shared import GlobalOptsConfig, QueryConfig
 
-def load_participant_table(cfg: dict[str, Any], logger: Logger) -> pl.DataFrame:
+
+def load_participant_table(
+    input_dir: StrPath, cfg: GlobalOptsConfig, logger: logging.Logger
+) -> pl.DataFrame:
     """Handle loading of bids2table."""
-    index_path = as_path(cfg.get("opt.index_path", cfg["bids_dir"] / ".index.parquet"))
-    index_exists = index_path.exists()
+    index_path = cfg.index_path or Path(input_dir) / ".index.parquet"
 
-    if index_exists:
-        logger.info("Existing dataset index found")
-    else:
-        logger.info("Indexing dataset - run 'index' level analysis instead to save")
-
-    table = get_bids_table(dataset_dir=cfg["bids_dir"], index=index_path)
-    return pl.from_arrow(table)
+    logger.info(
+        "Existing dataset index found"
+        if index_path.exists()
+        else "Indexing dataset temporarily - run 'index' level analysis instead to save"
+    )
+    table = get_bids_table(
+        dataset_dir=input_dir,
+        b2t_index=index_path,
+        max_workers=cfg.threads,
+        verbose=logger.level < logging.CRITICAL + 1,
+    )
+    table = pl.from_arrow(table)
+    if not isinstance(table, pl.DataFrame):
+        raise TypeError(
+            f"bids2table output expected to be a DataFrame, got {type(table)}."
+        )
+    return table
 
 
 def valid_groupby(df: pl.DataFrame, keys: Sequence[str]) -> list[str]:
@@ -49,7 +65,9 @@ def query(df: pl.DataFrame, query: str) -> pl.DataFrame:
 def get_inputs(
     df: pl.DataFrame,
     row: dict[str, Any],
-    cfg: dict[str, Any],
+    query_opts: QueryConfig,
+    stage_opts: ConnectomeConfig | TractMapConfig | UndistortionConfig,
+    stage: str,
 ) -> dict[str, Any]:
     """Retrieve relevant inputs for workflow."""
 
@@ -118,28 +136,30 @@ def get_inputs(
             "json": _get_file_path(metadata=True) or {},
         },
         "t1w": {
-            "nii": _get_file_path(queries=[sub_ses_query, cfg["participant.query_t1w"]])
-            if cfg.get("participant.query_t1w")
+            "nii": _get_file_path(queries=[sub_ses_query, query_opts.t1w])
+            if query_opts.t1w is not None
             else _get_file_path(entities={"datatype": "anat", "suffix": "T1w"})
         },
     }
 
     # Additional inputs to update / grab based on analysis level
-    if cfg["analysis_level"] == "preprocess":
-        if mask_query := cfg.get("participant.query_mask"):
+    if stage == "preprocess":
+        if not isinstance(stage_opts, UndistortionConfig):
+            raise TypeError(f"Expected UndistortionConfig, got {type(stage_opts)}")
+        if query_opts.mask is not None:
             wf_inputs["dwi"]["mask"] = _get_file_path(
-                queries=[sub_ses_query, mask_query]
+                queries=[sub_ses_query, query_opts.mask]
             )
 
-        match cfg["participant.preprocess.undistort.method"]:
+        match stage_opts.method:
             case "fieldmap":
                 fmap_entities = {"datatype": "fmap", "suffix": "epi"}
             case "fugue":
                 fmap_entities = {"datatype": "fmap", "suffix": "fieldmap"}
             case _:
                 fmap_entities = None  # type: ignore[assignment]
-        if fmap_entities:
-            fmap_queries = [sub_ses_query, cfg.get("participant.query_fmap", "")]
+        if fmap_entities is not None:
+            fmap_queries = [sub_ses_query, query_opts.fmap or ""]
             wf_inputs["fmap"] = (
                 {
                     "nii": _get_file_path(queries=fmap_queries + [nii_ext_query]),
@@ -163,7 +183,7 @@ def get_inputs(
                         else {}
                     ),
                 }
-                if cfg.get("participant.query_fmap")
+                if query_opts.fmap is not None
                 else {
                     "nii": _get_file_path(entities=fmap_entities),
                     "json": _get_file_path(entities=fmap_entities, metadata=True),
@@ -189,12 +209,12 @@ def get_inputs(
             )
     else:
         wf_inputs["dwi"]["mask"] = (
-            _get_file_path(queries=[sub_ses_query, cfg["participant.query_mask"]])
-            if cfg.get("participant.query_mask")
+            _get_file_path(queries=[sub_ses_query, query_opts.mask])
+            if query_opts.mask is not None
             else _get_file_path(entities={"datatype": "anat", "suffix": "mask"})
         )
 
-    if cfg["analysis_level"] == "tractography":
+    if stage == "reconstruction":
         wf_inputs["dwi"]["5tt"] = _get_file_path(
             entities={
                 "datatype": "anat",
@@ -203,9 +223,11 @@ def get_inputs(
                 "ext": {"items": [".nii", ".nii.gz"]},
             }
         )
-
-    elif cfg["analysis_level"] == "connectivity":
-        atlas_query = cfg.get("participant.connectivity.atlas", "")
+    elif stage == "connectivity":
+        if not isinstance(stage_opts, ConnectomeConfig | TractMapConfig):
+            raise TypeError(
+                f"Expected ConnectomeConfig or TractMapConfig, got {type(stage_opts)}"
+            )
         wf_inputs["dwi"].update(
             {
                 "atlas": _get_file_path(
@@ -213,12 +235,13 @@ def get_inputs(
                         "datatype": "anat",
                         "desc": None,
                         "method": None,
-                        "seg": atlas_query,
+                        "seg": stage_opts.atlas,
                         "suffix": "dseg",
                         "ext": {"items": [".nii", ".nii.gz"]},
                     }
                 )
-                if atlas_query
+                if isinstance(stage_opts, ConnectomeConfig)
+                and stage_opts.atlas is not None
                 else None,
                 "tractography": {
                     key: _get_file_path(
@@ -238,13 +261,14 @@ def get_inputs(
             }
         )
 
-        if not atlas_query and (
-            tract_query := cfg.get("participant.connectivity.query_tract")
+        if (
+            isinstance(stage_opts, TractMapConfig)
+            and stage_opts.tract_query is not None
         ):
             wf_inputs["anat"] = {
                 "rois": {
                     key: _get_surf_roi_paths(
-                        queries=[sub_ses_query, tract_query, query]
+                        queries=[sub_ses_query, stage_opts.tract_query, query]
                     )
                     for key, query in [
                         (
@@ -259,16 +283,15 @@ def get_inputs(
                     surf_type: _get_surf_roi_paths(
                         queries=[
                             sub_ses_query,
-                            cfg.get("participant.connectivity.query_surf", ""),
+                            stage_opts.surface_query,
                             f"suffix=='{surf_type}'",
                         ]
                     )
-                    if cfg.get("participant.connectivity.query_surf")
+                    if stage_opts.surface_query is not None
                     else None
                     for surf_type in ["pial", "white", "inflated"]
                 },
             }
-
     return wf_inputs
 
 
