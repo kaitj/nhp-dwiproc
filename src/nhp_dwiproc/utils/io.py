@@ -22,11 +22,10 @@ def load_participant_table(
     input_dir: StrPath, cfg: GlobalOptsConfig, logger: logging.Logger
 ) -> pl.DataFrame:
     """Handle loading of bids2table."""
-    index_path = cfg.index_path or Path(input_dir) / ".index.parquet"
-
+    index_path = cfg.index_path or f"{input_dir}/.index.parquet"
     logger.info(
         "Existing dataset index found"
-        if index_path.exists()
+        if Path(index_path).exists()
         else "Indexing dataset temporarily - run 'index' level analysis instead to save"
     )
     table = get_bids_table(

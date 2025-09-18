@@ -11,11 +11,10 @@ from niwrap_helper.bids import bids_path
 from niwrap_helper.types import StrPath
 from tqdm import tqdm
 
-from nhp_dwiproc import utils
-from nhp_dwiproc.workflow.diffusion import connectivity
-
+from ... import app, utils
 from ...config.connectivity import ConnectivityConfig, ConnectomeConfig, TractMapConfig
 from ...config.shared import GlobalOptsConfig
+from ...workflow import connectivity
 
 
 def run(
@@ -26,8 +25,27 @@ def run(
     runner: Runner = LocalRunner(),
     logger: logging.Logger = logging.Logger(__name__),
 ) -> None:
-    """Runner for connectivity analysis-level."""
+    """Runner for connectivity analysis-level.
+
+    Args:
+        input_dir: Input dataset directory path.
+        output_dir: Output directory.
+        conn_opts: Connectivity stage config options.
+        global_opts: Global config options.
+        runner: StyxRunner used.
+        logger: Logger object.
+
+    Returns:
+        None
+
+    Raises:
+        TypeError if configs of an unexpected type.
+    """
+    stage = "connectivity"
     logger.info("Performing 'connectivity' stage")
+
+    app.validate_opts(stage=stage, stage_opts=conn_opts)
+    app.generate_mrtrix_conf(global_opts=global_opts, runner=runner)
 
     # Load df table, querying if necessary
     df = utils.io.load_participant_table(
