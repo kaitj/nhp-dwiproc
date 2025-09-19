@@ -12,6 +12,7 @@ from niwrap_helper.types import BaseRunner, DockerRunner, SingularityRunner
 from .. import APP_LOCATION
 from ..config.connectivity import ConnectivityConfig
 from ..config.preprocess import PreprocessConfig
+from ..config.reconstruction import ReconstructionConfig
 from ..config.shared import GlobalOptsConfig, QueryConfig
 
 
@@ -90,7 +91,10 @@ def generate_mrtrix_conf(
 def validate_opts(
     stage: str,
     query_opts: QueryConfig | None = None,
-    stage_opts: PreprocessConfig | ConnectivityConfig | None = None,
+    stage_opts: PreprocessConfig
+    | ReconstructionConfig
+    | ConnectivityConfig
+    | None = None,
 ) -> None:
     """Validate configuration file.
 
