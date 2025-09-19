@@ -4,12 +4,8 @@ import logging
 from functools import partial
 from pathlib import Path
 
-import niwrap_helper
-from niwrap import mrtrix, mrtrix3tissue
-from styxdefs import StyxRuntimeError, get_global_runner
-from styxgraph import GraphRunner
-
-import nhp_dwiproc.utils as utils
+from niwrap import StyxRuntimeError, mrtrix, mrtrix3tissue
+from niwrap_helper import bids_path, save
 
 
 def _create_response_odf(
@@ -42,10 +38,25 @@ def compute_fods(
     single_shell: bool,
     shells: list[int | float] | None,
     lmax: list[int] | None,
-    bids: partial[str] = partial(niwrap_helper.bids_path, sub="subject"),
+    bids: partial[str] = partial(bids_path, sub="subject"),
     **kwargs,
 ) -> mrtrix.MtnormaliseOutputs:
-    """Process subject for tractography."""
+    """Subworkflow for processing fibre orientation distribution maps.
+
+    Args:
+        nii: Path to diffusion nifti.
+        bvec: Path to diffusion bvec.
+        bval: Path to diffusion bval.
+        mask: Path to diffusion mask.
+        single_shell: Flag to indicate single shell data
+        shells: Optionally provide list of shells to process.
+        lmax: Optionally provide list of harmonic orders to use for processing.
+        bids: Function to generate BIDS filepath.
+        **kwargs: Arbitrary keyword arguments
+
+    Raises:
+        ValueError: if single-shell data encountered, but flag not used.
+    """
 
     # Helper functons
     def _normalize(
@@ -113,15 +124,11 @@ def compute_fods(
         return mrtrix.mtnormalise(input_output=_normalize(odfs), mask=mask)
     except StyxRuntimeError:
         if not single_shell:
-            raise StyxRuntimeError()
+            raise ValueError("Single-shell data encountered, but flag not used.")
 
         # SS3T failed, fallback to SS2T
-        runner = get_global_runner()
-        if isinstance(runner, GraphRunner):
-            runner = runner.base
-        logger = logging.getLogger(runner.logger_name)  # type: ignore
+        logger = kwargs.get("logger", logging.getLogger(__name__))
         logger.warning("Unable to perform SS3T, trying SS2T (WM+CSF)")
-
         response_odf = _create_response_odf(
             response=dwi2response.algorithm,  # type: ignore
             bids=bids_fod,
@@ -137,11 +144,21 @@ def compute_dti(
     bvec: Path,
     bval: Path,
     mask: Path,
-    bids: partial[str] = partial(niwrap_helper.bids_path, sub="subject"),
+    bids: partial[str] = partial(bids_path, sub="subject"),
     output_fpath: Path = Path.cwd(),
     **kwargs,
 ) -> None:
-    """Process diffusion tensors."""
+    """Sub-workflow to Process diffusion tensors.
+
+    Args:
+        nii: Path to diffusion nifti.
+        bvec: Path to diffusion bvec.
+        bval: Path to diffusion bval.
+        mask: Path to diffusion mask.
+        bids: Function to generate bids path.
+        output_fpath: Output directory to save files to.
+        **kwargs: Arbitrary keyword arguments
+    """
     dwi2tensor = mrtrix.dwi2tensor(
         dwi=nii,
         dt=bids(ext=".nii.gz"),
@@ -161,7 +178,7 @@ def compute_dti(
     )
 
     # Save relevant outputs
-    utils.io.save(
+    save(
         files=[  # type: ignore
             tensor2metrics.adc,
             tensor2metrics.fa,

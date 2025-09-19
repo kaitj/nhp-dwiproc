@@ -6,9 +6,9 @@ from pathlib import Path
 from typing import Any
 
 import nibabel.nifti1 as nib
-import niwrap_helper
 import numpy as np
 from niwrap import mrtrix
+from niwrap_helper import bids_path, save
 
 import nhp_dwiproc.utils as utils
 from nhp_dwiproc.lib import metadata
@@ -65,7 +65,7 @@ def get_phenc_info(
 
 def concat_dir_phenc_data(
     pe_data: list[np.ndarray],
-    bids: partial[str] = partial(niwrap_helper.bids_path, sub="subject"),
+    bids: partial[str] = partial(bids_path, sub="subject"),
     output_dir: Path = Path.cwd(),
 ) -> Path:
     """Concatenate opposite phase encoding directions."""
@@ -78,7 +78,7 @@ def concat_dir_phenc_data(
 
 def normalize(
     img: str | Path,
-    bids: partial[str] = partial(niwrap_helper.bids_path, sub="subject"),
+    bids: partial[str] = partial(bids_path, sub="subject"),
     output_dir: Path = Path.cwd(),
 ) -> Path:
     """Normalize 4D image."""
@@ -124,7 +124,7 @@ def get_pe_indices(pe_dir: list[str]) -> list[str]:
 def get_eddy_indices(
     niis: list[Path],
     indices: list[str] | None,
-    bids: partial[str] = partial(niwrap_helper.bids_path, sub="subject"),
+    bids: partial[str] = partial(bids_path, sub="subject"),
     output_dir: Path = Path.cwd() / "tmp",
 ) -> Path:
     """Generate dwi index file for eddy."""
@@ -145,7 +145,7 @@ def get_eddy_indices(
 def rotate_bvec(
     bvec_file: Path,
     transformation: Path,
-    bids: partial[str] = partial(niwrap_helper.bids_path, sub="subject"),
+    bids: partial[str] = partial(bids_path, sub="subject"),
     output_dir: Path = Path.cwd() / "tmp",
 ) -> Path:
     """Rotate bvec file."""
@@ -163,7 +163,18 @@ def rotate_bvec(
 
 
 def grad_check(nii: Path, bvec: Path, bval: Path, mask: Path | None, **kwargs) -> None:
-    """Check and update orientation of diffusion gradient."""
+    """Check and update orientation of diffusion gradient.
+
+    Args:
+        nii: Path to dwi nifti.
+        bvec: Path to dwi bvec.
+        bval: Path to dwi bval.
+        mask: Path to mask nifti.
+        **kwargs: Arbitrary keyword arguments
+
+    Raises:
+        AttributeError: If unable to successfully export diffusion gradients.
+    """
     bvec_check = mrtrix.dwigradcheck(
         input_image=nii,
         mask_image=mask,
@@ -176,5 +187,4 @@ def grad_check(nii: Path, bvec: Path, bval: Path, mask: Path | None, **kwargs) -
     )
     if not bvec_check.export_grad_fsl_:
         raise AttributeError("Unsuccessful export of diffusion gradients")
-
-    utils.io.save(files=bvec_check.export_grad_fsl_.bvecs_path, out_dir=bval.parent)
+    save(files=bvec_check.export_grad_fsl_.bvecs_path, out_dir=bval.parent)

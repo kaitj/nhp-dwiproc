@@ -42,12 +42,12 @@ def run(
         TypeError if configs of an unexpected type.
     """
     stage = "connectivity"
-    logger.info("Performing 'connectivity' stage")
+    logger.info(f"Performing '{stage}' stage")
 
     app.validate_opts(stage=stage, stage_opts=conn_opts)
     app.generate_mrtrix_conf(global_opts=global_opts, runner=runner)
 
-    # Load df table, querying if necessary
+    # Load b2t table, querying if necessary
     df = utils.io.load_participant_table(
         input_dir=input_dir, cfg=global_opts, logger=logger
     )
@@ -73,7 +73,7 @@ def run(
                 row=row,
                 query_opts=conn_opts.query,
                 stage_opts=conn_opts.opts,
-                stage="connectivity",
+                stage=stage,
             )
             input_group = dict(zip([key for key in groupby_keys], group_vals))
 
