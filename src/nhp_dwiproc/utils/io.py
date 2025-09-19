@@ -1,17 +1,14 @@
 """IO related functions for application."""
 
 import logging
-import shutil
 from functools import reduce
 from pathlib import Path
 from typing import Any, Sequence
 
 import polars as pl
 from bids2table import load_bids_metadata
-from bids2table._pathlib import PathT, as_path
 from niwrap_helper import get_bids_table
-from niwrap_helper.types import StrPath
-from styxdefs import OutputPathType
+from niwrap_helper.bids import PathT, StrPath, as_path
 
 from ..config.connectivity import ConnectomeConfig, TractMapConfig
 from ..config.preprocess import UndistortionConfig
@@ -21,7 +18,20 @@ from ..config.shared import GlobalOptsConfig, QueryConfig
 def load_participant_table(
     input_dir: StrPath, cfg: GlobalOptsConfig, logger: logging.Logger
 ) -> pl.DataFrame:
-    """Handle loading of bids2table."""
+    """Handle loading of bids2table.
+
+    Args:
+        input_dir: Path to input dataset directory.
+        cfg: Global configuration options.
+        logger: Logging object.
+
+
+    Returns:
+        bids2table dataframe associated with dataset indexed.
+
+    Raises:
+        TypeError: if output is not a DataFrame object.
+    """
     index_path = cfg.index_path or f"{input_dir}/.index.parquet"
     logger.info(
         "Existing dataset index found"
@@ -43,7 +53,15 @@ def load_participant_table(
 
 
 def valid_groupby(df: pl.DataFrame, keys: Sequence[str]) -> list[str]:
-    """Return a list of valid keys to group by."""
+    """Return a list of valid keys to group by.
+
+    Args:
+        df: DataFrame to identify valid keys.
+        keys: List of values to group bids2table by.
+
+    Returns:
+        List of valid keys found in the DataFrame with entities.
+    """
     return [
         key for key in keys if key in df.columns and df[key].null_count() < df.height
     ]
@@ -51,6 +69,13 @@ def valid_groupby(df: pl.DataFrame, keys: Sequence[str]) -> list[str]:
 
 def query(df: pl.DataFrame, query: str) -> pl.DataFrame:
     """Query data using Polars' SQL syntax.
+
+    Args:
+        df: DataFrame to query.
+        query: Query string to update and query by.
+
+    Returns:
+        Dataframe containing only rows with matching entities from the query.
 
     NOTE: This function is temporary to provide partial pandas string query support -
     it may be nice to keep this long term, but it largely to replace certain operations.
@@ -65,10 +90,24 @@ def get_inputs(
     df: pl.DataFrame,
     row: dict[str, Any],
     query_opts: QueryConfig,
-    stage_opts: ConnectomeConfig | TractMapConfig | UndistortionConfig,
+    stage_opts: ConnectomeConfig | TractMapConfig | UndistortionConfig | None,
     stage: str,
 ) -> dict[str, Any]:
-    """Retrieve relevant inputs for workflow."""
+    """Retrieve relevant inputs for workflow.
+
+    Args:
+        df: Dataset dataframe to query inputs from.
+        row: Dictionary containing relevant BIDS entities for further filtering.
+        query_opts: Query arguments passed for filtering.
+        stage_opts: Stage-specific configuration options.
+        stage: Processing stage.
+
+    Returns:
+        Dictionary containing filepaths required to process desired stage.
+
+    Raises:
+        TypeError: If expected configuration option of the incorrect type.
+    """
 
     def _get_file_path(
         entities: dict[str, Any] | None = None,
@@ -292,30 +331,3 @@ def get_inputs(
                 },
             }
     return wf_inputs
-
-
-def save(
-    files: OutputPathType | list[OutputPathType],
-    out_dir: Path,
-) -> None:
-    """Save file(s) to specified output directory, preserving directory structure."""
-
-    def _save_file(fpath: Path) -> None:
-        """Save individual file, preserving directory structure."""
-        for part in fpath.parts:
-            if part.startswith("sub-"):
-                out_fpath = out_dir / Path(*fpath.parts[fpath.parts.index(part) :])
-                out_fpath.parent.mkdir(parents=True, exist_ok=True)
-                shutil.copy2(fpath, out_fpath)
-                return
-
-        raise ValueError(f"Unable to find relevant file path components for {fpath}")
-
-    # Ensure `files` is iterable and process each one
-    for file in [files] if isinstance(files, (str, Path)) else files:
-        _save_file(Path(file))
-
-
-def rename(old_fpath: Path, new_fname: str) -> Path:
-    """Rename file."""
-    return old_fpath.with_name(new_fname)

@@ -3,10 +3,8 @@
 from functools import partial
 from pathlib import Path
 
-import niwrap_helper
 from niwrap import mrtrix
-
-import nhp_dwiproc.utils as utils
+from niwrap_helper import bids_path, save
 
 
 def generate_tractography(
@@ -19,10 +17,23 @@ def generate_tractography(
     maxlength: float | None,
     backtrack: bool,
     nocrop_gmwmi: bool,
-    bids: partial[str] = partial(niwrap_helper.bids_path, sub="subject"),
+    bids: partial[str] = partial(bids_path, sub="subject"),
     output_fpath: Path = Path.cwd(),
 ) -> None:
-    """Generate subject tractography."""
+    """Sub-workflow for tractography processing.
+
+    Args:
+        dwi_5tt: Path to 5-tissue type image, if ACT is used.
+        method: Algorithm to perform.
+        fod: Fibre orientation distributions.
+        steps: Sampling step size.
+        cutoff: FOD cutoff threshold.
+        streamlines: Number of streamlines to generate.
+        backtrack: Flag to indicate backtracking, if ACT is used.
+        nocrop_gmwmi: Flag to indicate to not crop at GM-WM interface, if ACT is used.
+        bids: Function to generate BIDS filepath.
+        output_fpath: Output directory.
+    """
     tckgen_params = {
         "source": (wm_fod := fod.input_output[0].output),
         "tracks": bids(method="iFOD2", suffix="tractography", ext=".tck"),
@@ -58,7 +69,7 @@ def generate_tractography(
         )
 
     # Save relevant outputs
-    utils.io.save(
+    save(
         files=[tckgen.tracks, tcksift.out_weights, tdi["weighted"].output],
         out_dir=output_fpath,
     )

@@ -5,9 +5,7 @@ from pathlib import Path
 
 from bids2table._entities import parse_bids_entities
 from niwrap import mrtrix, workbench
-from niwrap_helper import bids_path
-
-from .. import utils
+from niwrap_helper import bids_path, save
 
 
 def generate_conn_matrix(
@@ -37,7 +35,7 @@ def generate_conn_matrix(
             scale_length=length,
             stat_edge="mean" if length else None,
         )
-        utils.io.save(files=tck2connectome[meas].connectome_out, out_dir=output_fpath)
+        save(files=tck2connectome[meas].connectome_out, out_dir=output_fpath)
 
 
 def extract_tract(
@@ -94,8 +92,7 @@ def extract_tract(
         template=rois[0].spec.obj,
         output=bids(hemi=hemi, label=label, suffix="tdi", ext=".nii.gz"),
     )
-    utils.io.save(files=tdi.output, out_dir=output_fpath)
-
+    save(files=tdi.output, out_dir=output_fpath)
     return tdi, hemi, label
 
 
@@ -109,7 +106,18 @@ def surface_map_tract(
     output_fpath: Path = Path.cwd(),
     bids: partial[str] = partial(bids_path, sub="subject"),
 ) -> None:
-    """Surface map extracted tract."""
+    """Map extracted tract to surface.
+
+    Args:
+        tdi: Tract density image of track.
+        hemi: Hemisphere to process
+        label: Label to process
+        white: White surface.
+        pial: Pial / grey surface.
+        inflated: Inflated surface.
+        output_fpath: Output directory.
+        bids: Function to generate BIDS filepath.
+    """
     surf = workbench.volume_to_surface_mapping(
         volume=tdi.output,
         surface=inflated[0],
@@ -121,4 +129,4 @@ def surface_map_tract(
             )
         ),
     )
-    utils.io.save(files=surf.metric_out, out_dir=output_fpath)
+    save(files=surf.metric_out, out_dir=output_fpath)

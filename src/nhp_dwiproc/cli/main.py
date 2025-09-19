@@ -582,12 +582,31 @@ def reconstruction(
         cli_map=recon_map,
     )
     # Verbosity
-    ctx.obj.log_level = LOG_LEVELS[min(verbose, len(LOG_LEVELS)) - 1]
-    if ctx.obj.log_level <= logging.DEBUG:
-        from pprint import pprint
-
-        pprint(ctx.obj)
-        # print(_namespace_to_yaml(ctx.obj))
+    ctx.obj.log_level = (
+        LOG_LEVELS[min(verbose, len(LOG_LEVELS)) - 1]
+        if verbose > 0
+        else logging.CRITICAL + 1
+    )
+    # Setup styx
+    logger, runner = initialize(
+        output_dir=ctx.obj.cfg.output_dir, global_opts=ctx.obj.cfg.opts
+    )
+    logger.setLevel(ctx.obj.log_level)
+    logger.debug(f"Stage options:\n\n{_namespace_to_yaml(obj=ctx.obj)}")
+    # Run
+    utils.generate_descriptor(
+        app_name=ctx.obj.app,
+        version=ctx.obj.app,
+        out_fpath=ctx.obj.cfg.output_dir / "dataset_description.json",
+    )
+    analysis_levels.reconstruction(
+        input_dir=ctx.obj.cfg.input_dir,
+        output_dir=ctx.obj.cfg.output_dir,
+        recon_opts=ctx.obj.cfg.reconstruction,
+        global_opts=ctx.obj.cfg.opts,
+        runner=runner,
+        logger=logger,
+    )
 
 
 @app.command(help="Connectivity stage.")
