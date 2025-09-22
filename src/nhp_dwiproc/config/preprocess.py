@@ -34,7 +34,7 @@ class DenoiseConfig(BaseConfig):
 class UnringConfig(BaseConfig):
     """Gibbs' unringing config."""
 
-    axes: Sequence[int] = (0, 1)
+    axes: Sequence[int] | None = None
 
 
 @dataclass
@@ -47,7 +47,6 @@ class TopupConfig(BaseConfig):
 class EddySLMModel(str, Enum):
     """FSL's Eddy SLM model."""
 
-    none = None
     linear = "linear"
     quadratic = "quadratic"
 
@@ -56,7 +55,7 @@ class EddySLMModel(str, Enum):
 class EddyConfig(BaseConfig):
     """FSL's Eddy configuration."""
 
-    slm: str | None = EddySLMModel.none.value
+    slm: str | None = None
     cnr: bool = False
     repol: bool = False
     residuals: bool = False
