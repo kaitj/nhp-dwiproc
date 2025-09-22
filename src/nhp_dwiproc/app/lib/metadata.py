@@ -8,7 +8,7 @@ def phase_encode_dir(
     idx: int,
     dwi_json: dict[str, Any],
     pe_dirs: list[str] | None,
-    logger: Logger = Logger(name="logger"),
+    logger: Logger = Logger(name=__name__),
 ) -> str:
     """Check phase encoding direction - set if able / necessary."""
     if pe_dirs:
@@ -27,7 +27,7 @@ def phase_encode_dir(
 def echo_spacing(
     dwi_json: dict[str, Any],
     echo_spacing: str | None,
-    logger: Logger = Logger(name="logger"),
+    logger: Logger = Logger(name=__name__),
 ) -> float:
     """Check echo spacing - set if provided."""
     if echo_spacing:

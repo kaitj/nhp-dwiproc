@@ -1,29 +1,26 @@
 """Reconstruction (DTI, tractography) processing."""
 
 import logging
-import shutil
 from functools import partial
 from pathlib import Path
 
 import polars as pl
 from niwrap import GraphRunner, LocalRunner, Runner
-from niwrap_helper import bids_path
+from niwrap_helper import bids_path, cleanup
 from niwrap_helper.types import StrPath
 from tqdm import tqdm
 
-from nhp_dwiproc.lib import dwi as dwi_lib
-from nhp_dwiproc.workflow.reconstruction import reconst, tractography
-
-from ... import app, utils
-from ...config.reconstruction import ReconstructionConfig, TractographyACTConfig
-from ...config.shared import GlobalOptsConfig
+from ... import config as cfg_
+from .. import io, utils
+from ..lib import dwi as dwi_lib
+from ..workflow.reconstruction import reconst, tractography
 
 
 def run(
     input_dir: StrPath,
     output_dir: StrPath,
-    recon_opts: ReconstructionConfig = ReconstructionConfig(),
-    global_opts: GlobalOptsConfig = GlobalOptsConfig(),
+    recon_opts: cfg_.ReconstructionConfig = cfg_.ReconstructionConfig(),
+    global_opts: cfg_.GlobalOptsConfig = cfg_.GlobalOptsConfig(),
     runner: Runner = LocalRunner(),
     logger: logging.Logger = logging.Logger(__name__),
 ) -> None:
@@ -46,32 +43,27 @@ def run(
     stage = "reconstruction"
     logger.info(f"Performing '{stage}' stage")
 
-    app.validate_opts(stage=stage, stage_opts=recon_opts)
-    app.generate_mrtrix_conf(global_opts=global_opts, runner=runner)
+    utils.validate_opts(stage=stage, stage_opts=recon_opts)
+    utils.generate_mrtrix_conf(global_opts=global_opts, runner=runner)
 
     # Load b2t table, querying if necessary
-    logger.info("Tractography analysis-level")
-    df = utils.io.load_participant_table(
-        input_dir=input_dir, cfg=global_opts, logger=logger
-    )
+    df = io.load_participant_table(input_dir=input_dir, cfg=global_opts, logger=logger)
     if recon_opts.query.participant is not None:
-        df = utils.io.query(df=df, query=recon_opts.query.participant)
+        df = io.query(df=df, query=recon_opts.query.participant)
 
     dwi_df = df
     if recon_opts.query.dwi is not None:
-        dwi_df = utils.io.query(df=df, query=recon_opts.query.dwi)
+        dwi_df = io.query(df=df, query=recon_opts.query.dwi)
 
     # Loop through remaining subjects after query
-    groupby_keys = utils.io.valid_groupby(
-        df=dwi_df, keys=["sub", "ses", "run", "space"]
-    )
+    groupby_keys = io.valid_groupby(df=dwi_df, keys=["sub", "ses", "run", "space"])
     for group_vals, group in tqdm(
         dwi_df.filter(
             (pl.col("suffix") == "dwi") & (pl.col("ext").is_in([".nii", ".nii.gz"]))
         ).group_by(groupby_keys)
     ):
         for row in group.iter_rows(named=True):
-            input_data = utils.io.get_inputs(
+            input_data = io.get_inputs(
                 df=df,
                 row=row,
                 query_opts=recon_opts.query,
@@ -115,10 +107,16 @@ def run(
                     cutoff=recon_opts.tractography.cutoff,
                     streamlines=recon_opts.tractography.streamlines,
                     backtrack=recon_opts.tractography.opts.backtrack
-                    if isinstance(recon_opts.tractography.opts, TractographyACTConfig)
+                    if isinstance(
+                        recon_opts.tractography.opts,
+                        cfg_.reconstruction.TractographyACTConfig,
+                    )
                     else False,
                     nocrop_gmwmi=recon_opts.tractography.opts.no_crop_gmwmi
-                    if isinstance(recon_opts.tractography.opts, TractographyACTConfig)
+                    if isinstance(
+                        recon_opts.tractography.opts,
+                        cfg_.reconstruction.TractographyACTConfig,
+                    )
                     else False,
                     output_fpath=output_fpath,
                     bids=bids,
@@ -128,9 +126,7 @@ def run(
 
     # Clean up workflow
     if not global_opts.work_keep:
-        shutil.rmtree(
-            runner.base.data_dir if isinstance(runner, GraphRunner) else runner.data_dir
-        )
+        cleanup()
 
     # Print graph
     if global_opts.graph:

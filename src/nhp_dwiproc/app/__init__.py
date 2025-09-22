@@ -1,11 +1,16 @@
 """Initialize application module."""
 
-from . import analysis_levels
-from .utils import generate_mrtrix_conf, initialize, validate_opts
+from .._version import __version__ as version
+from . import analysis_levels, io, lib, resources, utils, workflow
+from .utils import initialize
 
 __all__ = [
     "analysis_levels",
     "initialize",
-    "generate_mrtrix_conf",
-    "validate_opts",
+    "io",
+    "lib",
+    "resources",
+    "utils",
+    "version",
+    "workflow",
 ]
