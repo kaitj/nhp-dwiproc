@@ -8,6 +8,7 @@ from typing import Any
 import niwrap_helper
 import numpy as np
 from niwrap import mrtrix
+from niwrap_helper.types import StrPath
 
 from ....config.preprocess import MetadataConfig
 from ...lib.dwi import (
@@ -80,7 +81,7 @@ def gen_topup_inputs(
     pe_data: list[np.ndarray],
     pe_dir: list[str],
     bids: partial[str] = partial(niwrap_helper.bids_path, sub="subject"),
-    output_dir: Path = Path.cwd(),
+    output_dir: StrPath = Path.cwd(),
 ) -> tuple[Path, Path, list[str]]:
     """Generate concatenated inputs for topup.
 
@@ -100,7 +101,7 @@ def gen_topup_inputs(
         image2=b0[1:],  # type: ignore
         output=bids(suffix="b0", ext=".nii.gz"),
     )
-    output_dir = output_dir / f"{niwrap_helper.gen_hash()}_normalize"
+    output_dir = Path(output_dir) / f"{niwrap_helper.gen_hash()}_normalize"
     dwi_fpath = normalize(dwi_b0.output, bids=bids, output_dir=output_dir)
 
     # Get matching PE data to b0
@@ -116,7 +117,7 @@ def concat_bv(
     bvals: list[Path],
     bvecs: list[Path],
     bids: partial[str] = partial(niwrap_helper.bids_path, sub="subject"),
-    output_dir: Path = Path.cwd(),
+    output_dir: StrPath = Path.cwd(),
 ) -> tuple[Path, Path]:
     """Concatenate .bval and .bvec files.
 
@@ -129,7 +130,7 @@ def concat_bv(
     Returns:
         A 2-tuple, with concatenated bval and bvec file paths.
     """
-    output_dir = output_dir / f"{niwrap_helper.gen_hash()}_concat-bv"
+    output_dir = Path(output_dir) / f"{niwrap_helper.gen_hash()}_concat-bv"
     output_dir.mkdir(parents=True, exist_ok=False)
     bids = partial(bids, desc="concat", suffix="dwi")
     out_files = output_dir / bids(ext=".bval"), output_dir / bids(ext=".bvec")
@@ -149,7 +150,7 @@ def gen_eddy_inputs(
     phenc: Path | None,
     indices: list[str] | None,
     bids: partial[str] = partial(niwrap_helper.bids_path, sub="subject"),
-    output_dir: Path = Path.cwd() / "tmp",
+    output_dir: StrPath = Path.cwd() / "tmp",
 ) -> tuple[Path, ...]:
     """Generate concatenated inputs for eddy.
 
@@ -186,7 +187,7 @@ def gen_eddy_inputs(
         phenc = concat_dir_phenc_data(
             pe_data=[pe_data[0]],
             bids=bids,
-            output_dir=output_dir / f"{niwrap_helper.gen_hash()}_concat-phenc",
+            output_dir=Path(output_dir) / f"{niwrap_helper.gen_hash()}_concat-phenc",
         )
     # Generate index file
     index_fpath = get_eddy_indices(

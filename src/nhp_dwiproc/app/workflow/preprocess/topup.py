@@ -6,7 +6,7 @@ from pathlib import Path
 
 import numpy as np
 from niwrap import fsl
-from niwrap_helper import bids_path
+from niwrap_helper.bids import StrPath, bids_path
 
 from ....config.preprocess import TopupConfig
 from ...workflow.preprocess.dwi import gen_topup_inputs
@@ -18,7 +18,7 @@ def run_apply_topup(
     pe_dir: list[str],
     topup_opts: TopupConfig | None = TopupConfig(),
     bids: partial[str] = partial(bids_path, sub="subject"),
-    output_dir: Path = Path.cwd(),
+    output_dir: StrPath = Path.cwd(),
     **kwargs,
 ) -> tuple[Path | None, list[str] | None, fsl.TopupOutputs | None]:
     """Perform FSL's topup.
@@ -50,7 +50,11 @@ def run_apply_topup(
 
     if not topup_opts.skip:
         phenc, b0_norm, indices = gen_topup_inputs(
-            b0=b0, pe_data=pe_data, pe_dir=pe_dir, bids=bids, output_dir=output_dir
+            b0=b0,
+            pe_data=pe_data,
+            pe_dir=pe_dir,
+            bids=bids,
+            output_dir=Path(output_dir),
         )
         topup = fsl.topup(
             imain=b0_norm,
