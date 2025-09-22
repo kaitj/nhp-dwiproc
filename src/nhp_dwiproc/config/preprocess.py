@@ -70,12 +70,20 @@ class EddyMotionConfig(BaseConfig):
     iters: int = 2
 
 
+@dataclass
+class FugueConfig(BaseConfig):
+    """Fugue configuration."""
+
+    smooth: float | None = None
+
+
 class UndistortionMethod(str, Enum):
     """Distortion correction method choices."""
 
     topup = "topup"
     fieldmap = "fieldmap"
     eddymotion = "eddymotion"
+    fugue = "fugue"
 
 
 @dataclass
@@ -85,6 +93,7 @@ class UndistortionOpts:
     topup: TopupConfig | None = field(default_factory=TopupConfig)
     eddy: EddyConfig | None = field(default_factory=EddyConfig)
     eddymotion: EddyMotionConfig | None = field(default_factory=EddyMotionConfig)
+    fugue: FugueConfig | None = field(default_factory=FugueConfig)
 
 
 @dataclass

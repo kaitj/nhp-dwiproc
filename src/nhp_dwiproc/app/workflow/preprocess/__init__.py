@@ -1,7 +1,6 @@
-"""Sub-modules associated with preprocessing."""
+"""Sub-module with preprocessing workflow associated methods."""
 
-from nhp_dwiproc.lib import metadata
-from nhp_dwiproc.workflow.diffusion.preprocess import (
+from . import (
     biascorrect,
     denoise,
     dwi,
@@ -20,7 +19,6 @@ __all__ = [
     "eddy",
     "eddymotion",
     "fugue",
-    "metadata",
     "registration",
     "topup",
     "unring",

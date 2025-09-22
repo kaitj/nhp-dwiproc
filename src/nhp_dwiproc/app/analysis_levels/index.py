@@ -1,20 +1,19 @@
 """Index stage-level."""
 
 import logging
-import shutil
 from pathlib import Path
 
 import pyarrow.parquet as pq
-from niwrap_helper import get_bids_table
+from niwrap_helper import cleanup, get_bids_table
 from niwrap_helper.types import LocalRunner, StrPath
 
-from ...config.shared import GlobalOptsConfig, IndexConfig
+from ... import config as cfg
 
 
 def run(
     input_dir: StrPath,
-    index_opts: IndexConfig = IndexConfig(),
-    global_opts: GlobalOptsConfig = GlobalOptsConfig(),
+    index_opts: cfg.IndexConfig = cfg.IndexConfig(),
+    global_opts: cfg.GlobalOptsConfig = cfg.GlobalOptsConfig(),
     runner: LocalRunner = LocalRunner(),
     logger: logging.Logger = logging.Logger(__name__),
 ) -> None:
@@ -45,4 +44,4 @@ def run(
         pq.write_table(table, index_path)
     # Clean up workflow
     if not global_opts.work_keep and runner.data_dir.exists():
-        shutil.rmtree(runner.data_dir)
+        cleanup()
