@@ -1,27 +1,25 @@
 """Connectivity (post reconstruction - tractography) stage-level."""
 
 import logging
-import shutil
 from functools import partial
 from pathlib import Path
 
 import polars as pl
 from niwrap import GraphRunner, LocalRunner, Runner
-from niwrap_helper.bids import bids_path
+from niwrap_helper import bids_path, cleanup
 from niwrap_helper.types import StrPath
 from tqdm import tqdm
 
-from ... import app, utils
-from ...config.connectivity import ConnectivityConfig, ConnectomeConfig, TractMapConfig
-from ...config.shared import GlobalOptsConfig
-from ...workflow import connectivity
+from ... import config as cfg_
+from .. import io, utils
+from ..workflow import connectivity
 
 
 def run(
     input_dir: StrPath,
     output_dir: StrPath,
-    conn_opts: ConnectivityConfig = ConnectivityConfig(),
-    global_opts: GlobalOptsConfig = GlobalOptsConfig(),
+    conn_opts: cfg_.ConnectivityConfig = cfg_.ConnectivityConfig(),
+    global_opts: cfg_.GlobalOptsConfig = cfg_.GlobalOptsConfig(),
     runner: Runner = LocalRunner(),
     logger: logging.Logger = logging.Logger(__name__),
 ) -> None:
@@ -44,31 +42,27 @@ def run(
     stage = "connectivity"
     logger.info(f"Performing '{stage}' stage")
 
-    app.validate_opts(stage=stage, stage_opts=conn_opts)
-    app.generate_mrtrix_conf(global_opts=global_opts, runner=runner)
+    utils.validate_opts(stage=stage, stage_opts=conn_opts)
+    utils.generate_mrtrix_conf(global_opts=global_opts, runner=runner)
 
     # Load b2t table, querying if necessary
-    df = utils.io.load_participant_table(
-        input_dir=input_dir, cfg=global_opts, logger=logger
-    )
+    df = io.load_participant_table(input_dir=input_dir, cfg=global_opts, logger=logger)
     if conn_opts.query.participant is not None:
-        df = utils.io.query(df=df, query=conn_opts.query.participant)
+        df = io.query(df=df, query=conn_opts.query.participant)
 
     dwi_df = df
     if conn_opts.query.dwi is not None:
-        dwi_df = utils.io.query(df=df, query=conn_opts.query.dwi)
+        dwi_df = io.query(df=df, query=conn_opts.query.dwi)
 
     # Loop through remaining subjects after query
-    groupby_keys = utils.io.valid_groupby(
-        df=dwi_df, keys=["sub", "ses", "run", "space"]
-    )
+    groupby_keys = io.valid_groupby(df=dwi_df, keys=["sub", "ses", "run", "space"])
     for group_vals, group in tqdm(
         dwi_df.filter(
             (pl.col("suffix") == "dwi") & (pl.col("ext").is_in([".nii", ".nii.gz"]))
         ).group_by(groupby_keys)
     ):
         for row in group.iter_rows(named=True):
-            input_data = utils.io.get_inputs(
+            input_data = io.get_inputs(
                 df=df,
                 row=row,
                 query_opts=conn_opts.query,
@@ -85,7 +79,7 @@ def run(
 
             # Generate connectivity matrices
             if conn_opts.method == "connectome":
-                if not isinstance(conn_opts.opts, ConnectomeConfig):
+                if not isinstance(conn_opts.opts, cfg_.connectivity.ConnectomeConfig):
                     raise TypeError(
                         f"Expected ConnectomeConfig, got {type(conn_opts.opts)}"
                     )
@@ -99,7 +93,7 @@ def run(
                 )
             # Perform tract extraction and optional surface mapping
             elif conn_opts.method == "tract":
-                if not isinstance(conn_opts.opts, TractMapConfig):
+                if not isinstance(conn_opts.opts, cfg_.connectivity.TractMapConfig):
                     raise TypeError(
                         f"Expected TractMapConfig, got {type(conn_opts.opts)}"
                     )
@@ -134,9 +128,7 @@ def run(
 
     # Clean up workflow
     if not global_opts.work_keep:
-        shutil.rmtree(
-            runner.base.data_dir if isinstance(runner, GraphRunner) else runner.data_dir
-        )
+        cleanup()
 
     # Print graph
     if global_opts.graph:

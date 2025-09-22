@@ -9,15 +9,12 @@ from niwrap import GraphRunner
 from niwrap_helper import setup_styx
 from niwrap_helper.types import BaseRunner, DockerRunner, SingularityRunner
 
-from .. import APP_LOCATION
-from ..config.connectivity import ConnectivityConfig
-from ..config.preprocess import PreprocessConfig
-from ..config.reconstruction import ReconstructionConfig
-from ..config.shared import GlobalOptsConfig, QueryConfig
+from .. import config as cfg
+from . import resources
 
 
 def initialize(
-    output_dir: Path, global_opts: GlobalOptsConfig
+    output_dir: Path, global_opts: cfg.GlobalOptsConfig
 ) -> tuple[logging.Logger, GraphRunner | BaseRunner]:
     """Initialize application runners.
 
@@ -46,7 +43,9 @@ def initialize(
     )
     runner_base = runner.base if isinstance(runner, GraphRunner) else runner
     runner_base.environ = {
-        "MRTRIX_CONFIGFILE": f"{runner_base.data_dir}/.mrtrix.conf",
+        "MRTRIX_CONFIGFILE": (
+            f"{runner_base.data_dir}/{runner_base.uid}_cfgs/.mrtrix.conf"
+        ),
         "MRTRIX_NTHREADS": str(global_opts.threads),
         "MRTRIX_RNG_SEED": str(global_opts.seed_number),
     }
@@ -54,7 +53,7 @@ def initialize(
 
 
 def generate_mrtrix_conf(
-    global_opts: GlobalOptsConfig, runner: GraphRunner | BaseRunner
+    global_opts: cfg.GlobalOptsConfig, runner: GraphRunner | BaseRunner
 ) -> None:
     """Write temporary mrtrix configuration file.
 
@@ -66,8 +65,8 @@ def generate_mrtrix_conf(
         TypeError: If runner type does not match expected.
     """
     runner_base = runner.base if isinstance(runner, GraphRunner) else runner
-    runner_base.data_dir.mkdir(parents=True, exist_ok=True)
-    cfg_path = runner_base.data_dir / ".mrtrix.conf"
+    cfg_path = runner_base.data_dir / f"{runner_base.uid}_cfgs" / ".mrtrix.conf"
+    cfg_path.parent.mkdir(parents=True, exist_ok=True)
 
     with cfg_path.open("w") as f:
         f.write(f"BZeroThreshold: {global_opts.b0_thresh}")
@@ -90,10 +89,10 @@ def generate_mrtrix_conf(
 
 def validate_opts(
     stage: str,
-    query_opts: QueryConfig | None = None,
-    stage_opts: PreprocessConfig
-    | ReconstructionConfig
-    | ConnectivityConfig
+    query_opts: cfg.QueryConfig | None = None,
+    stage_opts: cfg.PreprocessConfig
+    | cfg.ReconstructionConfig
+    | cfg.ConnectivityConfig
     | None = None,
 ) -> None:
     """Validate configuration file.
@@ -124,7 +123,7 @@ def validate_opts(
         case "index" | "reconstruction" | "connectivity":
             pass
         case "preprocess":
-            if not isinstance(stage_opts, PreprocessConfig):
+            if not isinstance(stage_opts, cfg.PreprocessConfig):
                 raise TypeError(f"Expected PreprocessConfig, got {type(stage_opts)}")
             # Validate phase-encode directions.
             if stage_opts.metadata.pe_dirs is not None:
@@ -147,8 +146,7 @@ def validate_opts(
                 stage_opts.undistort.method = f"{topup_cfg}.cnf"
             else:
                 stage_opts.undistort.method = str(
-                    APP_LOCATION
-                    / "resources"
+                    Path(resources.__file__)
                     / "topup"
                     / f"{stage_opts.undistort.method}.cnf"
                 )

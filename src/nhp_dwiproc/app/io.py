@@ -10,13 +10,13 @@ from bids2table import load_bids_metadata
 from niwrap_helper import get_bids_table
 from niwrap_helper.bids import PathT, StrPath, as_path
 
-from ..config.connectivity import ConnectomeConfig, TractMapConfig
-from ..config.preprocess import UndistortionConfig
-from ..config.shared import GlobalOptsConfig, QueryConfig
+from .. import config as cfg_
 
 
 def load_participant_table(
-    input_dir: StrPath, cfg: GlobalOptsConfig, logger: logging.Logger
+    input_dir: StrPath,
+    cfg: cfg_.GlobalOptsConfig,
+    logger: logging.Logger = logging.Logger(__name__),
 ) -> pl.DataFrame:
     """Handle loading of bids2table.
 
@@ -89,8 +89,11 @@ def query(df: pl.DataFrame, query: str) -> pl.DataFrame:
 def get_inputs(
     df: pl.DataFrame,
     row: dict[str, Any],
-    query_opts: QueryConfig,
-    stage_opts: ConnectomeConfig | TractMapConfig | UndistortionConfig | None,
+    query_opts: cfg_.QueryConfig,
+    stage_opts: cfg_.connectivity.ConnectomeConfig
+    | cfg_.connectivity.TractMapConfig
+    | cfg_.preprocess.UndistortionConfig
+    | None,
     stage: str,
 ) -> dict[str, Any]:
     """Retrieve relevant inputs for workflow.
@@ -182,7 +185,7 @@ def get_inputs(
 
     # Additional inputs to update / grab based on analysis level
     if stage == "preprocess":
-        if not isinstance(stage_opts, UndistortionConfig):
+        if not isinstance(stage_opts, cfg_.preprocess.UndistortionConfig):
             raise TypeError(f"Expected UndistortionConfig, got {type(stage_opts)}")
         if query_opts.mask is not None:
             wf_inputs["dwi"]["mask"] = _get_file_path(
@@ -262,7 +265,10 @@ def get_inputs(
             }
         )
     elif stage == "connectivity":
-        if not isinstance(stage_opts, ConnectomeConfig | TractMapConfig):
+        if not isinstance(
+            stage_opts,
+            cfg_.connectivity.ConnectomeConfig | cfg_.connectivity.TractMapConfig,
+        ):
             raise TypeError(
                 f"Expected ConnectomeConfig or TractMapConfig, got {type(stage_opts)}"
             )
@@ -278,7 +284,7 @@ def get_inputs(
                         "ext": {"items": [".nii", ".nii.gz"]},
                     }
                 )
-                if isinstance(stage_opts, ConnectomeConfig)
+                if isinstance(stage_opts, cfg_.connectivity.ConnectomeConfig)
                 and stage_opts.atlas is not None
                 else None,
                 "tractography": {
@@ -300,7 +306,7 @@ def get_inputs(
         )
 
         if (
-            isinstance(stage_opts, TractMapConfig)
+            isinstance(stage_opts, cfg_.connectivity.TractMapConfig)
             and stage_opts.tract_query is not None
         ):
             wf_inputs["anat"] = {

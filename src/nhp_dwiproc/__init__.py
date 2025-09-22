@@ -1,5 +1,5 @@
 """Diffusion processing suite (with non-human primate focus)."""
 
-from pathlib import Path
+from . import app, cli, config
 
-APP_LOCATION = Path(__file__)
+__all__ = ["app", "cli", "config"]
