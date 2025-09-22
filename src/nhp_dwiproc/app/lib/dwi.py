@@ -9,6 +9,7 @@ import nibabel.nifti1 as nib
 import niwrap_helper
 import numpy as np
 from niwrap import mrtrix
+from niwrap_helper.types import StrPath
 
 from ..lib import metadata
 
@@ -76,10 +77,10 @@ def get_phenc_info(
 def concat_dir_phenc_data(
     pe_data: list[np.ndarray],
     bids: partial[str] = partial(niwrap_helper.bids_path, sub="subject"),
-    output_dir: Path = Path.cwd(),
+    output_dir: StrPath = Path.cwd(),
 ) -> Path:
     """Concatenate opposite phase encoding directions."""
-    phenc_fpath = output_dir / bids(desc="concat", suffix="phenc", ext=".txt")
+    phenc_fpath = Path(output_dir) / bids(desc="concat", suffix="phenc", ext=".txt")
     phenc_fpath.parent.mkdir(parents=True, exist_ok=False)
     np.savetxt(phenc_fpath, np.vstack(pe_data), fmt="%.5f")
 
@@ -89,7 +90,7 @@ def concat_dir_phenc_data(
 def normalize(
     img: str | Path,
     bids: partial[str] = partial(niwrap_helper.bids_path, sub="subject"),
-    output_dir: Path = Path.cwd(),
+    output_dir: StrPath = Path.cwd(),
 ) -> Path:
     """Normalize 4D image."""
     nii = nib.load(img)
@@ -103,7 +104,7 @@ def normalize(
 
     norm_nii = nib.Nifti1Image(dataobj=arr, affine=nii.affine, header=nii.header)
     nii_fname = bids(desc="normalized", suffix="b0", ext=".nii.gz")
-    nii_fpath: Path = output_dir / nii_fname
+    nii_fpath = Path(output_dir) / nii_fname
     nii_fpath.parent.mkdir(parents=True, exist_ok=False)
     nib.save(norm_nii, nii_fpath)
 
@@ -135,7 +136,7 @@ def get_eddy_indices(
     niis: list[Path],
     indices: list[str] | None,
     bids: partial[str] = partial(niwrap_helper.bids_path, sub="subject"),
-    output_dir: Path = Path.cwd() / "tmp",
+    output_dir: StrPath = Path.cwd() / "tmp",
 ) -> Path:
     """Generate dwi index file for eddy."""
     imsizes = [nib.load(nii).header.get_data_shape() for nii in niis]
@@ -145,7 +146,7 @@ def get_eddy_indices(
         for idx, imsize in zip(indices or ["1"] * len(imsizes), imsizes)
     ]
 
-    output_dir = output_dir / f"{niwrap_helper.gen_hash()}_eddy-indices"
+    output_dir = Path(output_dir) / f"{niwrap_helper.gen_hash()}_eddy-indices"
     out_fpath = output_dir / bids(desc="eddy", suffix="indices", ext=".txt")
     out_fpath.parent.mkdir(parents=True, exist_ok=False)
     np.savetxt(out_fpath, np.array(eddy_idxes).flatten(), fmt="%s", newline=" ")
@@ -156,19 +157,18 @@ def rotate_bvec(
     bvec_file: Path,
     transformation: Path,
     bids: partial[str] = partial(niwrap_helper.bids_path, sub="subject"),
-    output_dir: Path = Path.cwd() / "tmp",
+    output_dir: StrPath = Path.cwd() / "tmp",
 ) -> Path:
     """Rotate bvec file."""
     bvec = np.loadtxt(bvec_file)
     transformation_mat = np.loadtxt(transformation)
     rotated_bvec = np.dot(transformation_mat[:3, :3], bvec)
 
-    out_dir = output_dir / f"{niwrap_helper.gen_hash()}_rotate-bvec"
+    out_dir = Path(output_dir) / f"{niwrap_helper.gen_hash()}_rotate-bvec"
     out_fname = bids(space="T1w", res="dwi", desc="preproc", suffix="dwi", ext=".bvec")
     out_fpath = out_dir / out_fname
     out_fpath.parent.mkdir(parents=True, exist_ok=False)
     np.savetxt(out_fpath, rotated_bvec, fmt="%.5f")
-
     return out_fpath
 
 

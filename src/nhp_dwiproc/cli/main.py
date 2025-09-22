@@ -18,6 +18,7 @@ app_ = typer.Typer(
     name="NHP-DWIProc",
     add_completion=False,
     help="Diffusion MRI processing workflows.",
+    pretty_exceptions_enable=False,  # Disable typer's rich-formatted traceback
 )
 
 
@@ -263,7 +264,7 @@ def preprocess(
     unring_axes: list[int] | None = typer.Option(
         None,
         "--unring-axes",
-        help=f"Slice axes for unringing [default: {cfg_.preprocess.UnringConfig.axes}]",
+        help="Slice axes for unringing [default: (0,1 - i.e. x-y)]",
     ),
     undistort_method: cfg_.preprocess.UndistortionMethod | None = typer.Option(
         None,
@@ -439,9 +440,31 @@ def preprocess(
             ctx.obj.cfg.preprocess.undistort.opts.eddymotion = None
             ctx.obj.cfg.preprocess.undistort.opts.fugue = None
     # Verbosity
-    ctx.obj.log_level = LOG_LEVELS[min(verbose, len(LOG_LEVELS)) - 1]
-    if ctx.obj.log_level <= logging.DEBUG:
-        print(cli_utils._namespace_to_yaml(ctx.obj))
+    ctx.obj.log_level = (
+        LOG_LEVELS[min(verbose, len(LOG_LEVELS)) - 1]
+        if verbose > 0
+        else logging.CRITICAL + 1
+    )
+    # Setup styx
+    logger, runner = app.initialize(
+        output_dir=ctx.obj.cfg.output_dir, global_opts=ctx.obj.cfg.opts
+    )
+    logger.setLevel(ctx.obj.log_level)
+    logger.debug(f"Stage options:\n\n{cli_utils._namespace_to_yaml(obj=ctx.obj)}")
+    # Run
+    cfg_.utils.generate_descriptor(
+        app_name=ctx.obj.app,
+        version=ctx.obj.app,
+        out_fpath=ctx.obj.cfg.output_dir / "dataset_description.json",
+    )
+    app.analysis_levels.preprocess(
+        input_dir=ctx.obj.cfg.input_dir,
+        output_dir=ctx.obj.cfg.output_dir,
+        preproc_opts=ctx.obj.cfg.preprocess,
+        global_opts=ctx.obj.cfg.opts,
+        runner=runner,
+        logger=logger,
+    )
 
 
 @app_.command(help="Reconstruction stage.")

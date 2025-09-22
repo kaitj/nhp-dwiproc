@@ -135,18 +135,25 @@ def validate_opts(
                 ):
                     raise ValueError("Invalid phase-encode direction provided")
             # Validate TOPUP config
-            if stage_opts.undistort.method not in {
+            if not isinstance(
+                stage_opts.undistort.opts.topup, cfg.preprocess.TopupConfig
+            ):
+                raise TypeError(
+                    f"Expected TopupConfig, got {type(cfg.preprocess.TopupConfig)}"
+                )
+            if stage_opts.undistort.opts.topup.config not in {
                 "b02b0",
                 "b02b0_macaque",
                 "b02b0_marmoset",
             }:
-                if not Path(stage_opts.undistort.method).exists():
-                    raise FileNotFoundError("TOPUP configuration not found")
-                topup_cfg = str(stage_opts.undistort.method).rstrip(".cnf")
-                stage_opts.undistort.method = f"{topup_cfg}.cnf"
+                topup_cfg = str(stage_opts.undistort.opts.topup.config).rstrip(".cnf")
+                stage_opts.undistort.opts.topup.config = f"{topup_cfg}.cnf"
             else:
-                stage_opts.undistort.method = str(
-                    Path(resources.__file__)
+                stage_opts.undistort.opts.topup.config = str(
+                    Path(resources.__file__).parent
                     / "topup"
-                    / f"{stage_opts.undistort.method}.cnf"
+                    / f"{stage_opts.undistort.opts.topup.config}.cnf"
                 )
+            # Check to make sure configuration exists
+            if not Path(stage_opts.undistort.opts.topup.config).exists():
+                raise FileNotFoundError("TOPUP configuration not found")
