@@ -47,9 +47,6 @@ dev = [
   "types-pyyaml>=6.0.12.20250822"
 ]
 
-[tool.uv.sources]
-nifti = {git = "https://github.com/childmindresearch/nifti", rev = "65ca06b"}
-
 [tool.hatch.build]
 source = ["src/"]
 
@@ -62,6 +59,19 @@ source = "vcs"
 [tool.pytest.ini_options]
 pythonpath = ["src"]
 testpaths = ["tests"]
+
+[tool.coverage.report]
+omit = [
+  # Ignore testing requiring imaging data
+  "src/nhp_dwiproc/cli/main.py",
+  "src/nhp_dwiproc/app/analysis_levels/**",
+  "src/nhp_dwiproc/app/lib/anat.py",
+  "src/nhp_dwiproc/app/lib/dwi.py",
+  "src/nhp_dwiproc/app/workflow/**"
+]
+exclude_also = [
+  "@overload"
+]
 
 [tool.mypy]
 allow_redefinition = true
