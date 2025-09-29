@@ -206,7 +206,7 @@ def build_config(
         return dc_instance
 
     if not is_dataclass(cfg_class):
-        raise ValueError(f"{cfg_class} must be a dataclass")
+        raise TypeError(f"{cfg_class} must be a dataclass")
 
     # 1. Initialize defaults
     opts: T = cfg_class()

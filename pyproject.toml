@@ -70,7 +70,8 @@ omit = [
   "src/nhp_dwiproc/app/workflow/**"
 ]
 exclude_also = [
-  "@overload"
+  "@overload",
+  "def _.*\\("  # Ignore private methods
 ]
 
 [tool.mypy]

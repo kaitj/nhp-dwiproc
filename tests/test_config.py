@@ -11,6 +11,7 @@ from nhp_dwiproc.config import (
     PreprocessConfig,
     utils,
 )
+from nhp_dwiproc.config.connectivity import ConnectomeConfig, TractMapConfig
 
 
 class TestConfigIO:
@@ -152,3 +153,39 @@ class TestAppOptions:
         )
         assert global_opts.runner.name == "singularity"
         assert global_opts.threads == 4
+
+
+class TestBuildConfig:
+    """Tests specific to building the configuration options."""
+
+    def test_non_dataclass(self):
+        """Test if dataclass is being used to build config."""
+        NonDataClass = type("NonDataClass", (object,), {"invalid": "a"})
+        with pytest.raises(TypeError):
+            utils.build_config(cfg_class=NonDataClass, cfg_key="invalid")
+
+    def test_dynamic_method_map(self):
+        """Test dynamic method mapping."""
+        method_map = {
+            "method": {"connectome": ConnectomeConfig, "tract": TractMapConfig}
+        }
+        opts = utils.build_config(
+            cfg_class=ConnectivityConfig,
+            cfg_key="connectivity",
+            dynamic_method_map=method_map,
+        )
+        assert opts.method == "connectome"
+
+
+class TestMapParam:
+    """Test parameter mapping."""
+
+    def test_valid_prefix(self):
+        """Test replacement of valid prefixes that exist."""
+        new_vars_dict = utils.map_param("opt_", "", vars_dict={"opt_threads": 1})
+        assert new_vars_dict.get("opt_threads") == "threads"
+
+    def test_invalid_prefix(self):
+        """Test non-replacement of prefix that does not exist."""
+        new_vars_dict = utils.map_param("invalid_", "", vars_dict={"opt_threads": 1})
+        assert "invalid" not in new_vars_dict
