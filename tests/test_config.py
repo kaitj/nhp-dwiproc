@@ -5,7 +5,12 @@ from pathlib import Path
 import pytest
 import yaml
 
-from nhp_dwiproc.config import utils
+from nhp_dwiproc.config import (
+    ConnectivityConfig,
+    GlobalOptsConfig,
+    PreprocessConfig,
+    utils,
+)
 
 
 class TestConfigIO:
@@ -73,3 +78,77 @@ class TestGenerateDescriptor:
             )
         assert "not '.json'" in caplog.text
         assert out_file.exists()
+
+
+class TestAppOptions:
+    """Tests for passing options via config and CLI."""
+
+    @pytest.fixture
+    def valid_cfg_yaml(self, tmp_path: Path):
+        valid_cfg = {
+            "opts": {"threads": 1, "runner": {"name": "docker"}},
+            "preprocess": {"query": {"participant": "sub=='001'"}},
+        }
+        file_path = tmp_path / "valid.yaml"
+        file_path.write_text(yaml.safe_dump(valid_cfg))
+
+        return file_path
+
+    @pytest.fixture
+    def invalid_cfg_yaml(self, tmp_path: Path):
+        valid_cfg = {
+            "opts": {"threads": 1, "runner": {"name": "docker"}},
+            "preprocess": {"query": {"participant": "sub=='001'"}},
+            "invalid": "value",
+        }
+        file_path = tmp_path / "valid.yaml"
+        file_path.write_text(yaml.safe_dump(valid_cfg))
+
+        return file_path
+
+    def test_valid_stage_config(self, tmp_path: Path, valid_cfg_yaml: Path):
+        """Test running with a valid config."""
+        global_opts = utils.build_config(
+            cfg_class=GlobalOptsConfig, cfg_key="opts", cfg_file=valid_cfg_yaml
+        )
+        assert isinstance(global_opts, GlobalOptsConfig)
+        assert global_opts.threads == 1
+        assert global_opts.runner.name == "docker"
+        preproc_opts = utils.build_config(
+            cfg_class=PreprocessConfig, cfg_key="preprocess", cfg_file=valid_cfg_yaml
+        )
+        assert isinstance(preproc_opts, PreprocessConfig)
+        assert preproc_opts.query.participant == "sub=='001'"
+
+    def test_valid_stage_invalid_config(self, tmp_path: Path, invalid_cfg_yaml: Path):
+        """Test running with ignored keys in invalid config."""
+        global_opts = utils.build_config(
+            cfg_class=GlobalOptsConfig, cfg_key="opts", cfg_file=invalid_cfg_yaml
+        )
+        assert not hasattr(global_opts, "invalid")
+        preproc_opts = utils.build_config(
+            cfg_class=PreprocessConfig, cfg_key="preprocess", cfg_file=invalid_cfg_yaml
+        )
+        assert not hasattr(preproc_opts, "invalid")
+
+    def test_invalid_stage_config(self, tmp_path: Path, valid_cfg_yaml: Path):
+        """Test to ensure stage specific params aren't passed to wrong stage."""
+        conn_opts = utils.build_config(
+            cfg_class=ConnectivityConfig,
+            cfg_key="connectivity",
+            cfg_file=valid_cfg_yaml,
+        )
+        assert conn_opts.query.participant is None
+
+    def test_cli_overwrite(self, tmp_path: Path, valid_cfg_yaml: Path):
+        """Test overwriting config parameters with CLI."""
+        # Mock CLI arguments
+        global_opts = utils.build_config(
+            cfg_class=GlobalOptsConfig,
+            cfg_key="opts",
+            cfg_file=valid_cfg_yaml,
+            ctx_params={"opts_runner": "singularity", "opts_threads": 4},
+            cli_map={"opts_runner": "runner.name", "opts_threads": "threads"},
+        )
+        assert global_opts.runner.name == "singularity"
+        assert global_opts.threads == 4
