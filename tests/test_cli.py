@@ -28,7 +28,16 @@ class TestCLI:
         str_path = str(tmp_path)
         result = runner.invoke(
             app,
-            args=[str_path, str_path, stage, "--runner", "local", "--help"],
+            args=[
+                str_path,
+                str_path,
+                stage,
+                "--runner",
+                "local",
+                "--work-dir",
+                str_path,
+                "--help",
+            ],
         )
         assert result.exit_code == 0
 
@@ -36,7 +45,14 @@ class TestCLI:
         str_path = str(tmp_path)
         result = runner.invoke(
             app,
-            args=[str_path, str_path, "preprocess", "--invalid", "--help"],
+            args=[
+                str_path,
+                str_path,
+                "preprocess",
+                "--work-dir",
+                str_path,
+                "--invalid",
+            ],
         )
         assert result.exit_code == 2
 
@@ -44,7 +60,15 @@ class TestCLI:
         str_path = str(tmp_path)
         result = runner.invoke(
             app,
-            args=[str_path, str_path, "preprocess", "--runner", "invalid"],
+            args=[
+                str_path,
+                str_path,
+                "preprocess",
+                "--work-dir",
+                str_path,
+                "--runner",
+                "invalid",
+            ],
         )
         assert result.exit_code == 2
 

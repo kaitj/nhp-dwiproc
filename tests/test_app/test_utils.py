@@ -23,7 +23,9 @@ class TestAppInit:
         """Test default initialization."""
         logger, runner = utils.initialize(
             output_dir=tmp_path,
-            global_opts=GlobalOptsConfig(runner=RunnerConfig(name="local")),
+            global_opts=GlobalOptsConfig(
+                runner=RunnerConfig(name="local"), work_dir=tmp_path
+            ),
         )
         assert isinstance(logger, logging.Logger)
         assert isinstance(runner, LocalRunner)
@@ -33,7 +35,9 @@ class TestAppInit:
         """Test docker / podman initialization."""
         logger, runner = utils.initialize(
             output_dir=tmp_path,
-            global_opts=GlobalOptsConfig(runner=RunnerConfig(name=runner)),
+            global_opts=GlobalOptsConfig(
+                runner=RunnerConfig(name=runner), work_dir=tmp_path
+            ),
         )
         assert isinstance(logger, logging.Logger)
         assert isinstance(runner, DockerRunner)
@@ -43,7 +47,9 @@ class TestAppInit:
         """Test singularity / apptainer initialization."""
         logger, runner = utils.initialize(
             output_dir=tmp_path,
-            global_opts=GlobalOptsConfig(runner=RunnerConfig(name=runner, images={})),
+            global_opts=GlobalOptsConfig(
+                runner=RunnerConfig(name=runner, images={}), work_dir=tmp_path
+            ),
         )
         assert isinstance(logger, logging.Logger)
         assert isinstance(runner, SingularityRunner)
@@ -52,7 +58,7 @@ class TestAppInit:
         """Test graph initialization."""
         logger, runner = utils.initialize(
             output_dir=tmp_path,
-            global_opts=GlobalOptsConfig(graph=True),
+            global_opts=GlobalOptsConfig(graph=True, work_dir=tmp_path),
         )
         assert isinstance(logger, logging.Logger)
         assert isinstance(runner, GraphRunner)
@@ -60,7 +66,8 @@ class TestAppInit:
     def test_keep_work_dir(self, tmp_path: Path):
         """Test initialization with working directory saved."""
         logger, runner = utils.initialize(
-            output_dir=tmp_path, global_opts=GlobalOptsConfig(work_keep=True)
+            output_dir=tmp_path,
+            global_opts=GlobalOptsConfig(work_dir=tmp_path, work_keep=True),
         )
         assert isinstance(logger, logging.Logger)
         assert isinstance(runner, LocalRunner)
