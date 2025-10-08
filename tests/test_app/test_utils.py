@@ -195,7 +195,9 @@ class TestValidatePreprocessOpts:
         )
 
     def test_topup_valid_custom_cfgs(self, tmp_path: Path):
-        with tempfile.NamedTemporaryFile(dir=tmp_path, suffix=".cnf") as cfg:
+        with tempfile.NamedTemporaryFile(
+            dir=tmp_path, suffix=".cnf", delete=False
+        ) as cfg:
             utils.validate_opts(
                 stage="preprocess",
                 stage_opts=PreprocessConfig(
@@ -206,6 +208,7 @@ class TestValidatePreprocessOpts:
                     )
                 ),
             )
+        Path(cfg.name).unlink()
 
     def test_topup_missing_custom_cfg(self):
         with pytest.raises(FileNotFoundError, match="not found"):
