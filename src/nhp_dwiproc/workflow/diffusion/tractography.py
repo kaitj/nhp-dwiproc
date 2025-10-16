@@ -15,6 +15,7 @@ def generate_tractography(
     steps: float | None,
     cutoff: float | None,
     streamlines: int,
+    maxlength: float | None,
     backtrack: bool,
     nocrop_gmwmi: bool,
     bids: partial[str] = partial(utils.io.bids_name, sub="subject"),
@@ -29,6 +30,7 @@ def generate_tractography(
         "step": steps,
         "cutoff": cutoff,
         "select_": streamlines,
+        "maxlength": maxlength,
     }
     if method == "act":
         tckgen_params.update(

@@ -74,6 +74,7 @@ def run(cfg: dict[str, Any], logger: Logger) -> None:
                 steps=cfg.get("participant.tractography.steps", None),
                 cutoff=cfg.get("participant.tractography.cutoff", None),
                 streamlines=cfg["participant.tractography.streamlines"],
+                maxlength=cfg.get("participant.tractography.maxlength", None),
                 backtrack=cfg["participant.tractography.act.backtrack"],
                 nocrop_gmwmi=cfg["participant.tractography.act.nocrop_gmwmi"],
                 output_fpath=output_fpath,

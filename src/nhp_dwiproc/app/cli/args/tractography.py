@@ -74,6 +74,14 @@ def _add_general(arg_group: _ArgumentGroup) -> None:
         default=10_000,
         help="number of streamlines to select (default %(default)d)",
     )
+    arg_group.add_argument(
+        "--max-length",
+        "--max_length",
+        metavar="maxlength",
+        dest="participant.tractography.maxlength",
+        type=float,
+        help="maximum length (in mm) for a track (default: 100 x voxel size)",
+    )
 
 
 def _add_act(arg_group: _ArgumentGroup) -> None:
