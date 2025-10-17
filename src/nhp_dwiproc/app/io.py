@@ -45,10 +45,6 @@ def load_participant_table(
         verbose=logger.level < logging.CRITICAL + 1,
     )
     table = pl.from_arrow(table)
-    if not isinstance(table, pl.DataFrame):
-        raise TypeError(
-            f"bids2table output expected to be a DataFrame, got {type(table)}."
-        )
     return table
 
 
@@ -137,7 +133,9 @@ def get_inputs(
                     else pl.col(k) == v
                 )
                 for k, v in all_entities.items()
-                if k not in {"dataset", "path", "root"} and v is not None
+                if k in df.columns
+                and k not in {"dataset", "path", "root"}
+                and v is not None
             ]
             expr = reduce(lambda acc, cond: acc & cond, exprs, pl.lit(True))
             query_data = df.filter(expr)
@@ -317,10 +315,11 @@ def get_inputs(
                     for key, query in [
                         (
                             "inclusion_fpaths",
-                            "desc.str.contains('include|seed|target')",
+                            """desc LIKE '%include%' OR desc LIKE '%seed%' OR
+                            desc LIKE '%target%'""",
                         ),
-                        ("exclusion_fpaths", "desc.str.contains('exclude')"),
-                        ("truncate_fpaths", "desc.str.contains('truncate')"),
+                        ("exclusion_fpaths", "desc LIKE '%exclude%'"),
+                        ("truncate_fpaths", "desc LIKE '%truncate%'"),
                     ]
                 },
                 "surfs": {

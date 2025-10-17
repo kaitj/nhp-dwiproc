@@ -75,14 +75,18 @@ def generate_mrtrix_conf(
         case "docker" | "podman":
             if not isinstance(runner_base, DockerRunner):
                 raise TypeError(f"Expected DockerRunner, got {type(runner_base)}")
-            runner_base.docker_extra_args = [
-                "--mount",
-                f"type=bind,source={cfg_path},target={cfg_path},readonly",
-            ]
+            runner_base.docker_extra_args.extend(
+                [
+                    "--mount",
+                    f"type=bind,source={cfg_path},target={cfg_path},readonly",
+                ]
+            )
         case "singularity" | "apptainer":
             if not isinstance(runner_base, SingularityRunner):
                 raise TypeError(f"Expected SingularityRunner, got {type(runner_base)}")
-            runner_base.singularity_extra_args = ["--bind", f"{cfg_path}:{cfg_path}:ro"]
+            runner_base.singularity_extra_args.extend(
+                ["--bind", f"{cfg_path}:{cfg_path}:ro"]
+            )
         case _:
             pass
 
