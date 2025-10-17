@@ -106,6 +106,7 @@ def run(
                     steps=recon_opts.tractography.steps,
                     cutoff=recon_opts.tractography.cutoff,
                     streamlines=recon_opts.tractography.streamlines,
+                    maxlength=recon_opts.tractography.max_length,
                     backtrack=recon_opts.tractography.opts.backtrack
                     if isinstance(
                         recon_opts.tractography.opts,

@@ -586,6 +586,11 @@ def reconstruction(
         help="Number of streamlines to select. [default: "
         f"{cfg_.reconstruction.TractographyConfig.streamlines}]",
     ),
+    tract_max_length: float | None = typer.Option(
+        None,
+        "--max-length",
+        help="Maximum length for a given tract. [default: 100 x voxel_size]",
+    ),
     tract_method: cfg_.reconstruction.TractographyMethod | None = typer.Option(
         None,
         "--tractography-method",
