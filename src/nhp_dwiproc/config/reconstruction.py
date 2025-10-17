@@ -33,6 +33,7 @@ class TractographyConfig(BaseConfig):
     opts: TractographyACTConfig | None = None
     cutoff: float = 0.1
     streamlines: int = 10_000
+    max_length: float | None = None
 
 
 @dataclass
