@@ -45,6 +45,8 @@ def load_participant_table(
         verbose=logger.level < logging.CRITICAL + 1,
     )
     table = pl.from_arrow(table)
+    if isinstance(table, pl.Series):
+        table = table.to_frame()
     return table
 
 
