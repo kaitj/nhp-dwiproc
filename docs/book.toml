@@ -8,9 +8,13 @@ src = "src"
 
 [preprocessor.alerts]
 
+[preprocessor.langtabs]
+command = "mdbook-langtabs"
+
 [output.html]
 no-section-label = true
-additional-css = ["custom.css"]
+additional-css = ["custom.css", "langtabs.css"]
+additional-js = ["langtabs.js"]
 
 [output.html.fold]
 enable = true

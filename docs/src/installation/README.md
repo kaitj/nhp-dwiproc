@@ -1,11 +1,23 @@
 # Installation
 
-To install `nhp-dwiproc`, you can use your installer of choice (e.g. `pip`, `pipx`, `uv`, etc). For example,
+To install `nhp-dwiproc`, you can use your installer of choice (e.g. `pip`). For example,
 to install the application with `pip`, use the following command:
 
-```bash
-pip install git+https://github.com/kaitj/nhp-dwiproc
+<!-- langtabs-start -->
+
+```pip
+pip install git+https://github.com/HumanBrainEd/nhp-dwiproc
 ```
+
+```pipx
+pipx install git+https://github.com/HumanBrainEd/nhp-dwiproc
+```
+
+```uv
+uv install git+https://github.com/HumanBrainEd/nhp-dwiproc
+```
+
+<!-- langtabs-end -->
 
 > [!TIP]
 > Replace `pip` with your installer of choice.
