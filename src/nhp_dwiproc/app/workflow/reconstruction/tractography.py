@@ -29,6 +29,7 @@ def generate_tractography(
         steps: Sampling step size.
         cutoff: FOD cutoff threshold.
         streamlines: Number of streamlines to generate.
+        maxlength: Maximum length of a streamline.
         backtrack: Flag to indicate backtracking, if ACT is used.
         nocrop_gmwmi: Flag to indicate to not crop at GM-WM interface, if ACT is used.
         bids: Function to generate BIDS filepath.

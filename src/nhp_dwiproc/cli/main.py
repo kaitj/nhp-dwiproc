@@ -43,7 +43,8 @@ def main(
     """Diffusion MRI processing pipeline."""
     # Print version
     if version:
-        typer.echo(f"{ctx.info_name.replace('_', '-')} version: {app.version}")
+        info_name = ctx.info_name.replace("_", "-") if ctx.info_name else "app"
+        typer.echo(f"{info_name} version: {app.version}")
         exit(0)
     # Print help if required args are missing
     if not input_dir and not output_dir or ctx.invoked_subcommand is None:
