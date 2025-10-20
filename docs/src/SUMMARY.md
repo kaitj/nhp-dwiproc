@@ -10,7 +10,7 @@
     - [Analysis levels](./usage/analysis_levels/main.md)
       - [Index](./usage/analysis_levels/index_level.md)
       - [Preprocess](./usage/analysis_levels/preprocess.md)
-      - [Tractography](./usage/analysis_levels/tractography.md)
+      - [Reconstruction](./usage/analysis_levels/reconstruction.md)
       - [Connectivity](./usage/analysis_levels/connectivity.md)
   - [Configuration](./usage/configuration/README.md)
     - [Template](./usage/configuration/template.md)

@@ -562,14 +562,16 @@ def reconstruction(
     tract_shells: list[int] | None = typer.Option(
         None,
         "--shells",
-        help="Space-separated list of b-values (b0 must be explicitly included). "
+        help="b-value of shells (b=0 must be explicitly included); invoke multiple "
+        "times for multiple shells. "
         f"[default: {cfg_.reconstruction.TractographyConfig.shells}]",
     ),
     tract_lmax: list[int] | None = typer.Option(
         None,
         "--lmax",
-        help="Space-separated list of maximum harmonic degrees (b0 must be explicitly "
-        f"included). [default: {cfg_.reconstruction.TractographyConfig.lmax}]",
+        help="Maximum harmonic degree for each shell (b=0 must be explicitly "
+        "included); invoke multiple times for multiple shells."
+        f"[default: {cfg_.reconstruction.TractographyConfig.lmax}]",
     ),
     tract_steps: float | None = typer.Option(
         None,
