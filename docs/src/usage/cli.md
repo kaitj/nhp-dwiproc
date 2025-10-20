@@ -72,3 +72,6 @@ matching `run-1`. In the example, the workflow will run on diffusion files conta
 >   it can be tedious repeatedly call a long command. It is recommended to use the
 >   `--config` argument to pass a configuration file with all desired optional argument
 >   values. For details see the [configuration](../configuration/config.md) page.
+
+Queries can also be passed via the configuration, with each stage having its own its
+own set of queries. Refer to each analysis-stage's page for additional details.
