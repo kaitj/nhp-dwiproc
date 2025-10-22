@@ -230,8 +230,8 @@ def preprocess(
     metadata_pe_dirs: list[str] | None = typer.Option(
         None,
         "--pe-dirs",
-        help="Set phase encoding for dwi acquisition (space-separated for multiple "
-        "acquisitions) overwriting value provided in metadata (JSON) file. "
+        help="Set phase encoding for dwi acquisition overwriting value provided in "
+        "metadata (JSON) file; invoke multiple times for multiple directions)."
         f"[default: {cfg_.preprocess.MetadataConfig.pe_dirs}]",
     ),
     metadata_echo_spacing: float = typer.Option(
@@ -254,6 +254,7 @@ def preprocess(
     denoise_estimator: cfg_.preprocess.DenoiseEstimator = typer.Option(
         "Exp2",
         "--denoise-estimator",
+        show_default=False,
         help="Noise level estimator. [default: "
         f"{cfg_.preprocess.DenoiseConfig.estimator}]",
     ),
@@ -280,7 +281,7 @@ def preprocess(
     ),
     topup_config: str | None = typer.Option(
         None,
-        "--topup-method",
+        "--topup-config",
         help="TOPUP configuration file; custom path "
         "can be provided or choose from: 'b02b0', 'b02b0_macaque', "
         f"'b02b0_marmoset' [default: '{cfg_.preprocess.TopupConfig.config}']",
@@ -341,7 +342,7 @@ def preprocess(
         None,
         "--fugue-smooth",
         help="3D Gaussian smoothing sigma (in mm). [default: "
-        f"{cfg_.preprocess.FugueConfig.skip}]",
+        f"{cfg_.preprocess.FugueConfig.smooth}]",
     ),
     bias_skip: bool | None = typer.Option(
         None,
@@ -561,14 +562,16 @@ def reconstruction(
     tract_shells: list[int] | None = typer.Option(
         None,
         "--shells",
-        help="Space-separated list of b-values (b0 must be explicitly included). "
+        help="b-value of shells (b=0 must be explicitly included); invoke multiple "
+        "times for multiple shells. "
         f"[default: {cfg_.reconstruction.TractographyConfig.shells}]",
     ),
     tract_lmax: list[int] | None = typer.Option(
         None,
         "--lmax",
-        help="Space-separated list of maximum harmonic degrees (b0 must be explicitly "
-        f"included). [default: {cfg_.reconstruction.TractographyConfig.lmax}]",
+        help="Maximum harmonic degree for each shell (b=0 must be explicitly "
+        "included); invoke multiple times for multiple shells."
+        f"[default: {cfg_.reconstruction.TractographyConfig.lmax}]",
     ),
     tract_steps: float | None = typer.Option(
         None,
