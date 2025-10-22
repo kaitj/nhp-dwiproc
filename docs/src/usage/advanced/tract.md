@@ -7,12 +7,10 @@ command used to extract a single tract and perform surface mapping.
 
 ```bash
 nhp_dwiproc <bids_dir> <output_dir> connectivity \
-  --config <path/to/config.yaml> \
   --participant-query "sub=='example'" \
   --tract-query "hemi=='L' & label=='tract'" \
   --surf-query "hemi=='L'
 ```
 
-> [!NOTE]
-> `hemi` and `label` are associated with the entities, while the tract extracted in the
-> previous example is "tract" of the left hemisphere.
+> [!NOTE] > `hemi` and `label` are associated with the entities, while the tract
+> extracted in the previous example is "tract" of the left hemisphere.

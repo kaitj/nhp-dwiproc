@@ -66,6 +66,9 @@ preprocess:
       eddymotion:
         skip: false
         iters: 2
+      fugue:
+        skip: false
+        smooth:
   biascorrect:
     skip: false
     spacing: 100.0

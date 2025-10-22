@@ -2,90 +2,106 @@
 
 > [!NOTE]
 >
-> - This template configuration contains all available options. For use, not all configurations need to be provided
->   (see example on [configuration](./) page)
-> - It is recommended to use separate configuration files for different analysis levels to avoid unexpected query
-> results with relevant configuration options
+> - This template configuration contains all available options with default values. For
+>   use, not all configurations need to be provided (see example on [configuration](./)
+>   page)
 
 ```yaml
-# nhp-dwiproc configuration
-
-# General application options
-opt:
-  working_dir: ./styx_tmp
-  index_path: ./index.b2t
-  runner: None
-  container_config: None
-  seed_num: 99
+# Optional parameters
+opts:
   threads: 1
-  keep_tmp: false
+  index_path:
+  runner:
+    name: local
+    images:
   graph: false
-
-# Analysis level options
-participant:
-  query:
-  dwi_query:
-  t1w_query:
-  mask_query:
+  seed_number: 99
+  work_dir: styx_tmp
+  work_keep: false
   b0_thresh: 10
 
-  # Index level
-  index:
-    overwrite: true
+# Index stage-level parameters
+index:
+  overwrite: false
 
-  # Preprocess level
-  preprocess:
-    metadata:
-      pe_dirs:
-      echo_spacing: 0.001
-    denoise:
-      skip: false
-      extent:
-      map:
-      estimator: Exp2
-    unring:
-      skip: false
-      axes: 0 1
-      nshifts: 20
-      minW: 1
-      maxW: 3
-    undistort:
-      method: fsl
-    topup:
-      skip: false
-      config: b02b0_macaque
-    eddy:
-      slm:
-      cnr_maps: false
-      repol: true
-      residuals: false
-      shelled: true
-    eddymotion:
-      iters: 2
-    biascorrect:
-      spacing: 100.00
-      iters: 1_000
-      shrink: 4
-    register:
-      skip: false
-      metric: NMI
-      iters: 50x50
+# Preprocess stage-level parameters
+preprocess:
+  query:
+    participant:
+    dwi:
+    t1w:
+    mask:
+    fmap:
+  metadata:
+    pe_dirs:
+    echo_spacing:
+  denoise:
+    skip: false
+    map_: false
+    estimator: Exp2
+  unring:
+    skip: false
+    axes: [0, 1]
+  undistort:
+    method: topup
+    opts:
+      topup:
+        skip: false
+        config: b02b0_macaque
+      eddy:
+        skip: false
+        slm:
+        cnr: false
+        repol: false
+        residuals: false
+        shelled: false
+      eddymotion:
+        skip: false
+        iters: 2
+      fugue:
+        skip: false
+        smooth:
+  biascorrect:
+    skip: false
+    spacing: 100.0
+    iters: 1000
+    shrink: 4
+  registration:
+    skip: false
+    spacing: NMI
+    iters: 50x50
+    init: identity
 
-  # Tractography level
+# Reconstruction stage-level parameters
+reconstruction:
+  query:
+    participant:
+    dwi:
+    t1w:
+    mask:
   tractography:
-    method: wm
     single_shell: false
     shells:
     lmax:
     steps:
-    cutoff: 0.10
+    cutoff:
     streamlines: 10_000
-    act:
+    method: act
+    opts:
       backtrack: false
-      nocrop_gmwmi: false
+      nocrop: false
 
-  # Connectivity level
-  connectivity:
-    atlas:
-    radius: 2.00
+# Connectivity stage-level parameters
+connectivity:
+  query:
+    participant:
+  method: connectome
+  opts:
+    # Connectome options
+    atlas: Markov91
+    radius: 2.0
+    # Tract mapping options
+    voxel_size:
+    tract_query:
+    surf_query:
 ```
