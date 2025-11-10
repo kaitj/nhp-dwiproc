@@ -1,21 +1,22 @@
 [project]
+dependencies = [
+  "bids2table[s3]>=2.1.2",
+  "niwrap==0.6.3",
+  "niwrap-helper>=0.6.1",
+  "polars>=1.35.2",
+  "typer>=0.20.0",
+  "eddymotion>=0.1.15",
+  # (Temporary) pinned versions of packages to fix errors
+  "attrs==25.4.0",
+  "nitransforms==24.0.1",
+]
 name = "nhp-dwiproc"
 description = "BIDS app for performing diffusion processing of NHP dataset(s)"
-authors = [{name = "Jason Kai", email = "jason.kai@childmind.org"}]
+authors = [{ name = "Jason Kai", email = "jason.kai@childmind.org" }]
 license = "MIT"
 readme = "README.md"
 dynamic = ["version"]
 requires-python = ">=3.11, <3.13"
-dependencies = [
-  "bids2table[s3]>=2.1.2",
-  "niwrap>=0.6.1",
-  "niwrap-helper>=0.5.2",
-  "polars>=1.34.0",
-  "typer>=0.19.2",
-  "eddymotion>=0.1.15",
-  # (Temporary) pinned versions of packages to fix errors
-  "nitransforms==24.0.1"
-]
 keywords = ["nhp", "diffusion mri", "processing"]
 classifiers = [
   "Development Status :: 3 - Alpha",
@@ -24,7 +25,7 @@ classifiers = [
   "License :: OSI Approved :: MIT License",
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3.11",
-  "Programming Language :: Python :: 3.12"
+  "Programming Language :: Python :: 3.12",
 ]
 
 [project.urls]
@@ -39,12 +40,12 @@ build-backend = "hatchling.build"
 
 [dependency-groups]
 dev = [
-  "pytest>=8.4.2",
+  "pytest>=9.0.0",
   "mypy>=1.17.1",
-  "pre-commit>=4.3.0",
+  "pre-commit>=4.4.0",
   "pytest-cov>=7.0.0",
-  "ruff>=0.14.0",
-  "types-pyyaml>=6.0.12.20250822"
+  "ruff>=0.14.4",
+  "types-pyyaml>=6.0.12.20250822",
 ]
 
 [tool.hatch.build]
@@ -67,11 +68,11 @@ omit = [
   "src/nhp_dwiproc/app/analysis_levels/**",
   "src/nhp_dwiproc/app/lib/anat.py",
   "src/nhp_dwiproc/app/lib/dwi.py",
-  "src/nhp_dwiproc/app/workflow/**"
+  "src/nhp_dwiproc/app/workflow/**",
 ]
 exclude_also = [
   "@overload",
-  "def _.*\\("  # Ignore private methods
+  "def _.*\\(", # Ignore private methods
 ]
 
 [tool.mypy]
@@ -87,9 +88,9 @@ target-version = "py311"
 [tool.ruff.lint]
 select = ["ANN", "D", "E", "F", "I"]
 ignore = [
-  "ANN002",  # Missing *args annotation
-  "ANN003",  # Missing **kwargs annotated.
-  "ANN401"  # 'Any' typehint
+  "ANN002", # Missing *args annotation
+  "ANN003", # Missing **kwargs annotated.
+  "ANN401", # 'Any' typehint
 ]
 fixable = ["ALL"]
 unfixable = []
@@ -100,9 +101,9 @@ convention = "google"
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**/*.py" = [
-  "ANN201",  # Missing return type
-  "D100",  # Missing module docstring
-  "D102"  # Missing method docstring
+  "ANN201", # Missing return type
+  "D100",   # Missing module docstring
+  "D102",   # Missing method docstring
 ]
 
 [tool.ruff.format]
