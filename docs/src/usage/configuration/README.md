@@ -20,8 +20,8 @@ opt:
   runner:
     name: singularity
     images:
-      mcin/docker-fsl:latest: path/to/fsl/singularity/container
-      mrtrix3/mrtrix3:3.0.4: path/to/mrtrix/singularity/container
+      mcin/docker-fsl:latest: docker://url/to/fsl/container
+      mrtrix3/mrtrix3:3.0.4: docker://url/to/mrtrix3/container
   graph: true
   b0_thresh: 10
 
