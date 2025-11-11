@@ -32,7 +32,7 @@ These optional arguments can be used for all analysis level stages:
 | `--threads <threads>`    | `opts.threads`       | number of threads to use - default: `1`                                                                                         |
 | `--index-path`           | `opts.index_path`    | `bids2table` index path - default: `{bids_dir}/index.b2t`                                                                       |
 | `--runner <runner>`      | `opts.runner.name`   | workflow runner to use for non-index stages (one of `local`, `docker`, `podman`, `apptainer`, `singularity`) - default: `local` |
-| `--runner-images <map>`  | `opts.runner.images` | JSON string mapping containers to paths for non-local runners. - default: `None                                                 |
+| `--runner-images <map>`  | `opts.runner.images` | String dictionary, mapping container overrides. - default: `None                                                                |
 | `--graph`                | `opts.graph`         | print mermaid diagram of workflow - default: `False`                                                                            |
 | `--seed-num <num>`       | `opts.seed_num`      | fixed seed to use for reproducible results - default: `99`                                                                      |
 | `--work-dir <dir>`       | `opts.work_dir`      | working directory to temporarily write files to - default: `./styx_tmp`                                                         |

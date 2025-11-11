@@ -164,7 +164,7 @@ def preprocess(
         None,
         "--runner-images",
         callback=cli_utils._json_dict_callback,
-        help="JSON string mapping containers to paths for non-local runners. "
+        help="String dictionary, mapping container overrides."
         f"[default: {cfg_.RunnerConfig.images}]",
     ),
     opts_graph: bool | None = typer.Option(
@@ -502,7 +502,7 @@ def reconstruction(
         None,
         "--runner-images",
         callback=cli_utils._json_dict_callback,
-        help="JSON string mapping containers to paths for non-local runners. "
+        help="String dictionary, mapping container overrides."
         f"[default: {cfg_.RunnerConfig.images}]",
     ),
     opts_graph: bool | None = typer.Option(
@@ -701,7 +701,7 @@ def connectivity(
         None,
         "--runner-images",
         callback=cli_utils._json_dict_callback,
-        help="JSON string mapping containers to paths for non-local runners. "
+        help="String dictionary, mapping container overrides."
         f"[default: {cfg_.RunnerConfig.images}]",
     ),
     opts_graph: bool | None = typer.Option(
