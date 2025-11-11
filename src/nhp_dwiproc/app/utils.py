@@ -38,7 +38,7 @@ def initialize(
     # Setup appropriate runner
     logger, runner = setup_styx(
         runner=global_opts.runner.name,
-        image_map=global_opts.runner.images,
+        image_overrides=global_opts.runner.images,
         graph_runner=global_opts.graph,
     )
     runner_base = runner.base if isinstance(runner, GraphRunner) else runner
