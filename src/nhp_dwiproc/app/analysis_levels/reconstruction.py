@@ -10,10 +10,10 @@ from niwrap_helper import bids_path, cleanup
 from niwrap_helper.types import StrPath
 from tqdm import tqdm
 
-from ... import config as cfg_
-from .. import io, utils
-from ..lib import dwi as dwi_lib
-from ..workflow.reconstruction import reconst, tractography
+from nhp_dwiproc import config as cfg_
+from nhp_dwiproc.app import io, utils
+from nhp_dwiproc.app.lib import dwi as dwi_lib
+from nhp_dwiproc.app.workflow.reconstruction import reconst, tractography
 
 
 def run(

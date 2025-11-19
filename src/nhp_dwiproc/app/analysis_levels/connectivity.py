@@ -10,9 +10,9 @@ from niwrap_helper import bids_path, cleanup
 from niwrap_helper.types import StrPath
 from tqdm import tqdm
 
-from ... import config as cfg_
-from .. import io, utils
-from ..workflow import connectivity
+from nhp_dwiproc import config as cfg_
+from nhp_dwiproc.app import io, utils
+from nhp_dwiproc.app.workflow import connectivity
 
 
 def run(
