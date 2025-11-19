@@ -14,8 +14,8 @@ def _create_response_odf(
     single_shell: bool,
     _no_gm: bool = False,
 ) -> list[
-    mrtrix.Dwi2fodResponseOdfParamsDictTagged
-    | mrtrix3tissue.Ss3tCsdBeta1ResponseOdfParamsDictTagged
+    mrtrix.Dwi2fodResponseOdfParamsDict
+    | mrtrix3tissue.Ss3tCsdBeta1ResponseOdfParamsDict
 ]:
     """Helper to create ODFs."""
     func = (
@@ -61,7 +61,7 @@ def compute_fods(
     # Helper functons
     def _normalize(
         odfs: mrtrix.Dwi2fodOutputs | mrtrix3tissue.Ss3tCsdBeta1Outputs,
-    ) -> list[mrtrix.MtnormaliseInputOutputParamsDictTagged]:
+    ) -> list[mrtrix.MtnormaliseInputOutputParamsDict]:
         """Build normalization parameters for ODF outputs."""
         return [
             mrtrix.mtnormalise_input_output(
@@ -73,8 +73,8 @@ def compute_fods(
 
     def _run_fod(
         response_odf: list[
-            mrtrix.Dwi2fodResponseOdfParamsDictTagged
-            | mrtrix3tissue.Ss3tCsdBeta1ResponseOdfParamsDictTagged
+            mrtrix.Dwi2fodResponseOdfParamsDict
+            | mrtrix3tissue.Ss3tCsdBeta1ResponseOdfParamsDict
         ],
         single_shell: bool,
     ) -> mrtrix.Dwi2fodOutputs | mrtrix3tissue.Ss3tCsdBeta1Outputs:

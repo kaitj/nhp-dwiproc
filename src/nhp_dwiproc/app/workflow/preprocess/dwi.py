@@ -60,7 +60,7 @@ def get_phenc_data(
     dwi_b0 = mrtrix.mrconvert(
         input_=dwi_b0.output,
         output=bids(ext=".nii.gz"),
-        coord=[mrtrix.MrconvertCoordParamsDict(axis=3, selection=[0])],
+        coord=[mrtrix.mrconvert_coord(axis=3, selection=[0])],
         axes=[0, 1, 2],
     )
     pe_dir, pe_data = get_phenc_info(

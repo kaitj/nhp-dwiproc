@@ -53,15 +53,15 @@ def extract_tract(
     if voxel_size and (len(voxel_size) > 3 or len(voxel_size) != 1):
         raise ValueError("Unexpected number of voxels provided.")
 
-    incl_rois = [
+    incl_rois: list[mrtrix.TckeditIncludeParamsDict] = [
         mrtrix.tckedit_include(spec=mrtrix.tckedit_various_file(fpath))
         for fpath in include_fpaths
     ]
-    excl_rois = [
+    excl_rois: list[mrtrix.TckeditExcludeParamsDict] = [
         mrtrix.tckedit_exclude(spec=mrtrix.tckedit_various_file_1(fpath))
         for fpath in exclude_fpaths
     ]
-    truncate_rois = [
+    truncate_rois: list[mrtrix.TckeditMaskParamsDict] = [
         mrtrix.tckedit_mask(spec=mrtrix.tckedit_various_file_2(fpath))
         for fpath in truncate_fpaths
     ]
