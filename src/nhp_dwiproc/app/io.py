@@ -10,7 +10,7 @@ from bids2table import load_bids_metadata
 from niwrap_helper import get_bids_table
 from niwrap_helper.bids import PathT, StrPath, as_path
 
-from .. import config as cfg_
+from nhp_dwiproc import config as cfg_
 
 
 def load_participant_table(

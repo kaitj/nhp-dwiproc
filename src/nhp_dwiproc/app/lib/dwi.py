@@ -11,7 +11,7 @@ import numpy as np
 from niwrap import mrtrix
 from niwrap_helper.types import StrPath
 
-from ..lib import metadata
+from nhp_dwiproc.app.lib import metadata
 
 
 def get_phenc_info(
@@ -189,8 +189,8 @@ def grad_check(nii: Path, bvec: Path, bval: Path, mask: Path | None, **kwargs) -
         input_image=nii,
         mask_image=mask,
         number=10_000,  # Small number to enable quick permutations,
-        fslgrad=mrtrix.dwigradcheck_fslgrad_params(bvecs=bvec, bvals=bval),
-        export_grad_fsl=mrtrix.dwigradcheck_export_grad_fsl_params(
+        fslgrad=mrtrix.dwigradcheck_fslgrad(bvecs=bvec, bvals=bval),
+        export_grad_fsl=mrtrix.dwigradcheck_export_grad_fsl(
             bvecs_path=bval.with_suffix(".bvec").name,
             bvals_path=bval.name,
         ),
