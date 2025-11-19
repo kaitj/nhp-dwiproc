@@ -8,7 +8,7 @@ import niwrap_helper
 import numpy as np
 from niwrap import OutputPathType, mrtrix
 
-from ....config.preprocess import DenoiseConfig
+from nhp_dwiproc.config.preprocess import DenoiseConfig
 
 
 def denoise(

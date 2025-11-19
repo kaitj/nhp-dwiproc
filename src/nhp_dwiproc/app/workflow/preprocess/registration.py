@@ -12,9 +12,9 @@ import nibabel.nifti1 as nib
 import niwrap_helper
 from niwrap import ants, c3d, fsl, greedy, mrtrix
 
-from .... import config as cfg
-from ...lib.anat import fake_t2w
-from ...lib.dwi import rotate_bvec
+from nhp_dwiproc import config as cfg
+from nhp_dwiproc.app.lib.anat import fake_t2w
+from nhp_dwiproc.app.lib.dwi import rotate_bvec
 
 
 def register(
@@ -58,7 +58,7 @@ def register(
     b0 = mrtrix.dwiextract(
         input_=dwi,
         output=bids(suffix="b0", ext=".mif"),
-        fslgrad=mrtrix.dwiextract_fslgrad_params(bvecs=bvec, bvals=bval),
+        fslgrad=mrtrix.dwiextract_fslgrad(bvecs=bvec, bvals=bval),
         bzero=True,
     )
     b0 = mrtrix.mrmath(
@@ -69,7 +69,7 @@ def register(
     )
     b0_brain = fsl.fslmaths(
         input_files=[b0.output],
-        operations=[fsl.fslmaths_operation_params(mas=mask)],
+        operations=[fsl.fslmaths_operation(mas=mask)],
         output=bids(desc="avgBrain", suffix="b0", ext=".nii.gz"),
     )
     # Fake T2w contrast for registration
@@ -78,12 +78,12 @@ def register(
     if t1w_mask:
         t2w_brain = fsl.fslmaths(
             input_files=[t2w_brain],
-            operations=[fsl.fslmaths_operation_params(mas=t1w_mask)],
+            operations=[fsl.fslmaths_operation(mas=t1w_mask)],
             output=bids(desc="fakeBrain", suffix="T2w", ext=".nii.gz"),
         ).output_file
     # Perform registration
     b0_to_t2 = greedy.greedy_(
-        input_images=greedy.greedy_input_images_params(
+        input_images=greedy.greedy_input_images(
             fixed=t2w_brain, moving=b0_brain.output_file
         ),
         output=bids(
@@ -99,7 +99,7 @@ def register(
         ia_identity=reg_opts.init == "identity",
         ia_image_centers=reg_opts.init == "image-centers",
         iterations=reg_opts.iters,
-        metric=greedy.greedy_metric_params(reg_opts.metric),
+        metric=greedy.greedy_metric(reg_opts.metric),
         dimensions=3,
         threads=threads,
     )
@@ -108,7 +108,7 @@ def register(
         raise ValueError("No RAS transformation found")
     b0_resliced = greedy.greedy_(
         fixed_reslicing_image=t2w_brain,
-        reslice_moving_image=greedy.greedy_reslice_moving_image_params(
+        reslice_moving_image=greedy.greedy_reslice_moving_image(
             moving=b0.output,
             output=bids(space="T1w", desc="avg", suffix="b0", ext=".nii.gz"),
         ),
@@ -123,7 +123,7 @@ def register(
     res = "x".join([str(vox) for vox in im.header.get_zooms()]) + "mm"
     ref_b0 = c3d.c3d_(
         input_=[b0_resliced.reslice_moving_image.resliced_image],
-        operations=[c3d.c3d_resample_mm_params(res)],
+        operations=[c3d.c3d_resample_mm(res)],
         output=(
             b0_fname := bids(
                 space="T1w", res="dwi", desc="ref", suffix="b0", ext=".nii.gz"
@@ -173,11 +173,9 @@ def apply_transform(
         input_image_type=3,
         input_image=dwi,
         reference_image=ref_b0,
-        transform=[
-            ants.ants_apply_transforms_transform_file_name_params(transforms["itk"])
-        ],
-        interpolation=ants.ants_apply_transforms_linear_params(),
-        output=ants.ants_apply_transforms_warped_output_params(
+        transform=[ants.ants_apply_transforms_transform_file_name(transforms["itk"])],
+        interpolation=ants.ants_apply_transforms_linear(),
+        output=ants.ants_apply_transforms_warped_output(
             bids(space="T1w", res="dwi", desc="preproc", suffix="dwi", ext=".nii.gz")
         ),
     )
@@ -188,9 +186,9 @@ def apply_transform(
         reference_image=ref_b0,
         transform=None
         if t1w_mask
-        else [ants.ants_apply_transforms_transform_file_name_params(transforms["itk"])],
-        interpolation=ants.ants_apply_transforms_nearest_neighbor_params(),
-        output=ants.ants_apply_transforms_warped_output_params(
+        else [ants.ants_apply_transforms_transform_file_name(transforms["itk"])],
+        interpolation=ants.ants_apply_transforms_nearest_neighbor(),
+        output=ants.ants_apply_transforms_warped_output(
             bids(space="T1w", res="dwi", desc="preproc", suffix="mask", ext=".nii.gz")
         ),
     )

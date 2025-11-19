@@ -8,8 +8,8 @@ import niwrap_helper
 import numpy as np
 from niwrap import fsl, mrtrix
 
-from ....config.preprocess import EddyConfig
-from ...workflow.preprocess.dwi import gen_eddy_inputs
+from nhp_dwiproc.app.workflow.preprocess.dwi import gen_eddy_inputs
+from nhp_dwiproc.config.preprocess import EddyConfig
 
 
 def run_eddy(
@@ -77,7 +77,7 @@ def run_eddy(
     mask = mrtrix.dwi2mask(
         input_=dwi_cat,
         output=bids(desc="preEddy", suffix="mask", ext=".nii.gz"),
-        fslgrad=mrtrix.dwi2mask_fslgrad_params(bvecs=bvec_cat, bvals=bval_cat),
+        fslgrad=mrtrix.dwi2mask_fslgrad(bvecs=bvec_cat, bvals=bval_cat),
     ).output
     bids = partial(bids, desc="eddy")
     eddy = fsl.eddy(
@@ -89,7 +89,7 @@ def run_eddy(
         index=index_fpath,
         topup="_".join(str(topup.movpar).split("_")[:-1]) if topup else None,
         out=bids(),
-        slm=eddy_opts.slm,  # type: ignore
+        slm=eddy_opts.slm,
         cnr_maps=eddy_opts.cnr,
         repol=eddy_opts.repol,
         residuals=eddy_opts.residuals,

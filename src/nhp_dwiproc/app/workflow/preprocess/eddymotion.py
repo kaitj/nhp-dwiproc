@@ -9,7 +9,7 @@ import numpy as np
 from eddymotion.data import dmri
 from eddymotion.estimator import EddyMotionEstimator
 
-from ....config.preprocess import EddyMotionConfig
+from nhp_dwiproc.config.preprocess import EddyMotionConfig
 
 
 def eddymotion(

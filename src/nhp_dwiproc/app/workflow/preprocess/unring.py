@@ -7,7 +7,7 @@ from pathlib import Path
 import niwrap_helper
 from niwrap import mrtrix
 
-from ....config.preprocess import UnringConfig
+from nhp_dwiproc.config.preprocess import UnringConfig
 
 
 def degibbs(
