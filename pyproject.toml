@@ -65,6 +65,7 @@ testpaths = ["tests"]
 omit = [
   # Ignore testing requiring imaging data
   "src/nhp_dwiproc/cli/main.py",
+  "src/nhp_dwiproc/cli/commands/*.py",
   "src/nhp_dwiproc/app/analysis_levels/**",
   "src/nhp_dwiproc/app/lib/anat.py",
   "src/nhp_dwiproc/app/lib/dwi.py",
