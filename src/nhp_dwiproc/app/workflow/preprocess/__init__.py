@@ -1,6 +1,6 @@
 """Sub-module with preprocessing workflow associated methods."""
 
-from . import (
+from nhp_dwiproc.app.workflow.preprocess import (
     biascorrect,
     denoise,
     dwi,

@@ -14,14 +14,14 @@ def _create_response_odf(
     single_shell: bool,
     _no_gm: bool = False,
 ) -> list[
-    mrtrix.Dwi2fodResponseOdfParameters
-    | mrtrix3tissue.Ss3tCsdBeta1ResponseOdfParameters
+    mrtrix.Dwi2fodResponseOdfParamsDict
+    | mrtrix3tissue.Ss3tCsdBeta1ResponseOdfParamsDict
 ]:
     """Helper to create ODFs."""
     func = (
-        mrtrix3tissue.ss3t_csd_beta1_response_odf_params
+        mrtrix3tissue.ss3t_csd_beta1_response_odf
         if single_shell
-        else mrtrix.dwi2fod_response_odf_params
+        else mrtrix.dwi2fod_response_odf
     )
     params = [(response.out_sfwm, "wm")]
     if not (single_shell and _no_gm):
@@ -61,10 +61,10 @@ def compute_fods(
     # Helper functons
     def _normalize(
         odfs: mrtrix.Dwi2fodOutputs | mrtrix3tissue.Ss3tCsdBeta1Outputs,
-    ) -> list[mrtrix.MtnormaliseInputOutputParameters]:
+    ) -> list[mrtrix.MtnormaliseInputOutputParamsDict]:
         """Build normalization parameters for ODF outputs."""
         return [
-            mrtrix.mtnormalise_input_output_params(
+            mrtrix.mtnormalise_input_output(
                 odf.odf,
                 odf.odf.name.replace("dwimap.mif", "desc-normalized_dwimap.mif"),
             )
@@ -73,8 +73,8 @@ def compute_fods(
 
     def _run_fod(
         response_odf: list[
-            mrtrix.Dwi2fodResponseOdfParameters
-            | mrtrix3tissue.Ss3tCsdBeta1ResponseOdfParameters
+            mrtrix.Dwi2fodResponseOdfParamsDict
+            | mrtrix3tissue.Ss3tCsdBeta1ResponseOdfParamsDict
         ],
         single_shell: bool,
     ) -> mrtrix.Dwi2fodOutputs | mrtrix3tissue.Ss3tCsdBeta1Outputs:
@@ -100,23 +100,23 @@ def compute_fods(
     mrconvert = mrtrix.mrconvert(
         input_=nii,
         output=nii.name.replace(".nii.gz", ".mif"),
-        fslgrad=mrtrix.mrconvert_fslgrad_params(bvecs=bvec, bvals=bval),
+        fslgrad={"bvecs": bvec, "bvals": bval},
     )
     dwi2response = mrtrix.dwi2response(
-        algorithm=mrtrix.dwi2response_dhollander_params(
+        algorithm=mrtrix.dwi2response_dhollander(
             input_=mrconvert.output,
             out_sfwm=bids_dwi2response(param="wm"),
             out_gm=bids_dwi2response(param="gm"),
             out_csf=bids_dwi2response(param="csf"),
         ),
         mask=mask,
-        shells=shells,  # type: ignore
+        shells=shells,
         lmax=lmax,
     )
 
     try:
         response_odf = _create_response_odf(
-            response=dwi2response.algorithm,  # type: ignore
+            response=dwi2response.algorithm,
             bids=bids_fod,
             single_shell=single_shell,
         )
@@ -162,7 +162,7 @@ def compute_dti(
     dwi2tensor = mrtrix.dwi2tensor(
         dwi=nii,
         dt=bids(ext=".nii.gz"),
-        fslgrad=mrtrix.dwi2tensor_fslgrad_params(bvecs=bvec, bvals=bval),
+        fslgrad={"bvecs": bvec, "bvals": bval},
         mask=mask,
     )
     tensor2metrics = mrtrix.tensor2metric(

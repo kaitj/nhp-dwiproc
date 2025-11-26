@@ -6,7 +6,7 @@ from pathlib import Path
 import niwrap_helper
 from niwrap import mrtrix
 
-from ....config.preprocess import BiascorrectConfig
+from nhp_dwiproc.config.preprocess import BiascorrectConfig
 
 
 def biascorrect(
@@ -35,7 +35,7 @@ def biascorrect(
     dwibiascorrect = partial(
         mrtrix.dwibiascorrect,
         algorithm="ants",
-        fslgrad=mrtrix.dwibiascorrect_fslgrad_params(bvecs=bvec, bvals=bval),
+        fslgrad={"bvecs": bvec, "bvals": bval},
         ants_b=f"{biascorrect_opts.spacing},3",
         ants_c=f"{biascorrect_opts.iters},0.0",
         ants_s=f"{biascorrect_opts.shrink}",
@@ -53,6 +53,6 @@ def biascorrect(
     mask = mrtrix.dwi2mask(
         input_=biascorrect.output_image_file,
         output=bids(desc="biascorrect", suffix="mask", ext=".nii.gz"),
-        fslgrad=mrtrix.dwi2mask_fslgrad_params(bvecs=bvec, bvals=bval),
+        fslgrad={"bvecs": bvec, "bvals": bval},
     )
     return biascorrect.output_image_file, mask.output

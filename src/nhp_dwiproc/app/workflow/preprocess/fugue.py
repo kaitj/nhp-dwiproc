@@ -11,8 +11,8 @@ from typing import Any
 import niwrap_helper
 from niwrap import fsl
 
-from ....config.preprocess import FugueConfig
-from ...lib import metadata
+from nhp_dwiproc.app.lib import metadata
+from nhp_dwiproc.config.preprocess import FugueConfig
 
 WARP_DIR = {"i": "x", "i-": "x-", "j": "y", "j-": "y-", "k": "z", "k-": "z-"}
 

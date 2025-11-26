@@ -7,7 +7,7 @@ import pyarrow.parquet as pq
 from niwrap_helper import cleanup, get_bids_table
 from niwrap_helper.types import LocalRunner, StrPath
 
-from ... import config as cfg
+from nhp_dwiproc import config as cfg
 
 
 def run(

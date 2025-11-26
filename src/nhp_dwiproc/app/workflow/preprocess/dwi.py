@@ -10,14 +10,14 @@ import numpy as np
 from niwrap import mrtrix
 from niwrap_helper.types import StrPath
 
-from ....config.preprocess import MetadataConfig
-from ...lib.dwi import (
+from nhp_dwiproc.app.lib.dwi import (
     concat_dir_phenc_data,
     get_eddy_indices,
     get_pe_indices,
     get_phenc_info,
     normalize,
 )
+from nhp_dwiproc.config.preprocess import MetadataConfig
 
 
 def get_phenc_data(
@@ -55,12 +55,12 @@ def get_phenc_data(
         input_=dwi,
         output=bids(ext=".mif"),
         bzero=True,
-        fslgrad=mrtrix.dwiextract_fslgrad_params(bvals=bval, bvecs=bvec),
+        fslgrad=mrtrix.dwiextract_fslgrad(bvals=bval, bvecs=bvec),
     )
     dwi_b0 = mrtrix.mrconvert(
         input_=dwi_b0.output,
         output=bids(ext=".nii.gz"),
-        coord=[mrtrix.mrconvert_coord_params(3, [0])],
+        coord=[mrtrix.mrconvert_coord(axis=3, selection=[0])],
         axes=[0, 1, 2],
     )
     pe_dir, pe_data = get_phenc_info(

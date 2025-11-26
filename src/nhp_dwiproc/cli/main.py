@@ -8,9 +8,9 @@ from types import SimpleNamespace
 import typer
 from niwrap_helper.styx import setup_styx
 
-from .. import app as app
-from .. import config as cfg_
-from . import utils as cli_utils
+from nhp_dwiproc import app as app
+from nhp_dwiproc import config as cfg_
+from nhp_dwiproc.cli import utils as cli_utils
 
 LOG_LEVELS = [logging.INFO, logging.DEBUG]
 

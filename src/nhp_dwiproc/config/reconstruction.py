@@ -3,7 +3,7 @@
 from dataclasses import dataclass, field
 from enum import Enum
 
-from .shared import BaseConfig, QueryConfig
+from nhp_dwiproc.config.shared import BaseConfig, QueryConfig
 
 
 class TractographyMethod(str, Enum):

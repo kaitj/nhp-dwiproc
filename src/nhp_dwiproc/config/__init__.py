@@ -1,14 +1,23 @@
 """Configuration submodule for nhp_dwiproc."""
 
-from . import utils
-from .connectivity import ConnectivityConfig
-from .preprocess import (
+from nhp_dwiproc.config import connectivity, preprocess, reconstruction, shared, utils
+from nhp_dwiproc.config.connectivity import ConnectivityConfig
+from nhp_dwiproc.config.preprocess import (
     PreprocessConfig,
 )
-from .reconstruction import ReconstructionConfig
-from .shared import GlobalOptsConfig, IndexConfig, QueryConfig, RunnerConfig
+from nhp_dwiproc.config.reconstruction import ReconstructionConfig
+from nhp_dwiproc.config.shared import (
+    GlobalOptsConfig,
+    IndexConfig,
+    QueryConfig,
+    RunnerConfig,
+)
 
 __all__ = [
+    "connectivity",
+    "preprocess",
+    "reconstruction",
+    "shared",
     "utils",
     "GlobalOptsConfig",
     "QueryConfig",

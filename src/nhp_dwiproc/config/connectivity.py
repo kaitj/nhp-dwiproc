@@ -3,7 +3,7 @@
 from dataclasses import dataclass, field
 from enum import Enum
 
-from .shared import QueryConfig
+from nhp_dwiproc.config.shared import QueryConfig
 
 
 @dataclass

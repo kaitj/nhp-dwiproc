@@ -8,8 +8,8 @@ import numpy as np
 from niwrap import fsl
 from niwrap_helper.bids import StrPath, bids_path
 
-from ....config.preprocess import TopupConfig
-from ...workflow.preprocess.dwi import gen_topup_inputs
+from nhp_dwiproc.app.workflow.preprocess.dwi import gen_topup_inputs
+from nhp_dwiproc.config.preprocess import TopupConfig
 
 
 def run_apply_topup(

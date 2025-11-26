@@ -1,8 +1,8 @@
 """Initialize different analysis-levels."""
 
-from .connectivity import run as connectivity
-from .index import run as index
-from .preprocess import run as preprocess
-from .reconstruction import run as reconstruction
+from nhp_dwiproc.app.analysis_levels.connectivity import run as connectivity
+from nhp_dwiproc.app.analysis_levels.index import run as index
+from nhp_dwiproc.app.analysis_levels.preprocess import run as preprocess
+from nhp_dwiproc.app.analysis_levels.reconstruction import run as reconstruction
 
 __all__ = ["index", "reconstruction", "connectivity", "preprocess"]

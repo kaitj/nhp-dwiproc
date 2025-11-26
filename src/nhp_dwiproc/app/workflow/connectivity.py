@@ -53,16 +53,16 @@ def extract_tract(
     if voxel_size and (len(voxel_size) > 3 or len(voxel_size) != 1):
         raise ValueError("Unexpected number of voxels provided.")
 
-    incl_rois = [
-        mrtrix.tckedit_include_params(spec=mrtrix.tckedit_various_file_params(fpath))
+    incl_rois: list[mrtrix.TckeditIncludeParamsDict] = [
+        mrtrix.tckedit_include(spec=mrtrix.tckedit_various_file(fpath))
         for fpath in include_fpaths
     ]
-    excl_rois = [
-        mrtrix.tckedit_exclude_params(spec=mrtrix.tckedit_various_file_1_params(fpath))
+    excl_rois: list[mrtrix.TckeditExcludeParamsDict] = [
+        mrtrix.tckedit_exclude(spec=mrtrix.tckedit_various_file_1(fpath))
         for fpath in exclude_fpaths
     ]
-    truncate_rois = [
-        mrtrix.tckedit_mask_params(spec=mrtrix.tckedit_various_file_2_params(fpath))
+    truncate_rois: list[mrtrix.TckeditMaskParamsDict] = [
+        mrtrix.tckedit_mask(spec=mrtrix.tckedit_various_file_2(fpath))
         for fpath in truncate_fpaths
     ]
     rois = [*incl_rois, *excl_rois, *truncate_rois]
@@ -122,11 +122,6 @@ def surface_map_tract(
         volume=tdi.output,
         surface=inflated[0],
         metric_out=bids(hemi=hemi, label=label, suffix="conn", ext=".shape.gii"),
-        ribbon_constrained=(
-            workbench.volume_to_surface_mapping_ribbon_constrained_params(
-                inner_surf=white[0],
-                outer_surf=pial[0],
-            )
-        ),
+        ribbon_constrained={"inner_surf": white[0], "outer_surf": pial[0]},
     )
     save(files=surf.metric_out, out_dir=output_fpath)

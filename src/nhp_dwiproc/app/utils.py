@@ -9,8 +9,8 @@ from niwrap import GraphRunner
 from niwrap_helper import setup_styx
 from niwrap_helper.types import BaseRunner, DockerRunner, SingularityRunner
 
-from .. import config as cfg
-from . import resources
+from nhp_dwiproc import config as cfg
+from nhp_dwiproc.app import resources
 
 
 def initialize(
