@@ -48,7 +48,7 @@ class TestAppInit:
         logger, runner = utils.initialize(
             output_dir=tmp_path,
             global_opts=GlobalOptsConfig(
-                runner=RunnerConfig(name=runner, images={}), work_dir=tmp_path
+                runner=RunnerConfig(name=runner), work_dir=tmp_path
             ),
         )
         assert isinstance(logger, logging.Logger)
@@ -115,6 +115,8 @@ class TestGenMrtrixConf:
         cfg_fpath = runner.data_dir / f"{runner.uid}_cfgs" / ".mrtrix.conf"
         assert cfg_fpath.exists()
         assert runner.singularity_extra_args == [
+            "--no-mount",
+            "hostfs",
             "--bind",
             f"{cfg_fpath}:{cfg_fpath}:ro",
         ]
