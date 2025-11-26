@@ -57,7 +57,7 @@ def finalize_stage(
         cfg.utils.generate_descriptor(
             app_name=ctx.app,
             version=ctx.version,
-            out_fpath=ctx.output_dir / "dataset_description.json",
+            out_fpath=ctx.cfg.output_dir / "dataset_description.json",
         )
 
 
