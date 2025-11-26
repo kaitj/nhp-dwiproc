@@ -58,7 +58,7 @@ def register(
     b0 = mrtrix.dwiextract(
         input_=dwi,
         output=bids(suffix="b0", ext=".mif"),
-        fslgrad=mrtrix.dwiextract_fslgrad(bvecs=bvec, bvals=bval),
+        fslgrad={"bvecs": bvec, "bvals": bval},
         bzero=True,
     )
     b0 = mrtrix.mrmath(
@@ -69,7 +69,7 @@ def register(
     )
     b0_brain = fsl.fslmaths(
         input_files=[b0.output],
-        operations=[fsl.fslmaths_operation(mas=mask)],
+        operations=[{"mas": mask}],
         output=bids(desc="avgBrain", suffix="b0", ext=".nii.gz"),
     )
     # Fake T2w contrast for registration
@@ -99,7 +99,7 @@ def register(
         ia_identity=reg_opts.init == "identity",
         ia_image_centers=reg_opts.init == "image-centers",
         iterations=reg_opts.iters,
-        metric=greedy.greedy_metric(reg_opts.metric),
+        metric={"metric_type": reg_opts.metric},
         dimensions=3,
         threads=threads,
     )
@@ -108,10 +108,10 @@ def register(
         raise ValueError("No RAS transformation found")
     b0_resliced = greedy.greedy_(
         fixed_reslicing_image=t2w_brain,
-        reslice_moving_image=greedy.greedy_reslice_moving_image(
-            moving=b0.output,
-            output=bids(space="T1w", desc="avg", suffix="b0", ext=".nii.gz"),
-        ),
+        reslice_moving_image={
+            "moving": b0.output,
+            "output": bids(space="T1w", desc="avg", suffix="b0", ext=".nii.gz"),
+        },
         reslice=[transforms["ras"]],  # type: ignore
         dimensions=3,
         threads=threads,

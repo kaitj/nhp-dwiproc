@@ -100,7 +100,7 @@ def compute_fods(
     mrconvert = mrtrix.mrconvert(
         input_=nii,
         output=nii.name.replace(".nii.gz", ".mif"),
-        fslgrad=mrtrix.mrconvert_fslgrad(bvecs=bvec, bvals=bval),
+        fslgrad={"bvecs": bvec, "bvals": bval},
     )
     dwi2response = mrtrix.dwi2response(
         algorithm=mrtrix.dwi2response_dhollander(
@@ -110,13 +110,13 @@ def compute_fods(
             out_csf=bids_dwi2response(param="csf"),
         ),
         mask=mask,
-        shells=shells,  # type: ignore
+        shells=shells,
         lmax=lmax,
     )
 
     try:
         response_odf = _create_response_odf(
-            response=dwi2response.algorithm,  # type: ignore
+            response=dwi2response.algorithm,
             bids=bids_fod,
             single_shell=single_shell,
         )
@@ -162,7 +162,7 @@ def compute_dti(
     dwi2tensor = mrtrix.dwi2tensor(
         dwi=nii,
         dt=bids(ext=".nii.gz"),
-        fslgrad=mrtrix.dwi2tensor_fslgrad(bvecs=bvec, bvals=bval),
+        fslgrad={"bvecs": bvec, "bvals": bval},
         mask=mask,
     )
     tensor2metrics = mrtrix.tensor2metric(

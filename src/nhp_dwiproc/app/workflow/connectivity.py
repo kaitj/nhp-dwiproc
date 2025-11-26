@@ -122,10 +122,6 @@ def surface_map_tract(
         volume=tdi.output,
         surface=inflated[0],
         metric_out=bids(hemi=hemi, label=label, suffix="conn", ext=".shape.gii"),
-        ribbon_constrained=(
-            workbench.volume_to_surface_mapping_ribbon_constrained(
-                inner_surf=white[0], outer_surf=pial[0]
-            )
-        ),
+        ribbon_constrained={"inner_surf": white[0], "outer_surf": pial[0]},
     )
     save(files=surf.metric_out, out_dir=output_fpath)
