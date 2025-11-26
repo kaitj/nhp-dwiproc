@@ -1,7 +1,9 @@
 import logging
 from pathlib import Path
+from unittest.mock import MagicMock, patch
 
 import polars as pl
+import pyarrow as pa
 import pytest
 
 from nhp_dwiproc.app import io
@@ -48,6 +50,22 @@ class TestLoadTable:
         assert isinstance(table, pl.DataFrame)
         assert "index found" in caplog.text
         index_fpath.unlink()
+
+    @patch("nhp_dwiproc.app.io.get_bids_table")
+    def test_load_series_conversion(self, mock_get_bids_table: MagicMock, ds_dir: Path):
+        """Test that a Series returned from get_bids_table is converted to DataFrame."""
+        arrow_table = pa.table({"column": [1, 2, 3]})
+        mock_get_bids_table.return_value = arrow_table
+        with patch("nhp_dwiproc.app.io.pl.from_arrow") as mock_from_arrow:
+            mock_series = pl.Series("column", [1, 2, 3])
+            mock_from_arrow.return_value = mock_series
+            logger = logging.getLogger(__name__)
+            table = io.load_participant_table(
+                input_dir=ds_dir, cfg=GlobalOptsConfig(), logger=logger
+            )
+        assert isinstance(table, pl.DataFrame)
+        assert table.columns == ["column"]
+        assert table.shape == (3, 1)
 
 
 class TestValidGroupBy:
