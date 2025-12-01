@@ -1,24 +1,22 @@
 [project]
+dependencies = [
+  "bids2table[s3]>=2.1.2",
+  "niwrap==0.8.0",
+  "niwrap-helper>=0.7.0",
+  "polars>=1.35.2",
+  "typer>=0.20.0",
+  "eddymotion>=0.1.15",
+  # (Temporary) pinned versions of packages to fix errors
+  "attrs==25.4.0",
+  "nitransforms==24.0.1"
+]
 name = "nhp-dwiproc"
 description = "BIDS app for performing diffusion processing of NHP dataset(s)"
 authors = [{name = "Jason Kai", email = "jason.kai@childmind.org"}]
 license = "MIT"
 readme = "README.md"
 dynamic = ["version"]
-requires-python = ">=3.11"
-dependencies = [
-  "attrs>=25.3.0",
-  "bidsapp-helper>=0.1.0",
-  "bids2table==0.1.0",
-  # for bids2table=0.1.0
-  "pyarrow<20.0",
-  "niwrap>=0.6.1",
-  "pyyaml>=6.0.2",
-  "eddymotion>=0.1.15",
-  "nifti",
-  # (Temporary) pinned versions of packages to fix errors
-  "nitransforms==24.0.1"
-]
+requires-python = ">=3.11, <3.13"
 keywords = ["nhp", "diffusion mri", "processing"]
 classifiers = [
   "Development Status :: 3 - Alpha",
@@ -27,38 +25,34 @@ classifiers = [
   "License :: OSI Approved :: MIT License",
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3.11",
-  "Programming Language :: Python :: 3.12",
-  "Programming Language :: Python :: 3.13"
+  "Programming Language :: Python :: 3.12"
 ]
 
 [project.urls]
 Repository = "https://github.com/HumanBrainED/nhp-dwiproc"
 
 [project.scripts]
-nhp_dwiproc = "nhp_dwiproc.run:main"
+nhp_dwiproc = "nhp_dwiproc.cli:app"
 
 [build-system]
 requires = ["hatchling", "hatch-vcs"]
 build-backend = "hatchling.build"
 
-[tool.uv]
-dev-dependencies = [
-  "pytest>=8.3.5",
-  "mypy>=1.15.0",
-  "pre-commit>=4.1.0",
-  "pytest-cov>=6.0.0",
-  "ruff>=0.11.11",
-  "types-pyyaml>=6.0.12.20250516"
+[dependency-groups]
+dev = [
+  "pytest>=9.0.1",
+  "mypy>=1.17.1",
+  "pre-commit>=4.4.0",
+  "pytest-cov>=7.0.0",
+  "ruff>=0.14.5",
+  "types-pyyaml>=6.0.12.20250822"
 ]
-
-[tool.uv.sources]
-nifti = {git = "https://github.com/childmindresearch/nifti", rev = "65ca06b"}
 
 [tool.hatch.build]
 source = ["src/"]
 
 [tool.hatch.build.hooks.vcs]
-version-file = "_version.py"
+version-file = "src/nhp_dwiproc/_version.py"
 
 [tool.hatch.version]
 source = "vcs"
@@ -66,6 +60,21 @@ source = "vcs"
 [tool.pytest.ini_options]
 pythonpath = ["src"]
 testpaths = ["tests"]
+
+[tool.coverage.report]
+omit = [
+  # Ignore testing requiring imaging data
+  "src/nhp_dwiproc/cli/main.py",
+  "src/nhp_dwiproc/cli/commands/*.py",
+  "src/nhp_dwiproc/app/analysis_levels/**",
+  "src/nhp_dwiproc/app/lib/anat.py",
+  "src/nhp_dwiproc/app/lib/dwi.py",
+  "src/nhp_dwiproc/app/workflow/**"
+]
+exclude_also = [
+  "@overload",
+  "def _.*\\("  # Ignore private methods
+]
 
 [tool.mypy]
 allow_redefinition = true
@@ -80,8 +89,9 @@ target-version = "py311"
 [tool.ruff.lint]
 select = ["ANN", "D", "E", "F", "I"]
 ignore = [
-  "ANN003",  # **kwargs should not be annotated.
-  "ANN401"
+  "ANN002",  # Missing *args annotation
+  "ANN003",  # Missing **kwargs annotated.
+  "ANN401"  # 'Any' typehint
 ]
 fixable = ["ALL"]
 unfixable = []
@@ -91,7 +101,11 @@ dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 convention = "google"
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**/*.py" = []
+"tests/**/*.py" = [
+  "ANN201",  # Missing return type
+  "D100",  # Missing module docstring
+  "D102"  # Missing method docstring
+]
 
 [tool.ruff.format]
 quote-style = "double"

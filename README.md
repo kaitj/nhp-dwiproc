@@ -1,58 +1,56 @@
-<!-- prettier ignore -->
-<div align="center">
-<h1> NHP Diffusion Processing</br>(nhp-dwiproc) </h1>
+<h1> NHP Diffusion Processing (nhp-dwiproc) </h1>
 
-![Python3](https://img.shields.io/badge/python->=3.11-blue.svg)
+![Python3](https://img.shields.io/badge/python-3.11%20%7C%203.12-blue.svg)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 ![stability-stable](https://img.shields.io/badge/stability-experimental-orange.svg)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/kaitj/nhp-dwiproc/blob/main/LICENSE)
 [![Documentation](https://img.shields.io/badge/documentation-8CA1AF?logo=readthedocs&logoColor=fff)](https://kaitj.github.io/nhp-dwiproc)
 
-</div>
+`nhp-dwiproc` is a BIDS application, leveraging [NiWrap] to perform processing of
+diffusion MRI data. While primarily built to process non-human primate (NHP), it is a
+species-agnostic pipeline that can also be used to process other datasets (e.g. human).
+The application aims to provide robust and reproducible workflows across various
+processing stages (e.g. preprocessing, tractography, etc.) with compatibility across
+different acquisition protocols.
 
-`nhp-dwiproc` is an application, leveraging features of [NiWrap] and [Styx] to
-perform processing of non-human primate (NHP) diffusion datasets. The application
-aims to provide flexible, reproducible workflows for various stages of processing
-(e.g. preprocessing, tractography, etc) across various acquisition protocols.
+> [!Important]
+> Indexes generated with `v0.1.x` are incompatible with `v0.2.x+`, as well as latest
+> development versions.
 
 <!-- Generalized workflow figure to be included here -->
 
-## Requirements
+## Tools
 
-You will need the following pre-requisites:
+The following tools are used throughout the workflows.
 
-| Tool | Version |
-| :-: | :-: |
-| [Python] | 3.11+ |
-| [ANTs] | 2.5.3 |
-| [c3d] | 1.1.0 |
-| [FSL] | 6.0.5 |
-| [Greedy] | 1.0.1 |
-| [Mrtrix3] | 3.0.4 |
-| [Mrtrix3Tissue] | 5.2.8 |
+|      Tool       | Version |
+| :-------------: | :-----: |
+|    [Python]     |  3.11+  |
+|     [ANTs]      |  2.5.3  |
+|      [c3d]      |  1.1.0  |
+|      [FSL]      |  6.0.4  |
+|    [Greedy]     |  1.0.1  |
+|    [Mrtrix3]    |  3.0.4  |
+| [Mrtrix3Tissue] |  5.2.8  |
 
 > [!Note]
-> [Mrtrix3Tissue] is only required if processing single-shell data.
+>
+> - Neuroimaging tools (e.g. [ANTs]) only need to be installed if workflows are run
+>   without the use of containers
+> - If you are using Singularity or Apptainer, containers need to first be downloaded
+> - [Mrtrix3Tissue] is only required if processing single-shell data.
 
 ## Installation
 
-You can install `nhp-dwiproc` using `pip`:
+You can install the latest stable version of `nhp-dwiproc` using `pip`:
 
 ```sh
 pip install git+https://github.com/HumanBrainED/nhp-dwiproc
 ```
 
-For additional details, please consult the [documentation].
-
 ## Usage
 
-To get started, try using the boilerplate command:
-
-```sh
-nhp_dwiproc <bids_directory> <output_directory> <processing_stage>
-```
-
-To see all arguments, run:
+To get started, try the following command:
 
 ```sh
 nhp_dwiproc --help
@@ -60,8 +58,8 @@ nhp_dwiproc --help
 
 ## Documentation
 
-For detailed application information, including advanced usage, please visit our
-[documentation].
+For detailed application information, including advanced usage, please visit the
+[documentation page].
 
 ## Contributing
 
@@ -78,17 +76,19 @@ If you encounter any issues or have questions, please open an issue on the
 [issue tracker]
 
 <!-- Links -->
+
 [Contributions]: https://github.com/kaitj/nhp-dwiproc/blob/main/CONTRIBUTING.md
 [LICENSE]: https://github.com/kaitj/nhp-dwiproc/blob/main/LICENSE
-[Niwrap]: https://github.com/childmindresearch/niwrap
-[Styx]:https://github.com/childmindresearch/styx
-[documentation]: https://kaitj.github.io/nhp-dwiproc
+[Niwrap]: https://styx-api.github.io
+[documentation page]: https://kaitj.github.io/nhp-dwiproc
 [issue tracker]: https://github.com/kaitj/nhp-dwiproc/issues
+
 <!-- Software dependency links -->
+
 [Python]: https://www.python.org/
-[ANTs]:   https://github.com/ANTsX/ANTs
-[c3d]:    http://www.itksnap.org/pmwiki/pmwiki.php?n=Convert3D.Convert3D
-[FSL]:    https://fsl.fmrib.ox.ac.uk/fsl/docs/#/
+[ANTs]: https://github.com/ANTsX/ANTs
+[c3d]: http://www.itksnap.org/pmwiki/pmwiki.php?n=Convert3D.Convert3D
+[FSL]: https://fsl.fmrib.ox.ac.uk/fsl/docs/#/
 [Greedy]: https://sites.google.com/view/greedyreg/about
 [Mrtrix3]: https://www.mrtrix.org/
 [Mrtrix3Tissue]: https://3tissue.github.io/

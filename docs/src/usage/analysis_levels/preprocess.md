@@ -2,117 +2,132 @@
 
 `preprocess` level processing is a workflow intended to perform preprocessing from raw
 single-shell and multi-shell diffusion weighted data. Currently, the following types of
-acquisitions can be preprocessed:
+acquisition sampling schemes can be preprocessed:
 
-- Single-phase encoding direction (distortion correction method: `fsl`)
-- Opposite-phase encoding direction (distortion correction method: `fsl`).
+- Q-space sampling (single and opposite phase-encoding)
+- Cartesian sampling
 
-Preprocessing parameters can be updated or stages of preprocessing can be skipped entirely. Given
-the multitude of options, follow sub-sections will break down the different stages and associated
-options.
+Parameters for individual preprocessing steps can be updates via CLI or configuration
+file, or can be skipped entirely. Given the multitude of options, the following
+sub-sections will break down the different steps and associated options.
 
 ## Level-specific optional arguments
 
+### Query
+
+Query options for preprocessing:
+
+| Argument              | Config Key                     | Description                                                             |
+| :-------------------- | :----------------------------- | :---------------------------------------------------------------------- |
+| `--participant-query` | `preprocess.query.participant` | string query for 'subject' and 'session' - default: `None`              |
+| `--dwi-query`         | `preprocess.query.dwi`         | string query for DWI-associated BIDS entities - default: `None`         |
+| `--t1w-query`         | `preprocess.query.t1w`         | string query for T1w-associated BIDS entities - default: `None`         |
+| `--mask-query`        | `preprocess.query.mask`        | string query for custom mask-associated BIDS entities - default: `None` |
+| `--fmap-query`        | `preprocess.query.fmap`        | string query for fieldmap-associated BIDS entities - default: `None`    |
+
 ### Metadata
 
-If provide via command-line or configuration, metadata values will be used in the workflow. Otherwise, data will be assumed from appropriate keys in the JSON sidecar files:
+If provided via command-line or configuration, metadata values will be used in the
+workflow. Otherwise, data will be assumed from appropriate keys in the JSON sidecar
+files:
 
-| Argument                    | Config Key                                     | Description                                                                                                                                                        |
-|:----------------------------|:-----------------------------------------------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `--pe-dirs [direction ...]` | `participant.preprocess.metadata.pe_dirs`      | set phase encoding direction for dwi acquisition (space-separated for multiple acquisitions), overwriting value provided in metadata (JSON) file - default: `None` |
-| `--echo-spacing <spacing>`  | `participant.preprocess.metadata.echo_spacing` | estimated echo spacing to use for all dwi acquisitions, value in metadata (JSON) file will take priority - default: `None`                                       |
+| Argument                   | Config Key                         | Description                                                                                                                                                          |
+| :------------------------- | :--------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `--pe-dirs <direction>`    | `preprocess.metadata.pe_dirs`      | set phase encoding direction for dwi acquisition, overwriting value provided in metadata (JSON) file; invoke multiple times for multple directions - default: `None` |
+| `--echo-spacing <spacing>` | `preprocess.metadata.echo_spacing` | estimated echo spacing to use for all dwi acquisitions, value in metadata (JSON) file will take priority - default: `None`                                           |
 
 ### Denoise
 
-Denoising (based on random matrix theory) of the diffusion data is the first stage to be
-performed.
+Denoising of diffusion data based on random matrix theory.
 
-| Argument                          | Config Key                                 | Description                                                                                             |
-|:----------------------------------|:-------------------------------------------|:--------------------------------------------------------------------------------------------------------|
-| `--denoise-skip`                  | `participant.preprocess.denoise.skip`      | flag to skip denoising stage                                                                            |
-| `--denoise-extent [extent ...]`   | `participant.preprocess.denoise.extent`    | patch size of denoising filter - default: smallest isotropic patch size exceeding number of dwi volumes |
-| `--denoise-map`                   | `participant.preprocess.denoise.map`       | flag to output noise map (the estimated level `sigma` in the data)                                      |
-| `--denoise-estimator <estimator>` | `participant.preprocess.denoise.estimator` | noise level estimator; one of `Exp1`, `Exp2` - default: `Exp2`                                          |
+| Argument                          | Config Key                     | Description                                                    |
+| :-------------------------------- | :----------------------------- | :------------------------------------------------------------- |
+| `--denoise-skip`                  | `preprocess.denoise.skip`      | skip denoising step                                            |
+| `--denoise-map`                   | `preprocess.denoise.map_`      | output noise map (the estimated level `sigma` in the data)     |
+| `--denoise-estimator <estimator>` | `preprocess.denoise.estimator` | noise level estimator; one of `Exp1`, `Exp2` - default: `Exp2` |
 
 ### Unring
 
-Minimization of Gibbs ringing artifacts based on local subvoxel-shifts is performed next.
+Minimization of Gibbs ringing artifacts based on local subvoxel-shifts.
 
-| Argument                     | Config Key                              | Description                                                |
-|:-----------------------------|:----------------------------------------|:-----------------------------------------------------------|
-| `--unring-skip`              | `participant.preprocess.unring.skip`    | flag to skip unringing stage                               |
-| `--unring-axes [axes ...]`   | `participant.preprocess.unring.axes`    | space-separated slice axes; default: `0 1` (e.g. x-y)      |
-| `--unring-nshifts <nshifts>` | `participant.preprocess.unring.nshifts` | discretization of subpixel spacing (default: `20`)         |
-| `--unring-minw <minw>`       | `participant.preprocess.unring.minW`    | left border of window used for computation (default: `1`)  |
-| `--unring-maxw <maxw>`       | `participant.preprocess.unring.maxW`    | right border of window used for computation (default: `3`) |
+| Argument                   | Config Key               | Description                                           |
+| :------------------------- | :----------------------- | :---------------------------------------------------- |
+| `--unring-skip`            | `preprocess.unring.skip` | skip unringing step                                   |
+| `--unring-axes [axes ...]` | `preprocess.unring.axes` | space-separated slice axes; default: `0 1` (e.g. x-y) |
 
 ### Distortion correction
 
-The next stage (and usually the most time-consuming) is the distortion correction stage (susceptibility + eddy current). The current implementations include:
+The distortion correction step (susceptibility + eddy current) is usually the most
+time-consuming step. The current implementations include:
 
 - `topup` (`topup` + `eddy`)
+- `fieldmap` (`topup` + `eddy` using field maps found in the `fmap` directory)
+- `eddymotion`
+- `fugue`
 
-| Argument                      | Config Key                                | Description                                                                           |
-|:------------------------------|:------------------------------------------|:--------------------------------------------------------------------------------------|
-| `--undistort-method <method>` | `participant.preprocess.undistort.method` | distortion correction method; one of `topup`, `fieldmap`, `eddymotion` - default: `topup` |
-| `--eddy-skip`                 | `participant.preprocess.eddy.skip`        | flag to skip eddy correction stage                                                    |
+| Argument                      | Config Key                    | Description                                                                                                                                                 |     |
+| :---------------------------- | :---------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------- | --- |
+| `--undistort-method <method>` | `preprocess.undistort.method` | distortion correction method (one of `topup`, `fieldmap`, `eddymotion`, `fugue`); `topup` performed unless skipped or using `eddymotion` - default: `topup` |     |
 
-_`fieldmap` uses the `topup` method, but uses the opposite phase-encoding field map from the
-`fmap` bids directory instead for `topup._
+> [!Note]
+> Tool-specific parameters will have no effect if the tool is not invoked (e.g.
+> parameters for `eddymotion` will have no effect on `topup`)
 
 #### FSL
 
-| Argument                  | Config Key                              | Description                                                                                                                                                                    |
-|:--------------------------|:----------------------------------------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `--topup-skip`            | `participant.preprocess.topup.skip`     | flag to skip FSL `topup` stage                                                                                                                                                 |
-| `--topup-config <config>` | `participant.preprocess.topup.config`   | `topup` configuration file; custom-config can be provided as a path or choose from one of the following: `b02b0`, `b02b0_macaque`, `b02b0_marmoset` - default: `b02b0_macaque` |
-| `--eddy-slm <model>`      | `participant.preprocess.eddy.slm`       | model for how diffusion gradients generate eddy currents; one of `None`, `linear`, `quadratic` - default: `None`                                                               |
-| `--eddy-cnr-maps`         | `participant.preprocess.eddy.cnr_maps`  | flag to generate cnr maps                                                                                                                                                      |
-| `--eddy-repol`            | `participant.preprocess.eddy.repol`     | flag to replace outliers                                                                                                                                                       |
-| `--eddy-residuals`        | `participant.preprocess.eddy.residuals` | flag to generate 4d residual volume                                                                                                                                            |
-| `--eddy-data-is-shelled`  | `participant.preprocess.eddy.shelled`   | flag to skip eddy checking that data is shelled                                                                                                                                |
+| Argument                  | Config Key                  | Description                                                                                                                                                                    |
+| :------------------------ | :-------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `--topup-skip`            | `preprocess.topup.skip`     | skip `topup` step                                                                                                                                                              |
+| `--topup-config <method>` | `preprocess.topup.config`   | `topup` configuration file; custom-config can be provided as a path or choose from one of the following: `b02b0`, `b02b0_macaque`, `b02b0_marmoset` - default: `b02b0_macaque` |
+| `--eddy-skip`             | `preprocess.eddy.skip`      | skip `eddy` step                                                                                                                                                               |
+| `--eddy-slm <model>`      | `preprocess.eddy.slm`       | diffusion gradient model for generating eddy currents; one of `None`, `linear`, `quadratic` - default: `None`                                                                  |
+| `--eddy-cnr`              | `preprocess.eddy.cnr_maps`  | generate cnr maps                                                                                                                                                              |
+| `--eddy-repol`            | `preprocess.eddy.repol`     | replace outliers                                                                                                                                                               |
+| `--eddy-residuals`        | `preprocess.eddy.residuals` | generate 4D residual volume                                                                                                                                                    |
+| `--eddy-shelled`          | `preprocess.eddy.shelled`   | indicate diffusion data is shelled, skipping check                                                                                                                             |
 
 > [!NOTE]
-> FSL's eddy expects the readout time (echo spacing * (number of phase encodes - 1)) to
+> FSL's eddy expects the readout time (echo spacing \* (number of phase encodes - 1)) to
 > be within 0.01 and 0.2. If outside of this range, the readout time will be doubled or
 > halved accordingly with a warning message. To avoid this, one can also manually
 > provide an echo spacing value.
 
 #### Eddaymotion
 
-| Argument             | Config Key                                | Description                                                  |
-|:---------------------|:------------------------------------------|:-------------------------------------------------------------|
-| `--eddymotion-iters` | `participant.preprocess.eddymotion.iters` | number of iterations to repeat for eddymotion - default: `2` |
+| Argument             | Config Key                    | Description                                                    |
+| :------------------- | :---------------------------- | :------------------------------------------------------------- |
+| `--eddymotion-skip`  | `preprocess.eddymotion.skip`  | skip `eddymotion` step                                         |
+| `--eddymotion-iters` | `preprocess.eddymotion.iters` | number of iterations to repeat for `eddymotion` - default: `2` |
 
 #### Fugue
 
-> [!NOTE]
-> `FUGUE` is included as an option to perform distortion correction
-> on legacy datasets acquired with a single phase-encode direction and
-> a fieldmap. Original / provided echo-spacing value will be used in this step.
+> [!NOTE] > `FUGUE` is included as an option to perform distortion correction on legacy
+> datasets acquired with a single phase-encode direction and a fieldmap. Original /
+> provided echo-spacing value will be used in this step.
 
-| Argument             | Config Key                                | Description                                                  |
-|:---------------------|:------------------------------------------|:-------------------------------------------------------------|
-| `--fugue-smooth` | `participant.preprocess.fugue.smooth` | 3D gaussian smoothing sigma (in mm) to be applied for FUGUE - default: `None` |
+| Argument         | Config Key                | Description                         |
+| :--------------- | :------------------------ | :---------------------------------- |
+| `--fugue-skip`   | `preprocess.fugue.skip`   | skip fugue step                     |
+| `--fugue-smooth` | `preprocess.fugue.smooth` | 3D Gaussian smoothing sigma (in mm) |
 
 ### Biascorrection
 
-The last step prior to registration is a B1 field inhomogeneity correction.
+B1 field inhomogeneity correction prior to registration (if performed)
 
-| Argument                           | Config Key                                   | Description                                               |
-|:-----------------------------------|:---------------------------------------------|:----------------------------------------------------------|
-| `--biascorrect-spacing <spacing>`  | `participant.preprocess.biascorrect.spacing` | initial mesh resolution in mm - default: `100.00`         |
-| `--biascorrect-iters <iterations>` | `participant.preprocess.biascorrect.iters`   | number of iterations - default: `1000`                    |
-| `--biascorrect-shrink <factor>`    | `participant.preprocess.biascorrect.shrink`  | shrink factor applied to spatial dimension - default: `4` |
+| Argument                           | Config Key                       | Description                                               |
+| :--------------------------------- | :------------------------------- | :-------------------------------------------------------- |
+| `--biascorrect-skip`               | `preproess.biascorrect.skip`     | skip biascorrection step                                  |
+| `--biascorrect-spacing <spacing>`  | `preprocess.biascorrect.spacing` | initial mesh resolution in mm - default: `100.00`         |
+| `--biascorrect-iters <iterations>` | `preprocess.biascorrect.iters`   | number of iterations - default: `1000`                    |
+| `--biascorrect-shrink <factor>`    | `preprocess.biascorrect.shrink`  | shrink factor applied to spatial dimension - default: `4` |
 
 ### Registration
 
-For downstream analysis, the final stage of the preprocessing performs a --rigid
-(6 degrees-of-freedom)-- alignment with the anatomical T1w using `Greedy`.
+Rigid (6 degrees-of-freedom) alignment with the anatomical T1w using `Greedy`.
 
-| Argument                        | Config Key                               | Description                                                                                    |
-|:--------------------------------|:-----------------------------------------|:-----------------------------------------------------------------------------------------------|
-| `--register-skip`               | `participant.preprocess.register.skip`   | skip registration to participant structural t1w                                                |
-| `--register-metric <metric>`    | `participant.preprocess.register.metric` | similarity metric to use for registration; one of `SSD`, `MI`, `NMI`, `MAHAL` - default: `NMI` |
-| `--register-iters <iterations>` | `participant.preprocess.register.iters`  | number of iterations per level of multi-res - default: `50x50`                                 |
-| `--register-init-method <method>` | `participant.preprocess.register.init` | affine initialization method; one of `identity` (NIFTI Header), `image-centers` (matching image centers) - default: `identity` |
+| Argument                        | Config Key                   | Description                                                                                                             |
+| :------------------------------ | :--------------------------- | :---------------------------------------------------------------------------------------------------------------------- |
+| `--register-skip`               | `preprocess.register.skip`   | skip registration to participant anatomical                                                                             |
+| `--register-metric <metric>`    | `preprocess.register.metric` | similarity metric to use for registration; one of `SSD`, `MI`, `NMI`, `MAHAL` - default: `NMI`                          |
+| `--register-iters <iterations>` | `preprocess.register.iters`  | number of iterations per level of multi-res - default: `50x50`                                                          |
+| `--register-init <method>`      | `preprocess.register.init`   | initialization method; one of `identity` (NIFTI Header), `image-centers` (matching image centers) - default: `identity` |
