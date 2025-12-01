@@ -12,5 +12,6 @@ nhp_dwiproc <bids_dir> <output_dir> connectivity \
   --surf-query "hemi=='L'
 ```
 
-> [!NOTE] > `hemi` and `label` are associated with the entities, while the tract
+> [!NOTE]
+> `hemi` and `label` are associated with the entities, while the tract
 > extracted in the previous example is "tract" of the left hemisphere.

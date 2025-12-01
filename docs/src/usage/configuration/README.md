@@ -60,7 +60,7 @@ preprocess analysis level from the CLI directly:
 nhp_dwiproc bids_dir output_dir preprocess \
   --index-path /path/to/.index.b2t \
   --runner singularity \
-  --runner-images "{'mcin/docker-fsl:latest': 'path/to/fsl/singularity/container', 'mrtrix3/mrtrix3:3.0.4': 'path/to/mrtrix/singularity/container'}" \
+  --runner-images "{'mcin/docker-fsl:latest': 'docker://url/to/fsl/container', 'mrtrix3/mrtrix3:3.0.4': 'docker://url/to/mrtrix3/container'}" \
   --graph \
   --b0_thresh 10 \
   --participant-query "datatype == 'anat' & run == 1 & suffix == 'T1w' & ext == '.nii.gz'" \
