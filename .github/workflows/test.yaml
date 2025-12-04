@@ -13,7 +13,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - name: Setup uv
-        uses: astral-sh/setup-uv@v6
+        uses: astral-sh/setup-uv@v7
       - name: Run tests
         run: >
           uv run --frozen pytest \
@@ -33,7 +33,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - name: Setup uv
-        uses: astral-sh/setup-uv@v6
+        uses: astral-sh/setup-uv@v7
       - name: Ruff format
         run: uv run ruff format --check src
 
@@ -45,6 +45,6 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - name: Setup uv
-        uses: astral-sh/setup-uv@v6
+        uses: astral-sh/setup-uv@v7
 
       - run: uv run mypy src
