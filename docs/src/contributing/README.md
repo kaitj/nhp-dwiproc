@@ -4,9 +4,9 @@
 
 `nhp-dwiproc` relies on a number of internal and external dependencies in order to
 engineer a robust and reproducible workflow. Python package dependencies are managed
-with `uv` - installation instructions can be found [here](https://astral.sh/uv). There
-are also a number of external neuroimaging tool dependencies, including `ANTs`,
-`mrtrix`, `c3d`, and others listed in the [introduction](../index.md).
+with [`uv`](https://astral.sh/uv). There are also a number of external neuroimaging tool
+dependencies, including `ANTs`, `mrtrix`, `c3d`, and others listed in the
+[introduction](../index.md).
 
 ## Setting up the development environment
 
@@ -15,14 +15,14 @@ Clone the repository and install the python dependencies using `uv`:
 <!-- langtabs-start -->
 
 ```bash
-git clone https://github.com/kaitj/nhp-dwiproc nhp-dwiproc
+git clone https://github.com/humanbrained/nhp-dwiproc nhp-dwiproc
 cd nhp-dwiproc
 uv sync
 ```
 
 <!-- langtabs-end -->
 
-Install external dependencies or make use of `styx`'s container runners (see
+Install external dependencies or make use of one of the container runners (see
 [Runners](../runners/) for details).
 
 You can then run `nhp-dwiproc` with the following command:
@@ -37,8 +37,8 @@ uv run nhp_dwiproc
 
 ## Code formatting
 
-`nhp-dwiproc` uses `pre-commit` and Github action workflows for linting and formatting
-the codebase, The following packages are used:
+`nhp-dwiproc` uses `pre-commit` and Github action workflows to ensure a consistent
+codebase. The following packages are used for linting and formatting:
 
 - `ruff` - formatting and linting
 - `mypy` - type checking
@@ -94,7 +94,7 @@ git push origin feature/your-feature-name
 
 > [!IMPORTANT]
 > Contributed code will be licensed under the same [license](LICENSE) as the rest of
-> the repository--. If you did not write the code yourself, you must ensure the existing
+> the repository. If you did not write the code yourself, you must ensure the existing
 > license is compatible and include the license information in the contributed files,
 > or obtain permission from the original author to relicense the contributed code.
 

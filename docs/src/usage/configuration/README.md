@@ -5,11 +5,10 @@ provides the ability to pass a YAML-formatted configuration file (see the `Confi
 column in the arguments tables). If an optional argument is not provided, the default
 value is assumed.
 
-> [!TIP]
-> It is recommended to put static / minimally changing parameters in the config file.
-
 > [!IMPORTANT]
-> Configuration parameters are overwritten, unless otherwise noted, by parameters passed in at the command line.
+> Configuration parameters are overwritten, unless otherwise specificed, by parameters
+> passed in at the command line. It is recommended to put static / minimally changing
+> parameters in the config file.
 
 Below is one example of the configuration file:
 
@@ -28,8 +27,8 @@ opt:
 # Preprocess arguments
 preprocess:
   query:
-    t1w: "datatype == 'anat' & run == 1 & suffix == 'T1w' & ext == '.nii.gz'"
-    mask: "datatype == 'anat' & run == 1 & desc == 'T1w' & suffix == 'mask' & ext == '.nii.gz'"
+    t1w: "datatype = 'anat' AND run = 1 AND suffix = 'T1w' AND ext = '.nii.gz'"
+    mask: "datatype = 'anat' AND run = 1 AND desc = 'T1w' AND suffix = 'mask' AND ext = '.nii.gz'"
   undistort:
     opts:
       topup:
@@ -63,8 +62,8 @@ nhp_dwiproc bids_dir output_dir preprocess \
   --runner-images "{'mcin/docker-fsl:latest': 'docker://url/to/fsl/container', 'mrtrix3/mrtrix3:3.0.4': 'docker://url/to/mrtrix3/container'}" \
   --graph \
   --b0_thresh 10 \
-  --participant-query "datatype == 'anat' & run == 1 & suffix == 'T1w' & ext == '.nii.gz'" \
-  --mask-query "datatype == 'anat' & run == 1 & desc == 'T1w' & suffix == 'mask' & ext == '.nii.gz'" \
+  --participant-query "datatype = 'anat' AND run = 1 AND suffix = 'T1w' AND ext = '.nii.gz'" \
+  --mask-query "datatype = 'anat' AND run == 1 AND desc = 'T1w' AND suffix = 'mask' AND ext = '.nii.gz'" \
   --topup-config b02b0_macaque \
   --eddy-repol \
   --eddy-shelled

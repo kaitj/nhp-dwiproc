@@ -1,9 +1,9 @@
-# Reconstruction level
+# Reconstruction
 
-The `reconstruction` level processing is intended to perform modelling using DTI and
-FOD models, as well as generate tractography from whole-brain, preprocessed data.
+The `reconstruction` stage models preprocessed diffusion data using DTI and
+FOD models. Whole-brain tractography is also generated.
 
-## Level-specific optional arguments
+## Stage-specific optional arguments
 
 ### Query
 
@@ -29,23 +29,18 @@ Query options for preprocessing:
 | `--max-length <max-length>`   | `reconstruction.tractography.max_length`   | maximum length (in mm) for a track (default: 100 x voxel size)                                                      |
 | `--tractography-method`       | `reconstruction.tractography.method`       | tractography seeding method; one of `wm`, `act` - default: `wm`                                                     |
 
-</br>
-
 > [!NOTE]
 >
 > - If using `--single-shell`, the `ss3t_csd_beta1` algorithm from `Mrtrix3Tissue` is
 >   used to estimate fiber orientation distribution maps.
-> - Diffusion tensor fitting is performed two stages, fitting to the log-signal first
->   using weight least squares (WLS) and an additional iteration of WLS fitting
 
-> [!IMPORTANT]
-> If the contrast between WM From GM is extremely poor, the single-shell method may
-> throw an error when attempting to normalize the tissue. In these situations, the
-> application will automatically revert to using the same algorithm as multi-shell,
-> but using only `WM` and `CSF` FODs for normalization to provide some compensation
-> for partial volume effects.
+> [!WARNING]
+> Extremely poor contrast between WM and GM may result in an error being thrown during
+> tissue normalization if using the single-shell method. If this occurs, The workflow
+> will revert to using the multi-shell method, using only the WM and CSF FODs for
+> normalization to provide some compensation for partial volume effects.
 
-### Anatomically constrained tractography optional arguments
+#### Anatomically constrained
 
 | Argument                       | Config Key                                  | Description                                                                               |
 | :----------------------------- | :------------------------------------------ | :---------------------------------------------------------------------------------------- |

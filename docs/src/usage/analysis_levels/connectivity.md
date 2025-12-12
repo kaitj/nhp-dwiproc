@@ -1,11 +1,10 @@
-# Connectivity level
+# Connectivity
 
-`connectivity` level is intended to generate useful output files that may be directly or
-indirectly useful for analysis, such as structural connectivity matrices (providing
-information about the connectivity between pairs of regions from a parcellation), or
-identify individual tracts using regions of interest.
+The `connectivity` stage is intended to produce output files useful for analysis,
+such as connectivity matrices of the structural connectome, or identifying individual
+tracts of interest.
 
-## Level-specific optional arguments
+## Stage-specific optional arguments
 
 ### Query
 
@@ -39,7 +38,7 @@ mapped to the surface.
 
 > [!NOTE]
 >
-> - Tracts are only mapped if an inflated surface can be found!
+> - Tracts are mapped to an inflated surface, if one can be found.
 > - Non-lateralized tracts need to manually mapped as there is no associated `hemi`
 >   entity.
 
@@ -49,8 +48,8 @@ mapped to the surface.
 | `--tract-query` | `connectivity.tract_query` | string query for bids entities associated with tract (subject & session is assumed); associated ROIs should be part of dataset descriptions that contain 'include', 'exclude', 'stop' keywords for respective ROIs.    |
 | `--surf-query`  | `connectivity.surf_query`  | string query for bids entities associated with surfaces to perform ribbon constrained mapping of streamlines to (subject & session is assumed); surface type (e.g. white, pial, etc.) will be automatically identified |
 
-> [!NOTE]
-> Either atlas or ROIs should be provided. The workflow will throw an error if both
+> [!TIP]
+> Either an atlas or ROIs should be provided. The workflow will throw an error if both
 > are provided.
 
 An surface mapping example can be found [here](../advanced/tract.md), under the

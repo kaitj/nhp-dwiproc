@@ -19,7 +19,7 @@ uv tool install git+https://github.com/HumanBrainEd/nhp-dwiproc
 
 <!-- langtabs-end -->
 
-If installed properly, you should be able to run the following in your terminal:
+If properly installed, the following command can be called in the terminal:
 
 ```bash
 nhp_dwiproc --help

@@ -1,7 +1,7 @@
 # Index
 
-`index` level processing is a simple workflow intended to index the input directory for
-`bids2table`.
+The `index` stage is a simple workflow intended to create a dataset index of the input
+directory using [`bids2table`](https://github.com/childmindresearch/bids2table).
 
     dataset_root
     ├── bids
@@ -25,7 +25,7 @@
 >   given the above directory structure, the index level would be preferably run at the
 >   `dataset_root` of the input
 
-## Level-specific optional arguments
+## Stage-specific optional arguments
 
 | Argument      | Config Key        | Description                                           |
 | :------------ | :---------------- | :---------------------------------------------------- |
