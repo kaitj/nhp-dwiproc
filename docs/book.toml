@@ -5,8 +5,6 @@ description = "This book provides documentation for nhp-dwiproc."
 language = "en"
 src = "src"
 
-[preprocessor.alerts]
-
 [preprocessor.langtabs]
 command = "mdbook-langtabs"
 
