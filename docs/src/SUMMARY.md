@@ -7,7 +7,7 @@
 - [Installation](./installation/README.md)
 - [Usage](./usage/README.md)
   - [CLI](./usage/cli.md)
-    - [Analysis levels](./usage/analysis_levels/main.md)
+    - [Analysis stages](./usage/analysis_levels/README.md)
       - [Index](./usage/analysis_levels/index_level.md)
       - [Preprocess](./usage/analysis_levels/preprocess.md)
       - [Reconstruction](./usage/analysis_levels/reconstruction.md)

@@ -1,4 +1,4 @@
-# Analysis levels
+# Analysis stages
 
-The following pages provide details regarding the intended use of each analysis-level
-and its associated optional arguments.
+The following pages provide details regarding the intended use of each analysis stage
+and its associated arguments.

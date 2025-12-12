@@ -13,7 +13,9 @@ The application aims to provide robust and reproducible workflows across various
 processing stages (e.g. preprocessing, tractography, etc.) with compatibility across
 different acquisition protocols.
 
-> [!Important]
+<!-- Remove when v1.x / v0.3.x release -->
+
+> [!WARNING]
 > Indexes generated with `v0.1.x` are incompatible with `v0.2.x+`, as well as latest
 > development versions.
 
@@ -21,11 +23,10 @@ different acquisition protocols.
 
 ## Tools
 
-The following tools are used throughout the workflows.
+The following non-Python neuroimaging tools are used throughout the workflows.
 
 |      Tool       | Version |
 | :-------------: | :-----: |
-|    [Python]     |  3.11+  |
 |     [ANTs]      |  2.5.3  |
 |      [c3d]      |  1.1.0  |
 |      [FSL]      |  6.0.4  |
@@ -35,17 +36,14 @@ The following tools are used throughout the workflows.
 
 > [!Note]
 >
-> - Neuroimaging tools (e.g. [ANTs]) only need to be installed if workflows are run
->   without the use of containers
-> - If you are using Singularity or Apptainer, containers need to first be downloaded
-> - [Mrtrix3Tissue] is only required if processing single-shell data.
+> - [Mrtrix3Tissue] is only required for processing single-shell data.
 
 ## Installation
 
 You can install the latest stable version of `nhp-dwiproc` using `pip`:
 
 ```sh
-pip install git+https://github.com/HumanBrainED/nhp-dwiproc
+pip install git+https://github.com/HumanBrainED/nhp-dwiproc@v0.2.0
 ```
 
 ## Usage

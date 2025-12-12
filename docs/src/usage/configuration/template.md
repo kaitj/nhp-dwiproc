@@ -2,9 +2,9 @@
 
 > [!NOTE]
 >
-> - This template configuration contains all available options with default values. For
->   use, not all configurations need to be provided (see example on [configuration](./)
->   page)
+> - This template configuration contains all available options shown with default
+>   values. Not all configuration parameters need to be provided (see example on
+>   [configuration](./) page)
 
 ```yaml
 # Optional parameters

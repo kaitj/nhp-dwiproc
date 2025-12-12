@@ -1,17 +1,15 @@
-# Preprocess level
+# Preprocess
 
-`preprocess` level processing is a workflow intended to perform preprocessing from raw
-single-shell and multi-shell diffusion weighted data. Currently, the following types of
-acquisition sampling schemes can be preprocessed:
+The `preprocess` stage workflow is intended to perform preprocessing from raw,
+single- or multi-shell diffusion weighted data. Currently, the following types of
+acquisition sampling schemes are supported:
 
-- Q-space sampling (single and opposite phase-encoding)
+- Q-space sampling
+  - Single phase-encoding
+  - Opposite phase-encoding
 - Cartesian sampling
 
-Parameters for individual preprocessing steps can be updates via CLI or configuration
-file, or can be skipped entirely. Given the multitude of options, the following
-sub-sections will break down the different steps and associated options.
-
-## Level-specific optional arguments
+## Stage-specific optional arguments
 
 ### Query
 
@@ -58,7 +56,8 @@ Minimization of Gibbs ringing artifacts based on local subvoxel-shifts.
 ### Distortion correction
 
 The distortion correction step (susceptibility + eddy current) is usually the most
-time-consuming step. The current implementations include:
+time-consuming step of the stage. The current implementations supports the following
+correction options:
 
 - `topup` (`topup` + `eddy`)
 - `fieldmap` (`topup` + `eddy` using field maps found in the `fmap` directory)
@@ -86,9 +85,9 @@ time-consuming step. The current implementations include:
 | `--eddy-residuals`        | `preprocess.eddy.residuals` | generate 4D residual volume                                                                                                                                                    |
 | `--eddy-shelled`          | `preprocess.eddy.shelled`   | indicate diffusion data is shelled, skipping check                                                                                                                             |
 
-> [!NOTE]
-> FSL's eddy expects the readout time (echo spacing \* (number of phase encodes - 1)) to
-> be within 0.01 and 0.2. If outside of this range, the readout time will be doubled or
+> [!TIP]
+> FSL's `eddy` expects the readout time (echo spacing \* (number of phase encodes - 1)) to
+> be between 0.01 and 0.2. If outside of this range, the readout time will be doubled or
 > halved accordingly with a warning message. To avoid this, one can also manually
 > provide an echo spacing value.
 
@@ -102,8 +101,7 @@ time-consuming step. The current implementations include:
 #### Fugue
 
 > [!NOTE] > `FUGUE` is included as an option to perform distortion correction on legacy
-> datasets acquired with a single phase-encode direction and a fieldmap. Original /
-> provided echo-spacing value will be used in this step.
+> datasets acquired with a single phase-encode direction and a fieldmap.
 
 | Argument         | Config Key                | Description                         |
 | :--------------- | :------------------------ | :---------------------------------- |
