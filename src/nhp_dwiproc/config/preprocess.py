@@ -3,6 +3,7 @@
 from collections.abc import Sequence
 from dataclasses import dataclass, field
 from enum import Enum
+from typing import Literal
 
 from nhp_dwiproc.config.shared import BaseConfig, QueryConfig
 
@@ -55,7 +56,7 @@ class EddySLMModel(str, Enum):
 class EddyConfig(BaseConfig):
     """FSL's Eddy configuration."""
 
-    slm: str | None = None
+    slm: Literal["none", "linear", "quadratic"] | None = None
     cnr: bool = False
     repol: bool = False
     residuals: bool = False

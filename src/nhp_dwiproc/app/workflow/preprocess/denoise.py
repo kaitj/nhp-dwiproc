@@ -15,7 +15,7 @@ def denoise(
     nii: Path,
     bval: Path,
     denoise_opts: DenoiseConfig | None = DenoiseConfig(),
-    bids: partial[str] = partial(niwrap_helper.bids_path, sub="subject"),
+    bids: partial = partial(niwrap_helper.bids_path, sub="subject"),
     output_fpath: Path = Path.cwd(),
     **kwargs,
 ) -> OutputPathType:
