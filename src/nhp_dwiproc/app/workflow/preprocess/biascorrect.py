@@ -14,7 +14,7 @@ def biascorrect(
     bval: Path,
     bvec: Path,
     biascorrect_opts: BiascorrectConfig = BiascorrectConfig(),
-    bids: partial[str] = partial(niwrap_helper.bids_path, sub="subject"),
+    bids: partial = partial(niwrap_helper.bids_path, sub="subject"),
     output_dir: Path = Path.cwd(),
 ) -> tuple[Path, ...]:
     """Perform biascorrection steps using the ANTs algorithm.

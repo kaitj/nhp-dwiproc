@@ -38,7 +38,7 @@ def compute_fods(
     single_shell: bool,
     shells: list[int | float] | None,
     lmax: list[int] | None,
-    bids: partial[str] = partial(bids_path, sub="subject"),
+    bids: partial = partial(bids_path, sub="subject"),
     **kwargs,
 ) -> mrtrix.MtnormaliseOutputs:
     """Subworkflow for processing fibre orientation distribution maps.
@@ -110,13 +110,13 @@ def compute_fods(
             out_csf=bids_dwi2response(param="csf"),
         ),
         mask=mask,
-        shells=shells,
+        shells=shells,  # ty: ignore[invalid-argument-type]; niwrap wrong type
         lmax=lmax,
     )
 
     try:
         response_odf = _create_response_odf(
-            response=dwi2response.algorithm,
+            response=dwi2response.algorithm,  # ty: ignore[invalid-argument-type]; niwrap type hint
             bids=bids_fod,
             single_shell=single_shell,
         )
@@ -144,7 +144,7 @@ def compute_dti(
     bvec: Path,
     bval: Path,
     mask: Path,
-    bids: partial[str] = partial(bids_path, sub="subject"),
+    bids: partial = partial(bids_path, sub="subject"),
     output_fpath: Path = Path.cwd(),
     **kwargs,
 ) -> None:

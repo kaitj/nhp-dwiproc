@@ -13,7 +13,7 @@ from nhp_dwiproc.config.preprocess import UnringConfig
 def degibbs(
     dwi: Path,
     unring_opts: UnringConfig | None = UnringConfig(),
-    bids: partial[str] = partial(niwrap_helper.bids_path, sub="subject"),
+    bids: partial = partial(niwrap_helper.bids_path, sub="subject"),
     **kwargs,
 ) -> Path:
     """Minimize Gibbs ringing artifacts.

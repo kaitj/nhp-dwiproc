@@ -17,7 +17,7 @@ def run_apply_topup(
     pe_data: list[np.ndarray],
     pe_dir: list[str],
     topup_opts: TopupConfig | None = TopupConfig(),
-    bids: partial[str] = partial(bids_path, sub="subject"),
+    bids: partial = partial(bids_path, sub="subject"),
     output_dir: StrPath = Path.cwd(),
     **kwargs,
 ) -> tuple[Path | None, list[str] | None, fsl.TopupOutputs | None]:

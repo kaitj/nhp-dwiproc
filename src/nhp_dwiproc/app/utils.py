@@ -5,9 +5,9 @@ import re
 from datetime import datetime
 from pathlib import Path
 
-from niwrap import GraphRunner
+from niwrap import GraphRunner, Runner
 from niwrap_helper import setup_styx
-from niwrap_helper.types import BaseRunner, DockerRunner, SingularityRunner
+from niwrap_helper.types import DockerRunner, SingularityRunner
 
 from nhp_dwiproc import config as cfg
 from nhp_dwiproc.app import resources
@@ -15,7 +15,7 @@ from nhp_dwiproc.app import resources
 
 def initialize(
     output_dir: Path, global_opts: cfg.GlobalOptsConfig
-) -> tuple[logging.Logger, GraphRunner | BaseRunner]:
+) -> tuple[logging.Logger, GraphRunner | Runner]:
     """Initialize application runners.
 
     Args:
@@ -53,7 +53,7 @@ def initialize(
 
 
 def generate_mrtrix_conf(
-    global_opts: cfg.GlobalOptsConfig, runner: GraphRunner | BaseRunner
+    global_opts: cfg.GlobalOptsConfig, runner: GraphRunner | Runner
 ) -> None:
     """Write temporary mrtrix configuration file.
 
@@ -65,7 +65,7 @@ def generate_mrtrix_conf(
         TypeError: If runner type does not match expected.
     """
     runner_base = runner.base if isinstance(runner, GraphRunner) else runner
-    cfg_path = runner_base.data_dir / f"{runner_base.uid}_cfgs" / ".mrtrix.conf"
+    cfg_path = runner_base.data_dir / f"{runner_base.uid}_cfgs" / ".mrtrix.conf"  # ty: ignore[unresolved-attribute]
     cfg_path.parent.mkdir(parents=True, exist_ok=True)
 
     with cfg_path.open("w") as f:
@@ -153,6 +153,8 @@ def validate_opts(
                 topup_cfg = str(stage_opts.undistort.opts.topup.config).rstrip(".cnf")
                 stage_opts.undistort.opts.topup.config = f"{topup_cfg}.cnf"
             else:
+                if resources.__file__ is None:
+                    raise ModuleNotFoundError("'nhp_dwiproc.app.resources' not found")
                 stage_opts.undistort.opts.topup.config = str(
                     Path(resources.__file__).parent
                     / "topup"

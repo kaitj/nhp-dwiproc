@@ -22,7 +22,7 @@ def run_eddy(
     indices: list[str] | None,
     topup: fsl.TopupOutputs | None,
     eddy_opts: EddyConfig | None = EddyConfig(),
-    bids: partial[str] = partial(niwrap_helper.bids_path, sub="subject"),
+    bids: partial = partial(niwrap_helper.bids_path, sub="subject"),
     working_dir: Path = Path.cwd() / "tmp",
     output_dir: Path = Path.cwd(),
     **kwargs,

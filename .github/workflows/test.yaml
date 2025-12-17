@@ -5,7 +5,6 @@ on:
     branches:
       - main
       - dev
-  pull_request:
 
 jobs:
   unit:
@@ -28,7 +27,7 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           verbose: true
-  ruff:
+  check_format:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -40,11 +39,5 @@ jobs:
       - name: Ruff check
         run: uv run ruff check src
 
-  mypy:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-      - name: Setup uv
-        uses: astral-sh/setup-uv@v7
-
-      - run: uv run mypy src
+      - name: Ty check
+        run: uv run ty check src

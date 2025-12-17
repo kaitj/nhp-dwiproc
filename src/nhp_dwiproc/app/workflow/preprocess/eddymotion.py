@@ -18,7 +18,7 @@ def eddymotion(
     bval: list[Path],
     eddymotion_opts: EddyMotionConfig | None = EddyMotionConfig(),
     seed: int = 42,
-    bids: partial[str] = partial(niwrap_helper.bids_path, sub="subject"),
+    bids: partial = partial(niwrap_helper.bids_path, sub="subject"),
     output_dir: Path = Path.cwd() / "tmp",
     threads: int = 1,
     **kwargs,
