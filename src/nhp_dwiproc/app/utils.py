@@ -154,7 +154,7 @@ def validate_opts(
                 stage_opts.undistort.opts.topup.config = f"{topup_cfg}.cnf"
             else:
                 if resources.__file__ is None:
-                    raise ModuleNotFoundError("'nhp_dwiproc.app.resources' not found'")
+                    raise ModuleNotFoundError("'nhp_dwiproc.app.resources' not found")
                 stage_opts.undistort.opts.topup.config = str(
                     Path(resources.__file__).parent
                     / "topup"
