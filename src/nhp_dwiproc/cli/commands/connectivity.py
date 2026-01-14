@@ -75,6 +75,12 @@ def command(
         help="String query for 'subject' & 'session'. [default: "
         f"{cfg_.QueryConfig.participant}]",
     ),
+    query_dwi: str | None = typer.Option(
+        None,
+        "--dwi-query",
+        help="String query for DWI-associated BIDS entities. [default: "
+        f"{cfg_.QueryConfig.dwi}]",
+    ),
     conn_method: cfg_.connectivity.ConnectivityMethod | None = typer.Option(
         None,
         "--method",
@@ -128,8 +134,8 @@ def command(
         ctx_params=ctx.params, cfg_file=opts_config
     )
     # Stage specific options
-    conn_map = mapper("conn_", "opts.")
-    conn_map.update({"conn_method": "method", "query_participant": "query.participant"})
+    conn_map = {**mapper("query_", "query."), **mapper("conn_", "opts.")}
+    conn_map.update({"opts.method": "method"})
     method_map: dict[str, dict[object, type]] = {
         "method": {
             "connectome": cfg_.connectivity.ConnectomeConfig,
