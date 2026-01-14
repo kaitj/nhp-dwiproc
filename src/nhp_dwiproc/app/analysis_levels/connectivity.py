@@ -58,7 +58,7 @@ def run(
     groupby_keys = io.valid_groupby(df=dwi_df, keys=["sub", "ses", "run", "space"])
     for group_vals, group in tqdm(
         dwi_df.filter(
-            (pl.col("suffix") == "dwi") & (pl.col("ext").is_in([".nii", ".nii.gz"]))
+            (pl.col("suffix") == "tractography") & (pl.col("ext") == ".tck")
         ).group_by(groupby_keys)
     ):
         for row in group.iter_rows(named=True):
