@@ -1,6 +1,7 @@
 import logging
 import tempfile
 from pathlib import Path
+from unittest.mock import patch
 
 import pytest
 from niwrap import DockerRunner, GraphRunner, LocalRunner, SingularityRunner
@@ -235,3 +236,8 @@ class TestValidatePreprocessOpts:
                     )
                 ),
             )
+
+    def test_missing_resource_module(monkeypatch):
+        with patch("nhp_dwiproc.app.resources.__file__", None, create=True):
+            with pytest.raises(ModuleNotFoundError, match=r"not found"):
+                utils.validate_opts(stage="preprocess", stage_opts=PreprocessConfig())

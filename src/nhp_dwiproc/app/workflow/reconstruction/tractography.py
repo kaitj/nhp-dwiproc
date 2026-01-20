@@ -2,6 +2,7 @@
 
 from functools import partial
 from pathlib import Path
+from typing import Any, Mapping, cast
 
 from niwrap import mrtrix
 from niwrap_helper import bids_path, save
@@ -17,7 +18,7 @@ def generate_tractography(
     maxlength: float | None,
     backtrack: bool,
     nocrop_gmwmi: bool,
-    bids: partial[str] = partial(bids_path, sub="subject"),
+    bids: partial = partial(bids_path, sub="subject"),
     output_fpath: Path = Path.cwd(),
 ) -> None:
     """Sub-workflow for tractography processing.
@@ -53,7 +54,8 @@ def generate_tractography(
                 "crop_at_gmwmi": not nocrop_gmwmi,
             }
         )
-    tckgen = mrtrix.tckgen(**tckgen_params)
+    # Casting here to satisfy `ty` type-checking
+    tckgen = mrtrix.tckgen(**cast(Mapping[str, Any], tckgen_params))
     tcksift = mrtrix.tcksift2(
         in_tracks=tckgen.tracks,
         in_fod=wm_fod,
