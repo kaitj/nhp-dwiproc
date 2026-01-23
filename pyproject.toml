@@ -1,10 +1,10 @@
 [project]
 dependencies = [
   "bids2table[s3]>=2.1.2",
-  "niwrap==0.8.0",
+  "niwrap>=0.8.2",
   "niwrap-helper>=0.7.0",
-  "polars>=1.35.2",
-  "typer>=0.20.0",
+  "polars>=1.37.1",
+  "typer>=0.21.1",
   "eddymotion>=0.1.15",
   # (Temporary) pinned versions of packages to fix errors
   "attrs==25.4.0",
@@ -40,11 +40,11 @@ build-backend = "hatchling.build"
 
 [dependency-groups]
 dev = [
-  "pytest>=9.0.1",
-  "mypy>=1.17.1",
+  "pytest>=9.0.2",
+  "mypy>=1.19.1",
   "pre-commit>=4.4.0",
   "pytest-cov>=7.0.0",
-  "ruff>=0.14.5",
+  "ruff>=0.14.14",
   "types-pyyaml>=6.0.12.20250822"
 ]
 
