@@ -37,7 +37,7 @@ def run(
         logger.info("Indexing dataset with bids2table...")
         table = get_bids_table(
             dataset_dir=input_dir,
-            b2t_index=index_path,
+            b2t_index=index_path if not index_opts.overwrite else None,
             max_workers=global_opts.threads,
             verbose=logger.level < logging.CRITICAL + 1,
         )
