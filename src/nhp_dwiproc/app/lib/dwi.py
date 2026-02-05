@@ -195,8 +195,6 @@ def grad_check(nii: Path, bvec: Path, bval: Path, mask: Path | None, **kwargs) -
             bvals_path=bval.name,
         ),
     )
-    if not bvec_check.export_grad_fsl_:
+    if not bvec_check.export_grad_fsl:
         raise AttributeError("Unsuccessful export of diffusion gradients")
-    niwrap_helper.save(
-        files=bvec_check.export_grad_fsl_.bvecs_path, out_dir=bval.parent
-    )
+    niwrap_helper.save(files=bvec_check.export_grad_fsl.bvecs_path, out_dir=bval.parent)
