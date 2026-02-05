@@ -42,6 +42,8 @@ def initialize(
         graph_runner=global_opts.graph,
     )
     runner_base = runner.base if isinstance(runner, GraphRunner) else runner
+    if Path(global_opts.work_dir) != runner_base.data_dir:
+        runner_base.data_dir = global_opts.work_dir
     runner_base.environ = {
         "MRTRIX_CONFIGFILE": (
             f"{runner_base.data_dir}/{runner_base.uid}_cfgs/.mrtrix.conf"
