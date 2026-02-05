@@ -40,12 +40,12 @@ build-backend = "hatchling.build"
 
 [dependency-groups]
 dev = [
-  "pytest>=9.0.2",
-  "mypy>=1.19.1",
-  "pre-commit>=4.4.0",
+  "pytest>=9.0.1",
+  "mypy>=1.17.1",
   "pytest-cov>=7.0.0",
-  "ruff>=0.14.14",
-  "types-pyyaml>=6.0.12.20250822"
+  "ruff>=0.15.0",
+  "types-pyyaml>=6.0.12.20250822",
+  "prek>=0.3.1"
 ]
 
 [tool.hatch.build]
