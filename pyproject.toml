@@ -1,10 +1,10 @@
 [project]
 dependencies = [
-  "bids2table[s3]>=2.2.1",
+  "bids2table[cloud]>=2.3.0",
   "niwrap>=0.8.2,<0.9",
   "niwrap-helper>=0.7.0",
-  "polars>=1.41.2",
-  "typer>=0.26.7",
+  "polars>=1.42.1",
+  "typer>=0.26.8",
   "eddymotion>=0.1.15",
   # (Temporary) pinned versions of packages to fix errors
   "attrs==25.4.0",
