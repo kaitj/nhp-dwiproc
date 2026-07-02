@@ -8,7 +8,20 @@ dependencies = [
   "eddymotion>=0.1.15",
   # (Temporary) pinned versions of packages to fix errors
   "attrs==25.4.0",
-  "nitransforms==24.0.1"
+  "nitransforms==24.0.1",
+  # (Temporary niwrap transitive dependencies)
+  "niwrap-afni==0.8.0",
+  "niwrap-ants==0.8.0",
+  "niwrap-c3d==0.8.0",
+  "niwrap-dcm2niix==0.8.0",
+  "niwrap-fastsurfer==0.8.0",
+  "niwrap-freesurfer==0.8.0",
+  "niwrap-fsl==0.8.0",
+  "niwrap-greedy==0.8.0",
+  "niwrap-mrtrix==0.8.0",
+  "niwrap-mrtrix3tissue==0.8.0",
+  "niwrap-niftyreg==0.8.0",
+  "niwrap-workbench==0.8.0"
 ]
 name = "nhp-dwiproc"
 description = "BIDS app for performing diffusion processing of NHP dataset(s)"
