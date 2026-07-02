@@ -1024,10 +1024,10 @@ requires-dist = [
 [package.metadata.requires-dev]
 dev = [
     { name = "mypy", specifier = ">=2.1.0" },
-    { name = "prek", specifier = ">=0.4.1" },
-    { name = "pytest", specifier = ">=9.0.3" },
+    { name = "prek", specifier = ">=0.4.6" },
+    { name = "pytest", specifier = ">=9.1.1" },
     { name = "pytest-cov", specifier = ">=7.1.0" },
-    { name = "ruff", specifier = ">=0.15.13" },
+    { name = "ruff", specifier = ">=0.15.20" },
     { name = "types-pyyaml", specifier = ">=6.0.12.20260518" },
 ]
 
