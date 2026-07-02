@@ -1,6 +1,6 @@
 [project]
 dependencies = [
-  "bids2table[s3]>=2.3.0",
+  "bids2table[cloud]>=2.3.0",
   "niwrap>=0.8.2",
   "niwrap-helper>=0.7.0",
   "polars>=1.42.1",
