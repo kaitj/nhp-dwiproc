@@ -985,9 +985,6 @@ class EddyMotionEstimator:
 
         index_order = _sort_dwdata_indices(seed, len(dwdata))
 
-        if "num_threads" not in align_kwargs and omp_nthreads is not None:
-            align_kwargs["num_threads"] = omp_nthreads
-
         len(models)
         for i_iter, model in enumerate(models):
             reg_target_type = (
