@@ -5,10 +5,7 @@ dependencies = [
   "niwrap-helper>=0.7.0",
   "polars>=1.42.1",
   "typer>=0.26.8",
-  "eddymotion>=0.1.15",
-  # (Temporary) pinned versions of packages to fix errors
-  "attrs==25.4.0",
-  "nitransforms==24.1.4",
+  "nitransforms>=25.1.0",
   # (Temporary niwrap transitive dependencies)
   "niwrap-afni>=0.8.2,<0.9",
   "niwrap-ants>=0.8.2,<0.9",
@@ -21,7 +18,8 @@ dependencies = [
   "niwrap-mrtrix>=0.8.2,<0.9",
   "niwrap-mrtrix3tissue>=0.8.2,<0.9",
   "niwrap-niftyreg>=0.8.2,<0.9",
-  "niwrap-workbench>=0.8.2,<0.9"
+  "niwrap-workbench>=0.8.2,<0.9",
+  "scipy>=1.17.1"
 ]
 name = "nhp-dwiproc"
 description = "BIDS app for performing diffusion processing of NHP dataset(s)"
