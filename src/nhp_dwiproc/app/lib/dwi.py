@@ -10,7 +10,7 @@ import numpy as np
 from niwrap import mrtrix
 
 from nhp_dwiproc.app.lib import metadata
-from nhp_dwiproc.app.lib.niwrap import bids_path, gen_hash, save
+from nhp_dwiproc.app.lib.niwrap import bids_path, generate_exec_folder, save
 from nhp_dwiproc.app.lib.types import StrPath
 
 
@@ -146,9 +146,8 @@ def get_eddy_indices(
         for idx, imsize in zip(indices or ["1"] * len(imsizes), imsizes)
     ]
 
-    output_dir = Path(output_dir) / f"{gen_hash()}_eddy-indices"
+    output_dir = generate_exec_folder("eddy-indices")
     out_fpath = output_dir / bids(desc="eddy", suffix="indices", ext=".txt")
-    out_fpath.parent.mkdir(parents=True, exist_ok=False)
     np.savetxt(out_fpath, np.array(eddy_idxes).flatten(), fmt="%s", newline=" ")
     return out_fpath
 
@@ -164,10 +163,9 @@ def rotate_bvec(
     transformation_mat = np.loadtxt(transformation)
     rotated_bvec = np.dot(transformation_mat[:3, :3], bvec)
 
-    out_dir = Path(output_dir) / f"{gen_hash()}_rotate-bvec"
+    out_dir = generate_exec_folder("rotate-bvec")
     out_fname = bids(space="T1w", res="dwi", desc="preproc", suffix="dwi", ext=".bvec")
     out_fpath = out_dir / out_fname
-    out_fpath.parent.mkdir(parents=True, exist_ok=False)
     np.savetxt(out_fpath, rotated_bvec, fmt="%.5f")
     return out_fpath
 

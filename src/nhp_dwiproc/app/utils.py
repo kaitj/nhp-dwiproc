@@ -6,6 +6,7 @@ from datetime import datetime
 from pathlib import Path
 
 from niwrap import DockerRunner, GraphRunner, SingularityRunner
+from styxpodman import PodmanRunner
 
 from nhp_dwiproc import config as cfg
 from nhp_dwiproc.app import resources
@@ -36,8 +37,8 @@ def initialize(
     Path(global_opts.work_dir).mkdir(parents=True, exist_ok=True)
 
     # Setup appropriate runner
-    logger, runner = setup_styx(
-        runner=global_opts.runner.name,
+    logger, runner, _ = setup_styx(
+        runner=global_opts.runner.name,  # type: ignore[arg-type]
         image_overrides=global_opts.runner.images,
         graph_runner=global_opts.graph,
     )
@@ -74,10 +75,19 @@ def generate_mrtrix_conf(
         f.write(f"BZeroThreshold: {global_opts.b0_thresh}")
 
     match global_opts.runner.name.lower():
-        case "docker" | "podman":
+        case "docker":
             if not isinstance(runner_base, DockerRunner):
                 raise TypeError(f"Expected DockerRunner, got {type(runner_base)}")
             runner_base.docker_extra_args.extend(
+                [
+                    "--mount",
+                    f"type=bind,source={cfg_path},target={cfg_path},readonly",
+                ]
+            )
+        case "podman":
+            if not isinstance(runner_base, PodmanRunner):
+                raise TypeError(f"Expected PodmanRunner, got {type(runner_base)}")
+            runner_base.podman_extra_args.extend(
                 [
                     "--mount",
                     f"type=bind,source={cfg_path},target={cfg_path},readonly",

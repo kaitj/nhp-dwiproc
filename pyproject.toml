@@ -5,7 +5,8 @@ dependencies = [
   "polars>=1.42.1",
   "typer>=0.26.8",
   "nitransforms>=25.1.0",
-  "scipy>=1.17.1"
+  "scipy>=1.17.1",
+  "styxpodman>=0.2.0"
 ]
 name = "nhp-dwiproc"
 description = "BIDS app for performing diffusion processing of NHP dataset(s)"

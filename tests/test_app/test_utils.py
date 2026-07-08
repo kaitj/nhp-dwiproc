@@ -4,6 +4,7 @@ from pathlib import Path
 
 import pytest
 from niwrap import DockerRunner, GraphRunner, LocalRunner, SingularityRunner
+from styxpodman import PodmanRunner
 
 from nhp_dwiproc.app import utils
 from nhp_dwiproc.config import (
@@ -30,17 +31,27 @@ class TestAppInit:
         assert isinstance(logger, logging.Logger)
         assert isinstance(runner, LocalRunner)
 
-    @pytest.mark.parametrize("runner", ("docker", "podman"))
-    def test_docker_init(self, tmp_path: Path, runner: str):
-        """Test docker / podman initialization."""
+    def test_docker_init(self, tmp_path: Path):
+        """Test docker initialization."""
         logger, runner = utils.initialize(
             output_dir=tmp_path,
             global_opts=GlobalOptsConfig(
-                runner=RunnerConfig(name=runner), work_dir=tmp_path
+                runner=RunnerConfig(name="docker"), work_dir=tmp_path
             ),
         )
         assert isinstance(logger, logging.Logger)
         assert isinstance(runner, DockerRunner)
+
+    def test_podman_init(self, tmp_path: Path):
+        """Test podman initialization."""
+        logger, runner = utils.initialize(
+            output_dir=tmp_path,
+            global_opts=GlobalOptsConfig(
+                runner=RunnerConfig(name="podman"), work_dir=tmp_path
+            ),
+        )
+        assert isinstance(logger, logging.Logger)
+        assert isinstance(runner, PodmanRunner)
 
     @pytest.mark.parametrize("runner", ("singularity", "apptainer"))
     def test_singularity_init(self, tmp_path: Path, runner: str):
@@ -67,7 +78,9 @@ class TestAppInit:
         """Test initialization with working directory saved."""
         logger, runner = utils.initialize(
             output_dir=tmp_path,
-            global_opts=GlobalOptsConfig(work_dir=tmp_path, work_keep=True),
+            global_opts=GlobalOptsConfig(
+                runner=RunnerConfig(name="local"), work_dir=tmp_path, work_keep=True
+            ),
         )
         assert isinstance(logger, logging.Logger)
         assert isinstance(runner, LocalRunner)
@@ -95,6 +108,19 @@ class TestGenMrtrixConf:
         cfg_fpath = runner.data_dir / f"{runner.uid}_cfgs" / ".mrtrix.conf"
         assert cfg_fpath.exists()
         assert runner.docker_extra_args == [
+            "--mount",
+            f"type=bind,source={cfg_fpath},target={cfg_fpath},readonly",
+        ]
+
+    def test_gen_conf_podman_valid(self, tmp_path: Path):
+        runner = PodmanRunner(data_dir=tmp_path)
+        utils.generate_mrtrix_conf(
+            global_opts=GlobalOptsConfig(runner=RunnerConfig(name="podman")),
+            runner=runner,
+        )
+        cfg_fpath = runner.data_dir / f"{runner.uid}_cfgs" / ".mrtrix.conf"
+        assert cfg_fpath.exists()
+        assert runner.podman_extra_args == [
             "--mount",
             f"type=bind,source={cfg_fpath},target={cfg_fpath},readonly",
         ]

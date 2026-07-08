@@ -64,7 +64,7 @@ def command(
         else logging.CRITICAL + 1
     )
     # Setup stage
-    logger, runner = setup_styx(runner="local")
+    logger, runner, _ = setup_styx()
     cli_utils.finalize_stage(ctx=ctx.obj, logger=logger)
     app.analysis_levels.index(
         input_dir=ctx.obj.cfg.input_dir,

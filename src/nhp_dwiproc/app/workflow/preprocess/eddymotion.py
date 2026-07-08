@@ -8,7 +8,7 @@ import numpy as np
 
 from nhp_dwiproc.app.lib.eddymotion import EddyMotionEstimator
 from nhp_dwiproc.app.lib.eddymotion import load as dmri_load
-from nhp_dwiproc.app.lib.niwrap import bids_path, gen_hash
+from nhp_dwiproc.app.lib.niwrap import bids_path, generate_exec_folder
 from nhp_dwiproc.config.preprocess import EddyMotionConfig
 
 
@@ -54,8 +54,7 @@ def eddymotion(
         logger.info("Skipping Eddymotion step.")
         return dwi_file, bval_file, bvec_file
 
-    out_fpath = output_dir / f"{gen_hash()}_eddymotion"
-    out_fpath.mkdir(parents=True, exist_ok=True)
+    out_fpath = generate_exec_folder("eddymotion")
 
     dwi_data = dmri_load(
         filename=dwi_file,

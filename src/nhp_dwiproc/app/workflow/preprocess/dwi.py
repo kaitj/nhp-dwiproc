@@ -15,7 +15,7 @@ from nhp_dwiproc.app.lib.dwi import (
     get_phenc_info,
     normalize,
 )
-from nhp_dwiproc.app.lib.niwrap import bids_path, gen_hash
+from nhp_dwiproc.app.lib.niwrap import bids_path, generate_exec_folder
 from nhp_dwiproc.app.lib.types import StrPath
 from nhp_dwiproc.config.preprocess import MetadataConfig
 
@@ -101,11 +101,11 @@ def gen_topup_inputs(
         image2=b0[1:],  # type: ignore
         output=bids(suffix="b0", ext=".nii.gz"),
     )
-    output_dir = Path(output_dir) / f"{gen_hash()}_normalize"
+    output_dir = generate_exec_folder("normalize")
     dwi_fpath = normalize(dwi_b0.output, bids=bids, output_dir=output_dir)
 
     # Get matching PE data to b0
-    output_dir = output_dir.parent / f"{gen_hash()}_concat-phenc"
+    output_dir = generate_exec_folder("concat-phenc")
     phenc_fpath = concat_dir_phenc_data(
         pe_data=pe_data, bids=bids, output_dir=output_dir
     )
@@ -130,8 +130,7 @@ def concat_bv(
     Returns:
         A 2-tuple, with concatenated bval and bvec file paths.
     """
-    output_dir = Path(output_dir) / f"{gen_hash()}_concat-bv"
-    output_dir.mkdir(parents=True, exist_ok=False)
+    output_dir = generate_exec_folder("concat-bv")
     bids = partial(bids, desc="concat", suffix="dwi")
     out_files = output_dir / bids(ext=".bval"), output_dir / bids(ext=".bvec")
 
@@ -187,7 +186,7 @@ def gen_eddy_inputs(
         phenc = concat_dir_phenc_data(
             pe_data=[pe_data[0]],
             bids=bids,
-            output_dir=Path(output_dir) / f"{gen_hash()}_concat-phenc",
+            output_dir=generate_exec_folder("concat-phenc"),
         )
     # Generate index file
     index_fpath = get_eddy_indices(

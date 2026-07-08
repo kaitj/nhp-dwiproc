@@ -6,7 +6,7 @@ from pathlib import Path
 import nibabel.nifti1 as nib
 import numpy as np
 
-from nhp_dwiproc.app.lib.niwrap import bids_path, gen_hash
+from nhp_dwiproc.app.lib.niwrap import bids_path, generate_exec_folder
 from nhp_dwiproc.app.lib.types import StrPath
 
 
@@ -22,8 +22,7 @@ def fake_t2w(
         dataobj=t2w_dataobj, affine=t1w_nii.affine, header=t1w_nii.header
     )
     t2w_fname = bids(desc="fake", suffix="T2w", ext=".nii.gz")
-    t2w_fpath = Path(output_dir) / f"{gen_hash()}_fake-t2w" / t2w_fname
-    t2w_fpath.parent.mkdir(parents=True, exist_ok=False)
+    t2w_fpath = generate_exec_folder("fake-t2w") / t2w_fname
     nib.save(img=t2w_nii, filename=t2w_fpath)
 
     return t2w_fpath

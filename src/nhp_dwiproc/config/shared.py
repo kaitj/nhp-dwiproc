@@ -17,6 +17,7 @@ class RequiredConfig:
 class Runner(str, Enum):
     """Runner config options."""
 
+    AUTO = "auto"
     LOCAL = "local"
     DOCKER = "docker"
     PODMAN = "podman"
@@ -28,7 +29,7 @@ class Runner(str, Enum):
 class RunnerConfig:
     """Runner configuration."""
 
-    name: str = Runner.LOCAL.value
+    name: str = Runner.AUTO.value
     images: dict[str, str] | None = None
 
 
