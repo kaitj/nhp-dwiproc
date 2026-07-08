@@ -5,12 +5,12 @@ import re
 from datetime import datetime
 from pathlib import Path
 
-from niwrap import GraphRunner
-from niwrap_helper import setup_styx
-from niwrap_helper.types import BaseRunner, DockerRunner, SingularityRunner
+from niwrap import DockerRunner, GraphRunner, SingularityRunner
 
 from nhp_dwiproc import config as cfg
 from nhp_dwiproc.app import resources
+from nhp_dwiproc.app.lib.niwrap import setup_styx
+from nhp_dwiproc.app.lib.types import BaseRunner
 
 
 def initialize(

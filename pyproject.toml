@@ -1,24 +1,10 @@
 [project]
 dependencies = [
   "bids2table[cloud]>=2.3.0",
-  "niwrap>=0.8.2,<0.9",
-  "niwrap-helper>=0.7.0",
+  "niwrap>=0.9.6,<1.0",
   "polars>=1.42.1",
   "typer>=0.26.8",
   "nitransforms>=25.1.0",
-  # (Temporary niwrap transitive dependencies)
-  "niwrap-afni>=0.8.2,<0.9",
-  "niwrap-ants>=0.8.2,<0.9",
-  "niwrap-c3d>=0.8.2,<0.9",
-  "niwrap-dcm2niix>=0.8.2,<0.9",
-  "niwrap-fastsurfer>=0.8.2,<0.9",
-  "niwrap-freesurfer>=0.8.2,<0.9",
-  "niwrap-fsl>=0.8.2,<0.9",
-  "niwrap-greedy>=0.8.2,<0.9",
-  "niwrap-mrtrix>=0.8.2,<0.9",
-  "niwrap-mrtrix3tissue>=0.8.2,<0.9",
-  "niwrap-niftyreg>=0.8.2,<0.9",
-  "niwrap-workbench>=0.8.2,<0.9",
   "scipy>=1.17.1"
 ]
 name = "nhp-dwiproc"

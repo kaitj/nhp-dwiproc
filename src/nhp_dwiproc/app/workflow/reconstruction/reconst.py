@@ -5,7 +5,8 @@ from functools import partial
 from pathlib import Path
 
 from niwrap import StyxRuntimeError, mrtrix, mrtrix3tissue
-from niwrap_helper import bids_path, save
+
+from nhp_dwiproc.app.lib.niwrap import bids_path, save
 
 
 def _create_response_odf(
@@ -38,7 +39,7 @@ def compute_fods(
     single_shell: bool,
     shells: list[int | float] | None,
     lmax: list[int] | None,
-    bids: partial[str] = partial(bids_path, sub="subject"),
+    bids: partial = partial(bids_path, sub="subject"),
     **kwargs,
 ) -> mrtrix.MtnormaliseOutputs:
     """Subworkflow for processing fibre orientation distribution maps.
@@ -144,7 +145,7 @@ def compute_dti(
     bvec: Path,
     bval: Path,
     mask: Path,
-    bids: partial[str] = partial(bids_path, sub="subject"),
+    bids: partial = partial(bids_path, sub="subject"),
     output_fpath: Path = Path.cwd(),
     **kwargs,
 ) -> None:

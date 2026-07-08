@@ -6,8 +6,9 @@ from pathlib import Path
 
 import numpy as np
 from niwrap import fsl
-from niwrap_helper.bids import StrPath, bids_path
 
+from nhp_dwiproc.app.lib.niwrap import bids_path
+from nhp_dwiproc.app.lib.types import StrPath
 from nhp_dwiproc.app.workflow.preprocess.dwi import gen_topup_inputs
 from nhp_dwiproc.config.preprocess import TopupConfig
 
@@ -17,7 +18,7 @@ def run_apply_topup(
     pe_data: list[np.ndarray],
     pe_dir: list[str],
     topup_opts: TopupConfig | None = TopupConfig(),
-    bids: partial[str] = partial(bids_path, sub="subject"),
+    bids: partial = partial(bids_path, sub="subject"),
     output_dir: StrPath = Path.cwd(),
     **kwargs,
 ) -> tuple[Path | None, list[str] | None, fsl.TopupOutputs | None]:

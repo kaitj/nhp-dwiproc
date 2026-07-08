@@ -4,10 +4,11 @@ import logging
 from pathlib import Path
 
 import pyarrow.parquet as pq
-from niwrap_helper import cleanup, get_bids_table
-from niwrap_helper.types import LocalRunner, StrPath
+from niwrap import LocalRunner
 
 from nhp_dwiproc import config as cfg
+from nhp_dwiproc.app.lib.niwrap import cleanup, get_bids_table
+from nhp_dwiproc.app.lib.types import StrPath
 
 
 def run(

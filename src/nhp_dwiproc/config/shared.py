@@ -29,7 +29,7 @@ class RunnerConfig:
     """Runner configuration."""
 
     name: str = Runner.LOCAL.value
-    images: dict[str, str | Path] | None = None
+    images: dict[str, str] | None = None
 
 
 @dataclass
