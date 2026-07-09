@@ -14,7 +14,7 @@ authors = [{name = "Jason Kai", email = "jason.kai@childmind.org"}]
 license = "MIT"
 readme = "README.md"
 dynamic = ["version"]
-requires-python = ">=3.11, <3.13"
+requires-python = ">=3.11"
 keywords = ["nhp", "diffusion mri", "processing"]
 classifiers = [
   "Development Status :: 3 - Alpha",
@@ -23,7 +23,9 @@ classifiers = [
   "License :: OSI Approved :: MIT License",
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3.11",
-  "Programming Language :: Python :: 3.12"
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14"
 ]
 
 [project.urls]
