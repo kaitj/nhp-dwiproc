@@ -6,12 +6,12 @@ from pathlib import Path
 from typing import Any
 
 import nibabel.nifti1 as nib
-import niwrap_helper
 import numpy as np
 from niwrap import mrtrix
-from niwrap_helper.types import StrPath
 
 from nhp_dwiproc.app.lib import metadata
+from nhp_dwiproc.app.lib.niwrap import bids_path, generate_exec_folder, save
+from nhp_dwiproc.app.lib.types import StrPath
 
 
 def get_phenc_info(
@@ -76,12 +76,11 @@ def get_phenc_info(
 
 def concat_dir_phenc_data(
     pe_data: list[np.ndarray],
-    bids: partial[str] = partial(niwrap_helper.bids_path, sub="subject"),
+    bids: partial = partial(bids_path, sub="subject"),
     output_dir: StrPath = Path.cwd(),
 ) -> Path:
     """Concatenate opposite phase encoding directions."""
     phenc_fpath = Path(output_dir) / bids(desc="concat", suffix="phenc", ext=".txt")
-    phenc_fpath.parent.mkdir(parents=True, exist_ok=False)
     np.savetxt(phenc_fpath, np.vstack(pe_data), fmt="%.5f")
 
     return phenc_fpath
@@ -89,7 +88,7 @@ def concat_dir_phenc_data(
 
 def normalize(
     img: str | Path,
-    bids: partial[str] = partial(niwrap_helper.bids_path, sub="subject"),
+    bids: partial = partial(bids_path, sub="subject"),
     output_dir: StrPath = Path.cwd(),
 ) -> Path:
     """Normalize 4D image."""
@@ -135,7 +134,7 @@ def get_pe_indices(pe_dir: list[str]) -> list[str]:
 def get_eddy_indices(
     niis: list[Path],
     indices: list[str] | None,
-    bids: partial[str] = partial(niwrap_helper.bids_path, sub="subject"),
+    bids: partial = partial(bids_path, sub="subject"),
     output_dir: StrPath = Path.cwd() / "tmp",
 ) -> Path:
     """Generate dwi index file for eddy."""
@@ -146,9 +145,8 @@ def get_eddy_indices(
         for idx, imsize in zip(indices or ["1"] * len(imsizes), imsizes)
     ]
 
-    output_dir = Path(output_dir) / f"{niwrap_helper.gen_hash()}_eddy-indices"
+    output_dir = generate_exec_folder("eddy-indices")
     out_fpath = output_dir / bids(desc="eddy", suffix="indices", ext=".txt")
-    out_fpath.parent.mkdir(parents=True, exist_ok=False)
     np.savetxt(out_fpath, np.array(eddy_idxes).flatten(), fmt="%s", newline=" ")
     return out_fpath
 
@@ -156,7 +154,7 @@ def get_eddy_indices(
 def rotate_bvec(
     bvec_file: Path,
     transformation: Path,
-    bids: partial[str] = partial(niwrap_helper.bids_path, sub="subject"),
+    bids: partial = partial(bids_path, sub="subject"),
     output_dir: StrPath = Path.cwd() / "tmp",
 ) -> Path:
     """Rotate bvec file."""
@@ -164,10 +162,9 @@ def rotate_bvec(
     transformation_mat = np.loadtxt(transformation)
     rotated_bvec = np.dot(transformation_mat[:3, :3], bvec)
 
-    out_dir = Path(output_dir) / f"{niwrap_helper.gen_hash()}_rotate-bvec"
+    out_dir = generate_exec_folder("rotate-bvec")
     out_fname = bids(space="T1w", res="dwi", desc="preproc", suffix="dwi", ext=".bvec")
     out_fpath = out_dir / out_fname
-    out_fpath.parent.mkdir(parents=True, exist_ok=False)
     np.savetxt(out_fpath, rotated_bvec, fmt="%.5f")
     return out_fpath
 
@@ -197,4 +194,4 @@ def grad_check(nii: Path, bvec: Path, bval: Path, mask: Path | None, **kwargs) -
     )
     if not bvec_check.export_grad_fsl:
         raise AttributeError("Unsuccessful export of diffusion gradients")
-    niwrap_helper.save(files=bvec_check.export_grad_fsl.bvecs_path, out_dir=bval.parent)
+    save(files=bvec_check.export_grad_fsl.bvecs_path, out_dir=bval.parent)

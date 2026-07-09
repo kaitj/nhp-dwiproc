@@ -9,12 +9,12 @@ from pathlib import Path
 from typing import Any
 
 import nibabel.nifti1 as nib
-import niwrap_helper
 from niwrap import ants, c3d, fsl, greedy, mrtrix
 
 from nhp_dwiproc import config as cfg
 from nhp_dwiproc.app.lib.anat import fake_t2w
 from nhp_dwiproc.app.lib.dwi import rotate_bvec
+from nhp_dwiproc.app.lib.niwrap import bids_path, save
 
 
 def register(
@@ -25,7 +25,7 @@ def register(
     bvec: Path,
     mask: Path,
     reg_opts: cfg.preprocess.RegistrationConfig = cfg.preprocess.RegistrationConfig(),
-    bids: partial[str] = partial(niwrap_helper.bids_path, sub="subject"),
+    bids: partial = partial(bids_path, sub="subject"),
     working_dir: Path = Path.cwd() / "tmp",
     output_dir: Path = Path.cwd(),
     logger: Logger = Logger(name=__name__),
@@ -69,7 +69,7 @@ def register(
     )
     b0_brain = fsl.fslmaths(
         input_files=[b0.output],
-        operations=[{"mas": mask}],
+        operations=[fsl.fslmaths_operation_mas(mas=mask)],
         output=bids(desc="avgBrain", suffix="b0", ext=".nii.gz"),
     )
     # Fake T2w contrast for registration
@@ -78,7 +78,7 @@ def register(
     if t1w_mask:
         t2w_brain = fsl.fslmaths(
             input_files=[t2w_brain],
-            operations=[fsl.fslmaths_operation(mas=t1w_mask)],
+            operations=[fsl.fslmaths_operation_mas(mas=t1w_mask)],
             output=bids(desc="fakeBrain", suffix="T2w", ext=".nii.gz"),
         ).output_file
     # Perform registration
@@ -142,7 +142,7 @@ def register(
         ).replace("from_", "from"),
     )
     transforms["itk"] = ras_to_itk.itk_transform_outfile
-    niwrap_helper.save(
+    save(
         files=[
             Path(b0_resliced.reslice_moving_image.resliced_image),
             (ref_b0 := (Path(ref_b0.root) / b0_fname)),
@@ -161,7 +161,7 @@ def apply_transform(
     t1w_mask: Path | None,
     mask: Path,
     transforms: dict[str, Any],
-    bids: partial[str] = partial(niwrap_helper.bids_path, sub="subject"),
+    bids: partial = partial(bids_path, sub="subject"),
     working_dir: Path = Path.cwd() / "tmp",
     output_dir: Path = Path.cwd(),
     logger: Logger = Logger(name=__name__),
@@ -199,7 +199,7 @@ def apply_transform(
         output_dir=working_dir,
     )
 
-    niwrap_helper.save(
+    save(
         files=[
             xfm_dwi.output.output_image_outfile,
             xfm_mask.output.output_image_outfile,

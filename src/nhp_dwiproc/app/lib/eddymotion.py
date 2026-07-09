@@ -942,11 +942,10 @@ class EddyMotionEstimator:
         filepath_parent: Path | None = None,
         align_kwargs: dict[str, Any] | None = None,
         models: list[str] | None = None,
-        omp_nthreads: int | None = None,
         n_jobs: int | None = None,
         seed: int | bool | None = None,
         **kwargs: Any,
-    ) -> np.ndarray:
+    ) -> np.ndarray | None:
         """Estimate head-motion and eddy currents.
 
         Parameters
@@ -984,9 +983,6 @@ class EddyMotionEstimator:
         models = models or ["b0"]
 
         index_order = _sort_dwdata_indices(seed, len(dwdata))
-
-        if "num_threads" not in align_kwargs and omp_nthreads is not None:
-            align_kwargs["num_threads"] = omp_nthreads
 
         len(models)
         for i_iter, model in enumerate(models):

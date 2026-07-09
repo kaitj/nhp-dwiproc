@@ -4,11 +4,11 @@ import logging
 from functools import partial
 from pathlib import Path
 
-import niwrap_helper
 import numpy as np
 
 from nhp_dwiproc.app.lib.eddymotion import EddyMotionEstimator
 from nhp_dwiproc.app.lib.eddymotion import load as dmri_load
+from nhp_dwiproc.app.lib.niwrap import bids_path, generate_exec_folder
 from nhp_dwiproc.config.preprocess import EddyMotionConfig
 
 
@@ -18,7 +18,7 @@ def eddymotion(
     bval: list[Path],
     eddymotion_opts: EddyMotionConfig | None = EddyMotionConfig(),
     seed: int = 42,
-    bids: partial[str] = partial(niwrap_helper.bids_path, sub="subject"),
+    bids: partial = partial(bids_path, sub="subject"),
     output_dir: Path = Path.cwd() / "tmp",
     threads: int = 1,
     **kwargs,
@@ -54,8 +54,7 @@ def eddymotion(
         logger.info("Skipping Eddymotion step.")
         return dwi_file, bval_file, bvec_file
 
-    out_fpath = Path(output_dir) / f"{niwrap_helper.gen_hash()}_eddymotion"
-    out_fpath.mkdir(parents=True, exist_ok=True)
+    out_fpath = generate_exec_folder("eddymotion")
 
     dwi_data = dmri_load(
         filename=dwi_file,

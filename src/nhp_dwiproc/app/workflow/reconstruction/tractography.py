@@ -4,7 +4,8 @@ from functools import partial
 from pathlib import Path
 
 from niwrap import mrtrix
-from niwrap_helper import bids_path, save
+
+from nhp_dwiproc.app.lib.niwrap import bids_path, save
 
 
 def generate_tractography(
@@ -17,7 +18,7 @@ def generate_tractography(
     maxlength: float | None,
     backtrack: bool,
     nocrop_gmwmi: bool,
-    bids: partial[str] = partial(bids_path, sub="subject"),
+    bids: partial = partial(bids_path, sub="subject"),
     output_fpath: Path = Path.cwd(),
 ) -> None:
     """Sub-workflow for tractography processing.

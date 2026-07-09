@@ -3,9 +3,9 @@
 from functools import partial
 from pathlib import Path
 
-import niwrap_helper
 from niwrap import mrtrix
 
+from nhp_dwiproc.app.lib.niwrap import bids_path, save
 from nhp_dwiproc.config.preprocess import BiascorrectConfig
 
 
@@ -14,7 +14,7 @@ def biascorrect(
     bval: Path,
     bvec: Path,
     biascorrect_opts: BiascorrectConfig = BiascorrectConfig(),
-    bids: partial[str] = partial(niwrap_helper.bids_path, sub="subject"),
+    bids: partial = partial(bids_path, sub="subject"),
     output_dir: Path = Path.cwd(),
 ) -> tuple[Path, ...]:
     """Perform biascorrection steps using the ANTs algorithm.
@@ -48,7 +48,7 @@ def biascorrect(
         input_image=biascorrect.output_image_file,
         output_image=bids(desc="preproc", suffix="dwi", ext=".nii.gz"),
     )
-    niwrap_helper.save(files=biascorrect.output_image_file, out_dir=output_dir)
+    save(files=biascorrect.output_image_file, out_dir=output_dir)
 
     mask = mrtrix.dwi2mask(
         input_=biascorrect.output_image_file,

@@ -5,10 +5,8 @@ from functools import partial
 from pathlib import Path
 from typing import Any
 
-import niwrap_helper
 import numpy as np
 from niwrap import mrtrix
-from niwrap_helper.types import StrPath
 
 from nhp_dwiproc.app.lib.dwi import (
     concat_dir_phenc_data,
@@ -17,6 +15,8 @@ from nhp_dwiproc.app.lib.dwi import (
     get_phenc_info,
     normalize,
 )
+from nhp_dwiproc.app.lib.niwrap import bids_path, generate_exec_folder
+from nhp_dwiproc.app.lib.types import StrPath
 from nhp_dwiproc.config.preprocess import MetadataConfig
 
 
@@ -27,7 +27,7 @@ def get_phenc_data(
     json: dict[str, Any],
     idx: int,
     metadata_opts: MetadataConfig = MetadataConfig(),
-    bids: partial[str] = partial(niwrap_helper.bids_path, sub="subject"),
+    bids: partial = partial(bids_path, sub="subject"),
     **kwargs,
 ) -> tuple[Path, str, np.ndarray]:
     """Generate phase-encoding direction data.
@@ -80,7 +80,7 @@ def gen_topup_inputs(
     b0: list[Path],
     pe_data: list[np.ndarray],
     pe_dir: list[str],
-    bids: partial[str] = partial(niwrap_helper.bids_path, sub="subject"),
+    bids: partial = partial(bids_path, sub="subject"),
     output_dir: StrPath = Path.cwd(),
 ) -> tuple[Path, Path, list[str]]:
     """Generate concatenated inputs for topup.
@@ -101,11 +101,11 @@ def gen_topup_inputs(
         image2=b0[1:],  # type: ignore
         output=bids(suffix="b0", ext=".nii.gz"),
     )
-    output_dir = Path(output_dir) / f"{niwrap_helper.gen_hash()}_normalize"
+    output_dir = generate_exec_folder("normalize")
     dwi_fpath = normalize(dwi_b0.output, bids=bids, output_dir=output_dir)
 
     # Get matching PE data to b0
-    output_dir = output_dir.parent / f"{niwrap_helper.gen_hash()}_concat-phenc"
+    output_dir = generate_exec_folder("concat-phenc")
     phenc_fpath = concat_dir_phenc_data(
         pe_data=pe_data, bids=bids, output_dir=output_dir
     )
@@ -116,7 +116,7 @@ def gen_topup_inputs(
 def concat_bv(
     bvals: list[Path],
     bvecs: list[Path],
-    bids: partial[str] = partial(niwrap_helper.bids_path, sub="subject"),
+    bids: partial = partial(bids_path, sub="subject"),
     output_dir: StrPath = Path.cwd(),
 ) -> tuple[Path, Path]:
     """Concatenate .bval and .bvec files.
@@ -130,8 +130,7 @@ def concat_bv(
     Returns:
         A 2-tuple, with concatenated bval and bvec file paths.
     """
-    output_dir = Path(output_dir) / f"{niwrap_helper.gen_hash()}_concat-bv"
-    output_dir.mkdir(parents=True, exist_ok=False)
+    output_dir = generate_exec_folder("concat-bv")
     bids = partial(bids, desc="concat", suffix="dwi")
     out_files = output_dir / bids(ext=".bval"), output_dir / bids(ext=".bvec")
 
@@ -149,7 +148,7 @@ def gen_eddy_inputs(
     pe_data: list[np.ndarray],
     phenc: Path | None,
     indices: list[str] | None,
-    bids: partial[str] = partial(niwrap_helper.bids_path, sub="subject"),
+    bids: partial = partial(bids_path, sub="subject"),
     output_dir: StrPath = Path.cwd() / "tmp",
 ) -> tuple[Path, ...]:
     """Generate concatenated inputs for eddy.
@@ -187,7 +186,7 @@ def gen_eddy_inputs(
         phenc = concat_dir_phenc_data(
             pe_data=[pe_data[0]],
             bids=bids,
-            output_dir=Path(output_dir) / f"{niwrap_helper.gen_hash()}_concat-phenc",
+            output_dir=generate_exec_folder("concat-phenc"),
         )
     # Generate index file
     index_fpath = get_eddy_indices(

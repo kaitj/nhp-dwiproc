@@ -6,13 +6,13 @@ from pathlib import Path
 
 import polars as pl
 from niwrap import GraphRunner, LocalRunner, Runner
-from niwrap_helper import bids_path, cleanup
-from niwrap_helper.types import StrPath
 from tqdm import tqdm
 
 from nhp_dwiproc import config as cfg_
 from nhp_dwiproc.app import io, utils
 from nhp_dwiproc.app.lib import dwi as dwi_lib
+from nhp_dwiproc.app.lib.niwrap import bids_path, cleanup
+from nhp_dwiproc.app.lib.types import StrPath
 from nhp_dwiproc.app.workflow.reconstruction import reconst, tractography
 
 

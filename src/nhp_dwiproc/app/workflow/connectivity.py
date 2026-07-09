@@ -5,7 +5,8 @@ from pathlib import Path
 
 from bids2table._entities import parse_bids_entities
 from niwrap import mrtrix, workbench
-from niwrap_helper import bids_path, save
+
+from nhp_dwiproc.app.lib.niwrap import bids_path, save
 
 
 def generate_conn_matrix(
@@ -14,7 +15,7 @@ def generate_conn_matrix(
     tck_weights_fpath: Path | None,
     search_radius: float,
     output_fpath: Path = Path.cwd(),
-    bids: partial[str] = partial(bids_path, sub="subject"),
+    bids: partial = partial(bids_path, sub="subject"),
 ) -> None:
     """Generate connectivity matrix."""
     tck2connectome = {}
@@ -46,22 +47,22 @@ def extract_tract(
     truncate_fpaths: list[Path],
     voxel_size: list[float] | None,
     output_fpath: Path = Path.cwd(),
-    bids: partial[str] = partial(bids_path, sub="subject"),
+    bids: partial = partial(bids_path, sub="subject"),
 ) -> tuple[mrtrix.TckmapOutputs, str | None, str | None]:
     """Extract individual tract."""
     # Organize ROIs and get tract label
     if voxel_size and (len(voxel_size) > 3 or len(voxel_size) != 1):
         raise ValueError("Unexpected number of voxels provided.")
 
-    incl_rois: list[mrtrix.TckeditIncludeParamsDict] = [
+    incl_rois = [
         mrtrix.tckedit_include(spec=mrtrix.tckedit_various_file(fpath))
         for fpath in include_fpaths
     ]
-    excl_rois: list[mrtrix.TckeditExcludeParamsDict] = [
+    excl_rois = [
         mrtrix.tckedit_exclude(spec=mrtrix.tckedit_various_file_1(fpath))
         for fpath in exclude_fpaths
     ]
-    truncate_rois: list[mrtrix.TckeditMaskParamsDict] = [
+    truncate_rois = [
         mrtrix.tckedit_mask(spec=mrtrix.tckedit_various_file_2(fpath))
         for fpath in truncate_fpaths
     ]
@@ -69,7 +70,7 @@ def extract_tract(
     if len(rois) == 0:
         raise ValueError("No ROIs were provided")
 
-    tract_entities = parse_bids_entities(rois[0].spec.obj)
+    tract_entities = parse_bids_entities(rois[0].spec.obj)  # type: ignore[attr-defined]
     label = tract_entities.get("label")
     hemi = tract_entities.get("hemi")
     tckedit = mrtrix.tckedit(
@@ -77,9 +78,9 @@ def extract_tract(
         tracks_out=bids(
             hemi=hemi, label=label, method="iFOD2", suffix="tractograhy", ext=".tck"
         ),
-        include=incl_rois,
-        exclude=excl_rois,
-        mask=truncate_rois,
+        include=incl_rois,  # type: ignore[arg-type]
+        exclude=excl_rois,  # type: ignore[arg-type]
+        mask=truncate_rois,  # type: ignore[arg-type]
         tck_weights_in=tck_weights_fpath,
         tck_weights_out=bids(
             hemi=hemi, label=label, method="SIFT2", suffix="tckWeights", ext=".txt"
@@ -89,7 +90,7 @@ def extract_tract(
         tracks=tckedit.tracks_out,
         tck_weights_in=tckedit.tck_weights_out,
         vox=voxel_size,
-        template=rois[0].spec.obj,
+        template=rois[0].spec.obj,  # type: ignore[attr-defined]
         output=bids(hemi=hemi, label=label, suffix="tdi", ext=".nii.gz"),
     )
     save(files=tdi.output, out_dir=output_fpath)
@@ -104,7 +105,7 @@ def surface_map_tract(
     pial: list[Path],
     inflated: list[Path],
     output_fpath: Path = Path.cwd(),
-    bids: partial[str] = partial(bids_path, sub="subject"),
+    bids: partial = partial(bids_path, sub="subject"),
 ) -> None:
     """Map extracted tract to surface.
 

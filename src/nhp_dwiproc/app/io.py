@@ -7,10 +7,10 @@ from typing import Any, Sequence
 
 import polars as pl
 from bids2table import load_bids_metadata
-from niwrap_helper import get_bids_table
-from niwrap_helper.bids import PathT, StrPath, as_path
 
 from nhp_dwiproc import config as cfg_
+from nhp_dwiproc.app.lib.niwrap import get_bids_table
+from nhp_dwiproc.app.lib.types import StrPath
 
 
 def load_participant_table(
@@ -114,7 +114,7 @@ def get_inputs(
         entities: dict[str, Any] | None = None,
         queries: list[str] | None = None,
         metadata: bool = False,
-    ) -> PathT | dict[str, Any] | None:
+    ) -> Path | dict[str, Any] | None:
         """Retrieve file path from BIDSTable."""
         if entities is not None and queries is not None:
             raise ValueError("Provide only one of 'entities' or 'queries'")
@@ -145,19 +145,19 @@ def get_inputs(
         if query_data.is_empty():
             return None
         else:
-            fpath = as_path("/".join(query_data.select(["root", "path"]).row(0)))
+            fpath = Path("/".join(query_data.select(["root", "path"]).row(0)))
             if metadata:
                 return load_bids_metadata(fpath)
             return fpath
 
-    def _get_surf_roi_paths(queries: list[str] | None = None) -> list[PathT] | None:
+    def _get_surf_roi_paths(queries: list[str] | None = None) -> list[Path] | None:
         """Retrieve ROI paths from BIDSTable."""
         if queries is None:
             return None
 
         surfs_df = query(df, " & ".join(queries))
         return [
-            as_path(f"{row['root']}/{row['path']}")
+            Path(f"{row['root']}/{row['path']}")
             for row in surfs_df.iter_rows(named=True)
         ]
 
