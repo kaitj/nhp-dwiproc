@@ -3,6 +3,7 @@
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
+from typing import Literal
 
 
 @dataclass
@@ -11,7 +12,7 @@ class RequiredConfig:
 
     input_dir: Path
     output_dir: Path
-    stage: str
+    stage: Literal["index", "preprocess", "reconstruction", "connectivity"]
 
 
 class Runner(str, Enum):
@@ -29,7 +30,9 @@ class Runner(str, Enum):
 class RunnerConfig:
     """Runner configuration."""
 
-    name: str = Runner.AUTO.value
+    name: Literal["auto", "local", "docker", "podman", "apptainer", "singularity"] = (
+        Runner.AUTO.value
+    )
     images: dict[str, str] | None = None
 
 

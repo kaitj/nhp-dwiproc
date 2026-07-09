@@ -69,7 +69,7 @@ def register(
     )
     b0_brain = fsl.fslmaths(
         input_files=[b0.output],
-        operations=[{"mas": mask}],
+        operations=[fsl.fslmaths_operation_mas(mas=mask)],
         output=bids(desc="avgBrain", suffix="b0", ext=".nii.gz"),
     )
     # Fake T2w contrast for registration
@@ -78,7 +78,7 @@ def register(
     if t1w_mask:
         t2w_brain = fsl.fslmaths(
             input_files=[t2w_brain],
-            operations=[fsl.fslmaths_operation(mas=t1w_mask)],
+            operations=[fsl.fslmaths_operation_mas(mas=t1w_mask)],
             output=bids(desc="fakeBrain", suffix="T2w", ext=".nii.gz"),
         ).output_file
     # Perform registration

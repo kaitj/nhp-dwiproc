@@ -252,7 +252,6 @@ def get_bids_table(
 
 def setup_styx(
     runner: RunnerType | Literal["auto"] = "auto",
-    tmp_env: str = "LOCAL",
     tmp_dir: str = "styx_tmp",
     image_overrides: dict[str, str] | None = None,
     graph_runner: bool = False,
@@ -267,10 +266,7 @@ def setup_styx(
             ``['local', 'docker', 'podman', 'singularity', 'apptainer']``.
             Defaults to ``'auto'`` which auto-detects the first available
             container runtime on :envvar:`PATH`.
-        tmp_env: Environment variable to query for temporary folder.
-            Defaults to ``'LOCAL'``.
         tmp_dir: Working directory to output to.
-            Defaults to ``'{tmp_env}/tmp_dir'``.
         image_overrides: Dictionary containing overrides for container tags.
         graph_runner: Flag to make use of GraphRunner middleware.
         verbose: Verbosity level (0=WARNING, 1=INFO, 2+=DEBUG).
@@ -297,7 +293,7 @@ def setup_styx(
             )
         case "podman":
             niwrap.set_global_runner(
-                runner=PodmanRunner(
+                runner=PodmanRunner(  # type: ignore[misc] # multi value *args,**kwargs
                     podman_executable=runner_exec,
                     image_overrides=image_overrides,
                     *args,

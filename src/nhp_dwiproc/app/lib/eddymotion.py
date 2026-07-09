@@ -942,11 +942,10 @@ class EddyMotionEstimator:
         filepath_parent: Path | None = None,
         align_kwargs: dict[str, Any] | None = None,
         models: list[str] | None = None,
-        omp_nthreads: int | None = None,
         n_jobs: int | None = None,
         seed: int | bool | None = None,
         **kwargs: Any,
-    ) -> np.ndarray:
+    ) -> np.ndarray | None:
         """Estimate head-motion and eddy currents.
 
         Parameters

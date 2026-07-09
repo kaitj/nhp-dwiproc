@@ -3,6 +3,7 @@
 from collections.abc import Sequence
 from dataclasses import dataclass, field
 from enum import Enum
+from typing import Literal
 
 from nhp_dwiproc.config.shared import BaseConfig, QueryConfig
 
@@ -27,7 +28,7 @@ class DenoiseConfig(BaseConfig):
     """Denoise config."""
 
     map_: bool = False
-    estimator: str = DenoiseEstimator.exp2.value
+    estimator: Literal["Exp1", "Exp2"] = DenoiseEstimator.exp2.value
 
 
 @dataclass
@@ -55,7 +56,7 @@ class EddySLMModel(str, Enum):
 class EddyConfig(BaseConfig):
     """FSL's Eddy configuration."""
 
-    slm: str | None = None
+    slm: Literal["none", "linear", "quadratic"] | None = None
     cnr: bool = False
     repol: bool = False
     residuals: bool = False
@@ -99,7 +100,9 @@ class UndistortionOpts:
 class UndistortionConfig:
     """Distortion configuration."""
 
-    method: str = UndistortionMethod.topup.value
+    method: Literal["topup", "fieldmap", "eddymotion", "fugue"] = (
+        UndistortionMethod.topup.value
+    )
     opts: UndistortionOpts = field(default_factory=UndistortionOpts)
 
 
@@ -132,9 +135,9 @@ class RegistrationInit(str, Enum):
 class RegistrationConfig(BaseConfig):
     """Registration configuration."""
 
-    metric: str = RegistrationMetric.NMI.value
+    metric: Literal["SSD", "MI", "NMI", "MAHAL"] = RegistrationMetric.NMI.value
     iters: str = "50x50"
-    init: str = RegistrationInit.identity.value
+    init: Literal["identity", "image-centers"] = RegistrationInit.identity.value
 
 
 @dataclass

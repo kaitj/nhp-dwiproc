@@ -15,8 +15,8 @@ def _create_response_odf(
     single_shell: bool,
     _no_gm: bool = False,
 ) -> list[
-    mrtrix.Dwi2fodResponseOdfParamsDict
-    | mrtrix3tissue.Ss3tCsdBeta1ResponseOdfParamsDict
+    mrtrix.Dwi2fodResponseOdfParamsDictTagged
+    | mrtrix3tissue.Ss3tCsdBeta1ResponseOdfParamsDictTagged
 ]:
     """Helper to create ODFs."""
     func = (
@@ -37,7 +37,7 @@ def compute_fods(
     bval: Path,
     mask: Path,
     single_shell: bool,
-    shells: list[int | float] | None,
+    shells: list[int] | None,
     lmax: list[int] | None,
     bids: partial = partial(bids_path, sub="subject"),
     **kwargs,
@@ -62,7 +62,7 @@ def compute_fods(
     # Helper functons
     def _normalize(
         odfs: mrtrix.Dwi2fodOutputs | mrtrix3tissue.Ss3tCsdBeta1Outputs,
-    ) -> list[mrtrix.MtnormaliseInputOutputParamsDict]:
+    ) -> list[mrtrix.MtnormaliseInputOutputParamsDictTagged]:
         """Build normalization parameters for ODF outputs."""
         return [
             mrtrix.mtnormalise_input_output(
@@ -74,8 +74,8 @@ def compute_fods(
 
     def _run_fod(
         response_odf: list[
-            mrtrix.Dwi2fodResponseOdfParamsDict
-            | mrtrix3tissue.Ss3tCsdBeta1ResponseOdfParamsDict
+            mrtrix.Dwi2fodResponseOdfParamsDictTagged
+            | mrtrix3tissue.Ss3tCsdBeta1ResponseOdfParamsDictTagged
         ],
         single_shell: bool,
     ) -> mrtrix.Dwi2fodOutputs | mrtrix3tissue.Ss3tCsdBeta1Outputs:
@@ -89,7 +89,7 @@ def compute_fods(
             dwi=mrconvert.output,
             response_odf=response_odf,
             mask=mask,
-            shells=shells,
+            shells=shells,  # type: ignore[arg-type] # shells should alwayas be an int
         )
 
     # Partials
@@ -117,7 +117,7 @@ def compute_fods(
 
     try:
         response_odf = _create_response_odf(
-            response=dwi2response.algorithm,
+            response=dwi2response.algorithm,  # type: ignore[arg-type] # method accepts multiple types
             bids=bids_fod,
             single_shell=single_shell,
         )
@@ -181,12 +181,12 @@ def compute_dti(
     # Save relevant outputs
     save(
         files=[  # type: ignore
-            tensor2metrics.adc,
-            tensor2metrics.fa,
-            tensor2metrics.ad,
-            tensor2metrics.rd,
-            tensor2metrics.value,
-            tensor2metrics.vector,
+            tensor2metrics.adc,  # type: ignore[list-item] # Not None
+            tensor2metrics.fa,  # type: ignore[list-item] # Not None
+            tensor2metrics.ad,  # type: ignore[list-item] # Not None
+            tensor2metrics.rd,  # type: ignore[list-item] # Not None
+            tensor2metrics.value,  # type: ignore[list-item] # Not None
+            tensor2metrics.vector,  # type: ignore[list-item] # Not None
         ],
         out_dir=output_fpath,
     )
