@@ -12,7 +12,7 @@ opts:
   threads: 1
   index_path:
   runner:
-    name: local
+    name:
     images:
   graph: false
   seed_number: 99
