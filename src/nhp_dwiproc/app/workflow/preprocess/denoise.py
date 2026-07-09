@@ -4,10 +4,10 @@ import logging
 from functools import partial
 from pathlib import Path
 
-import niwrap_helper
 import numpy as np
 from niwrap import OutputPathType, mrtrix
 
+from nhp_dwiproc.app.lib.niwrap import bids_path, save
 from nhp_dwiproc.config.preprocess import DenoiseConfig
 
 
@@ -15,7 +15,7 @@ def denoise(
     nii: Path,
     bval: Path,
     denoise_opts: DenoiseConfig | None = DenoiseConfig(),
-    bids: partial[str] = partial(niwrap_helper.bids_path, sub="subject"),
+    bids: partial = partial(bids_path, sub="subject"),
     output_fpath: Path = Path.cwd(),
     **kwargs,
 ) -> OutputPathType:
@@ -64,5 +64,5 @@ def denoise(
     if denoise_opts.map_:
         if not denoise.noise:
             raise ValueError("Noise map was not generated")
-        niwrap_helper.save(files=denoise.noise, out_dir=output_fpath)
+        save(files=denoise.noise, out_dir=output_fpath)
     return denoise.out

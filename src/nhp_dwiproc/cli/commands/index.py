@@ -5,10 +5,10 @@ from functools import partial
 from pathlib import Path
 
 import typer
-from niwrap_helper import setup_styx
 
 from nhp_dwiproc import app
 from nhp_dwiproc import config as cfg_
+from nhp_dwiproc.app.lib.niwrap import setup_styx
 from nhp_dwiproc.cli import utils as cli_utils
 from nhp_dwiproc.cli.utils import LOG_LEVELS
 
@@ -64,7 +64,7 @@ def command(
         else logging.CRITICAL + 1
     )
     # Setup stage
-    logger, runner = setup_styx(runner="local")
+    logger, runner, _ = setup_styx()
     cli_utils.finalize_stage(ctx=ctx.obj, logger=logger)
     app.analysis_levels.index(
         input_dir=ctx.obj.cfg.input_dir,

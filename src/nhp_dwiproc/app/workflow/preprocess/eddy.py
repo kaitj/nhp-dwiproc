@@ -4,10 +4,10 @@ import logging
 from functools import partial
 from pathlib import Path
 
-import niwrap_helper
 import numpy as np
 from niwrap import fsl, mrtrix
 
+from nhp_dwiproc.app.lib.niwrap import bids_path, save
 from nhp_dwiproc.app.workflow.preprocess.dwi import gen_eddy_inputs
 from nhp_dwiproc.config.preprocess import EddyConfig
 
@@ -22,7 +22,7 @@ def run_eddy(
     indices: list[str] | None,
     topup: fsl.TopupOutputs | None,
     eddy_opts: EddyConfig | None = EddyConfig(),
-    bids: partial[str] = partial(niwrap_helper.bids_path, sub="subject"),
+    bids: partial = partial(bids_path, sub="subject"),
     working_dir: Path = Path.cwd() / "tmp",
     output_dir: Path = Path.cwd(),
     **kwargs,
@@ -98,11 +98,11 @@ def run_eddy(
 
     if eddy_opts.cnr:
         cnr_fpath = Path(eddy.cnr_maps).with_name(bids(suffix="cnrmap", ext=".nii.gz"))
-        niwrap_helper.save(files=cnr_fpath, out_dir=output_dir)
+        save(files=cnr_fpath, out_dir=output_dir)
     if eddy_opts.residuals:
         residuals_fpath = Path(eddy.residuals).with_name(
             bids(suffix="residuals", ext=".nii.gz")
         )
-        niwrap_helper.save(files=residuals_fpath, out_dir=output_dir)
+        save(files=residuals_fpath, out_dir=output_dir)
 
     return eddy.out, bval_cat, eddy.rotated_bvecs

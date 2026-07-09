@@ -5,12 +5,13 @@ import re
 from datetime import datetime
 from pathlib import Path
 
-from niwrap import GraphRunner
-from niwrap_helper import setup_styx
-from niwrap_helper.types import BaseRunner, DockerRunner, SingularityRunner
+from niwrap import DockerRunner, GraphRunner, SingularityRunner
+from styxpodman import PodmanRunner
 
 from nhp_dwiproc import config as cfg
 from nhp_dwiproc.app import resources
+from nhp_dwiproc.app.lib.niwrap import setup_styx
+from nhp_dwiproc.app.lib.types import BaseRunner
 
 
 def initialize(
@@ -36,8 +37,8 @@ def initialize(
     Path(global_opts.work_dir).mkdir(parents=True, exist_ok=True)
 
     # Setup appropriate runner
-    logger, runner = setup_styx(
-        runner=global_opts.runner.name,
+    logger, runner, _ = setup_styx(
+        runner=global_opts.runner.name,  # type: ignore[arg-type]
         image_overrides=global_opts.runner.images,
         graph_runner=global_opts.graph,
     )
@@ -74,10 +75,19 @@ def generate_mrtrix_conf(
         f.write(f"BZeroThreshold: {global_opts.b0_thresh}")
 
     match global_opts.runner.name.lower():
-        case "docker" | "podman":
+        case "docker":
             if not isinstance(runner_base, DockerRunner):
                 raise TypeError(f"Expected DockerRunner, got {type(runner_base)}")
             runner_base.docker_extra_args.extend(
+                [
+                    "--mount",
+                    f"type=bind,source={cfg_path},target={cfg_path},readonly",
+                ]
+            )
+        case "podman":
+            if not isinstance(runner_base, PodmanRunner):
+                raise TypeError(f"Expected PodmanRunner, got {type(runner_base)}")
+            runner_base.podman_extra_args.extend(
                 [
                     "--mount",
                     f"type=bind,source={cfg_path},target={cfg_path},readonly",
@@ -141,25 +151,28 @@ def validate_opts(
                 ):
                     raise ValueError("Invalid phase-encode direction provided")
             # Validate TOPUP config
-            if not isinstance(
-                stage_opts.undistort.opts.topup, cfg.preprocess.TopupConfig
-            ):
-                raise TypeError(
-                    f"Expected TopupConfig, got {type(cfg.preprocess.TopupConfig)}"
-                )
-            if stage_opts.undistort.opts.topup.config not in {
-                "b02b0",
-                "b02b0_macaque",
-                "b02b0_marmoset",
-            }:
-                topup_cfg = str(stage_opts.undistort.opts.topup.config).rstrip(".cnf")
-                stage_opts.undistort.opts.topup.config = f"{topup_cfg}.cnf"
-            else:
-                stage_opts.undistort.opts.topup.config = str(
-                    Path(resources.__file__).parent
-                    / "topup"
-                    / f"{stage_opts.undistort.opts.topup.config}.cnf"
-                )
-            # Check to make sure configuration exists
-            if not Path(stage_opts.undistort.opts.topup.config).exists():
-                raise FileNotFoundError("TOPUP configuration not found")
+            if stage_opts.undistort.method != "eddymotion":
+                if not isinstance(
+                    stage_opts.undistort.opts.topup, cfg.preprocess.TopupConfig
+                ):
+                    raise TypeError(
+                        f"Expected TopupConfig, got {type(cfg.preprocess.TopupConfig)}"
+                    )
+                if stage_opts.undistort.opts.topup.config not in {
+                    "b02b0",
+                    "b02b0_macaque",
+                    "b02b0_marmoset",
+                }:
+                    topup_cfg = str(stage_opts.undistort.opts.topup.config).rstrip(
+                        ".cnf"
+                    )
+                    stage_opts.undistort.opts.topup.config = f"{topup_cfg}.cnf"
+                else:
+                    stage_opts.undistort.opts.topup.config = str(
+                        Path(resources.__file__).parent
+                        / "topup"
+                        / f"{stage_opts.undistort.opts.topup.config}.cnf"
+                    )
+                # Check to make sure configuration exists
+                if not Path(stage_opts.undistort.opts.topup.config).exists():
+                    raise FileNotFoundError("TOPUP configuration not found")

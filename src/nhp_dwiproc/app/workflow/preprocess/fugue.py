@@ -8,10 +8,10 @@ from functools import partial
 from pathlib import Path
 from typing import Any
 
-import niwrap_helper
 from niwrap import fsl
 
 from nhp_dwiproc.app.lib import metadata
+from nhp_dwiproc.app.lib.niwrap import bids_path
 from nhp_dwiproc.config.preprocess import FugueConfig
 
 WARP_DIR = {"i": "x", "i-": "x-", "j": "y", "j-": "y-", "k": "z", "k-": "z-"}
@@ -24,7 +24,7 @@ def run_fugue(
     json: dict[str, Any],
     echo_spacing: str | None,
     fugue_opts: FugueConfig | None = FugueConfig(),
-    bids: partial = partial(niwrap_helper.bids_path, sub="subject"),
+    bids: partial = partial(bids_path, sub="subject"),
     **kwargs,
 ) -> Path:
     """Perform FSL's FUGUE.

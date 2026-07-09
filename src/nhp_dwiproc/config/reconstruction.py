@@ -2,6 +2,7 @@
 
 from dataclasses import dataclass, field
 from enum import Enum
+from typing import Literal
 
 from nhp_dwiproc.config.shared import BaseConfig, QueryConfig
 
@@ -29,7 +30,7 @@ class TractographyConfig(BaseConfig):
     shells: list[int] | None = None
     lmax: list[int] | None = None
     steps: float | None = None
-    method: str = TractographyMethod.wm.value
+    method: Literal["wm", "act"] = TractographyMethod.wm.value
     opts: TractographyACTConfig | None = None
     cutoff: float = 0.1
     streamlines: int = 10_000

@@ -11,13 +11,13 @@ from typing import Any, DefaultDict
 import polars as pl
 from bids2table import parse_bids_entities
 from niwrap import GraphRunner, LocalRunner, Runner
-from niwrap_helper import bids_path, cleanup
-from niwrap_helper.types import StrPath
 from tqdm import tqdm
 
 from nhp_dwiproc import config as cfg_
 from nhp_dwiproc.app import io, utils
 from nhp_dwiproc.app.lib import dwi as dwi_lib
+from nhp_dwiproc.app.lib.niwrap import bids_path, cleanup
+from nhp_dwiproc.app.lib.types import StrPath
 from nhp_dwiproc.app.workflow import preprocess
 
 
@@ -227,7 +227,7 @@ def run(
                 )
             case "fugue":
                 # For legacy datasets (single phase-encode + fieldmap)
-                if input_data:  # type: ignore
+                if input_data:
                     raise ValueError("Input data is missing")
                 dwi = None  # type: ignore[assignment]
                 dwi, bval, bvec = preprocess.eddy.run_eddy(
@@ -243,9 +243,9 @@ def run(
                 )
                 dwi = preprocess.fugue.run_fugue(
                     dwi=dwi or dir_outs["dwi"][0],
-                    fmap=input_data["fmap"]["nii"],  # type: ignore
+                    fmap=input_data["fmap"]["nii"],
                     pe_dir=dir_outs["pe_dir"][0],
-                    json=input_data["dwi"]["json"],  # type: ignore
+                    json=input_data["dwi"]["json"],
                     fugue_opts=undistort_opts.fugue,
                     echo_spacing=str(preproc_opts.metadata.echo_spacing)
                     if preproc_opts.metadata.echo_spacing is not None
@@ -258,13 +258,12 @@ def run(
                     eddymotion_opts=undistort_opts.eddymotion,
                     seed=global_opts.seed_number,
                     bids=bids,
-                    output_dir=global_opts.work_dir,
                     threads=global_opts.threads,
                     logger=logger,
                 )
 
         # Ensure variables are bound
-        if not input_data:  # type: ignore
+        if not input_data:
             raise ValueError("Input data is missing")
         dwi = locals().get("dwi", input_data["dwi"]["nii"])
         bval = locals().get("bval", input_data["dwi"]["bval"])

@@ -2,6 +2,7 @@
 
 from dataclasses import dataclass, field
 from enum import Enum
+from typing import Literal
 
 from nhp_dwiproc.config.shared import QueryConfig
 
@@ -35,5 +36,5 @@ class ConnectivityConfig:
     """Connectivity configuration."""
 
     query: QueryConfig = field(default_factory=QueryConfig)
-    method: str = ConnectivityMethod.connectome.value
+    method: Literal["connectome", "tract"] = ConnectivityMethod.connectome.value
     opts: ConnectomeConfig | TractMapConfig = field(default_factory=ConnectomeConfig)
