@@ -1,6 +1,6 @@
 <h1> NHP Diffusion Processing (nhp-dwiproc) </h1>
 
-![Python3](https://img.shields.io/badge/python-3.11%20%7C%203.12-blue.svg)
+![Python3](https://img.shields.io/badge/python-%3E=3.11-blue.svg)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 ![stability-stable](https://img.shields.io/badge/stability-experimental-orange.svg)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/kaitj/nhp-dwiproc/blob/main/LICENSE)
