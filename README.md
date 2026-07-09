@@ -13,12 +13,6 @@ The application aims to provide robust and reproducible workflows across various
 processing stages (e.g. preprocessing, tractography, etc.) with compatibility across
 different acquisition protocols.
 
-<!-- Remove when v1.x / v0.3.x release -->
-
-> [!WARNING]
-> Indexes generated with `v0.1.x` are incompatible with `v0.2.x+`, as well as latest
-> development versions.
-
 <!-- Generalized workflow figure to be included here -->
 
 ## Tools
@@ -43,7 +37,7 @@ The following non-Python neuroimaging tools are used throughout the workflows.
 You can install the latest stable version of `nhp-dwiproc` using `pip`:
 
 ```sh
-pip install git+https://github.com/HumanBrainED/nhp-dwiproc@v0.2.3
+pip install git+https://github.com/HumanBrainED/nhp-dwiproc@v0.3.0
 ```
 
 ## Usage
