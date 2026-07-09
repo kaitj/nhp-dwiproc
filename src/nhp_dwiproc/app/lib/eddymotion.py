@@ -5,6 +5,7 @@ Copyright 2022 The NiPreps Developers <nipreps@gmail.com>
 Licensed under Apache License, Version 2.0
 """
 
+import logging
 from collections import namedtuple
 from dataclasses import dataclass, field, fields
 from pathlib import Path
@@ -19,6 +20,8 @@ from nitransforms.io.itk import ITKLinearTransform
 from nitransforms.linear import Affine
 from niwrap import ants
 from scipy import ndimage
+
+_logger = logging.Logger(__name__)
 
 # --------------------------------------------------------------------------- #
 #  Registration stage configuration (adapted from eddymotion config JSONs)
@@ -920,6 +923,9 @@ def _run_registration(
     )
 
     # Debugging: generate aligned file
+    if isinstance(bval, (list, np.ndarray)):
+        _logger.warning(f"List of b-values found: {bval}, taking first: {bval[0]}")
+        bval = bval[0]
     xform.apply(moving, reference=fixed).to_filename(
         dirname / f"aligned{vol_idx:05d}_{int(bval):04d}.nii.gz"
     )

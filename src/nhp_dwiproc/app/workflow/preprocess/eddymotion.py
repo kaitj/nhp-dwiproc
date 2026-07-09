@@ -19,7 +19,6 @@ def eddymotion(
     eddymotion_opts: EddyMotionConfig | None = EddyMotionConfig(),
     seed: int = 42,
     bids: partial = partial(bids_path, sub="subject"),
-    output_dir: Path = Path.cwd() / "tmp",
     threads: int = 1,
     **kwargs,
 ) -> tuple[Path, ...]:
@@ -74,11 +73,14 @@ def eddymotion(
     # Update output directory
     dwi_fpath = out_fpath / bids(desc="eddymotion", suffix="dwi", ext=".nii.gz")
     dwi_data.to_nifti(filename=dwi_fpath, insert_b0=True)
-    # Update rotated bvecs and save
+    # Update rotated bvecs and bvals — prepend 0s to match prepended b0 in DWI
     if dwi_data.gradients is None:
         raise ValueError("No diffusion gradients provided in DWI object")
     zeros = np.zeros((dwi_data.gradients[:3].shape[0], 1))
     bvecs = np.hstack((zeros, dwi_data.gradients[:3]))
+    bvals = np.hstack((np.array([0.0]), dwi_data.gradients[3]))
     bvecs_fpath = out_fpath / bids(suffix="dwi", ext=".bvec")
+    bvals_fpath = out_fpath / bids(suffix="dwi", ext=".bval")
     np.savetxt(bvecs_fpath, bvecs, fmt="%.5f")
-    return dwi_fpath, bval[0], bvecs_fpath
+    np.savetxt(bvals_fpath, bvals, fmt="%.1f")
+    return dwi_fpath, bvals_fpath, bvecs_fpath
