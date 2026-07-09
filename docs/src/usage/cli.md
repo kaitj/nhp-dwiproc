@@ -34,7 +34,7 @@ These optional arguments can be used for all analysis level stages:
 | `--runner-images <map>`     | `opts.runner.images` | String dictionary, mapping container overrides. - default: `None                                                                |
 | `--graph`                   | `opts.graph`         | print mermaid diagram of workflow - default: `False`                                                                            |
 | `--seed-num <num>`          | `opts.seed_num`      | fixed seed to use for reproducible results - default: `99`                                                                      |
-| `--work-dir <work_dir>`     | `opts.work_dir`      | working directory to temporarily write files to - default: `./styx_tmp`                                                         |
+| `--work-dir <work_dir>`     | `opts.work_dir`      | working directory to temporarily write files to - default: `styx_tmp`                                                         |
 | `--work-keep`               | `opts.work_keep`     | keep working directory - default: `False`                                                                                       |
 | `--b0-thresh <thresh>`      | `opts.b0_thresh`     | threshold for shell to be considered b=0 - default: `10`                                                                        |
 

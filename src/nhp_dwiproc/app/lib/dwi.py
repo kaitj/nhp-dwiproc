@@ -81,7 +81,6 @@ def concat_dir_phenc_data(
 ) -> Path:
     """Concatenate opposite phase encoding directions."""
     phenc_fpath = Path(output_dir) / bids(desc="concat", suffix="phenc", ext=".txt")
-    phenc_fpath.parent.mkdir(parents=True, exist_ok=False)
     np.savetxt(phenc_fpath, np.vstack(pe_data), fmt="%.5f")
 
     return phenc_fpath
