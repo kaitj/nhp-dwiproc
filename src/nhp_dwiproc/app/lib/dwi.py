@@ -104,7 +104,7 @@ def normalize(
     norm_nii = nib.Nifti1Image(dataobj=arr, affine=nii.affine, header=nii.header)
     nii_fname = bids(desc="normalized", suffix="b0", ext=".nii.gz")
     nii_fpath = Path(output_dir) / nii_fname
-    nii_fpath.parent.mkdir(parents=True, exist_ok=False)
+    nii_fpath.parent.mkdir(parents=True, exist_ok=True)
     nib.save(norm_nii, nii_fpath)
 
     return nii_fpath

@@ -37,7 +37,7 @@ The following non-Python neuroimaging tools are used throughout the workflows.
 You can install the latest stable version of `nhp-dwiproc` using `pip`:
 
 ```sh
-pip install git+https://github.com/HumanBrainED/nhp-dwiproc@v0.3.0
+pip install git+https://github.com/HumanBrainED/nhp-dwiproc@v0.3.1
 ```
 
 ## Usage
